@@ -1,11 +1,10 @@
 // Écran « Synthèse » : semaine / mois.
 
-import { analyse, describeDetails, crossVerdict, CROSS_EXPLAIN } from './analysis.js';
+import { analyse, describeDetails } from './analysis.js';
 import {
   esc, toDay, addDays, startOfWeek, startOfMonth, endOfMonth, fmtDayShort, fmtMonthName,
   fmtDdMm, parseDay, intensityColor,
 } from './util.js';
-import { slotLabel, tagLabel } from './catalogue.js';
 
 const state = { mode: 'week', anchor: toDay() };
 
@@ -71,15 +70,10 @@ export function renderSummary(container) {
           <span class="pill" style="background:${intensityColor(d.max)}">${d.max ?? '–'}</span>
           <span class="hd-main"><b>${fmtDayShort(d.day)}</b>
             <small>${d.logs.map((l) => `<span class="${l.def.urgent ? 'red' : ''}">${esc(l.def.label)}${l.intensity != null && !l.def.noScale ? ' ' + l.intensity : ''}</span>`).join(', ')}</small>
-            ${d.meals.length ? `<small class="muted">🍽 ${d.meals.map((m) => `${esc(slotLabel(m.slot))} : ${esc((m.items || []).join(', '))}${(m.tags || []).length ? ` (${m.tags.map(tagLabel).join(', ')})` : ''}`).join(' · ')}</small>` : ''}
           </span>
         </button>`).join('') : '<p class="muted">Rien à afficher.</p>'}
     </div>
-
-    <div class="card">
-      <h3><span class="h-ico">🍽️</span>Repas × symptômes</h3>
-      ${crossingsHtml(a.crossings)}
-    </div>`;
+`;
 }
 
 function chartSvg(days, mode) {
@@ -136,26 +130,6 @@ function calendarHtml(days) {
       ${parseDay(d.day).getDate()}${d.urgent.length ? '<i class="cal-urg"></i>' : ''}</button>`;
   }
   return html + '</div>';
-}
-
-const pct = (x) => (x == null ? '–' : `${Math.round(x * 100)} %`);
-
-function crossingsHtml(c) {
-  if (c.meals < 3) return '<p class="muted">Pas assez de repas saisis sur la période pour croiser avec les symptômes.</p>';
-  const row = (r) => {
-    const v = crossVerdict(r);
-    const name = esc(r.label.toLowerCase());
-    return `<div class="cross-row">
-      <div class="cross-head"><b>${esc(r.label.charAt(0).toUpperCase() + r.label.slice(1))}</b><span class="verdict v-${v.level}">${esc(v.text)}</span></div>
-      <div class="cross-line"><span>Repas avec ${name}</span><span class="bar with"><i style="width:${(r.pctWith || 0) * 100}%"></i></span><b>${pct(r.pctWith)}</b></div>
-      <div class="cross-line"><span>Repas sans ${name}</span><span class="bar without"><i style="width:${(r.pctWithout || 0) * 100}%"></i></span><b>${pct(r.pctWithout)}</b></div>
-      <small class="muted">${r.hits} repas sur ${r.n} suivis de troubles</small>
-    </div>`;
-  };
-  return `<p class="muted small">${esc(CROSS_EXPLAIN)}</p>
-    ${c.tags.length ? `<div class="sub">Par étiquette</div>${c.tags.map(row).join('')}` : '<p class="muted">Aucune étiquette utilisée au moins 2 fois.</p>'}
-    ${c.foods.length ? `<div class="sub">Aliments fréquents</div>${c.foods.map(row).join('')}` : ''}
-    <p class="muted small">Ce sont des observations, pas une preuve : à discuter avec le médecin.</p>`;
 }
 
 export function bindSummary(container, { onRender, onOpenDay }) {

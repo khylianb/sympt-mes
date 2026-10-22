@@ -47,11 +47,6 @@ export const fmtDayFull = (day) => fmtFull.format(parseDay(day));
 export const fmtMonthName = (day) => cap(fmtMonth.format(parseDay(day)));
 export const fmtDdMm = (day) => `${day.slice(8, 10)}/${day.slice(5, 7)}`;
 
-export function nowTime() {
-  const d = new Date();
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export function uuid() {
   if (crypto.randomUUID) return crypto.randomUUID();
   const b = crypto.getRandomValues(new Uint8Array(16));

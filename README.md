@@ -3,8 +3,8 @@
 Application web (PWA, installable sur iPhone) de suivi quotidien des symptômes,
 pensée pour une suspicion de maladie de Crohn. Interface en français, saisie en moins d'une minute.
 
-- **Aujourd'hui** : symptômes cochés par catégorie avec intensité 0–10, note libre, repas (aliments récents en un tap, étiquettes, heure).
-- **Synthèse** : semaine / mois, courbe d'intensité, calendrier, symptômes fréquents, jours difficiles, alertes en rouge, croisement repas × symptômes.
+- **Aujourd'hui** : symptômes cochés par catégorie avec intensité 0–10 et note libre.
+- **Synthèse** : semaine / mois, courbe d'intensité, calendrier, symptômes fréquents, jours difficiles, alertes en rouge.
 - **Enregistrer / Exporter** : PDF pour le médecin (7 jours, 30 jours, tout) ou sauvegarde complète (JSON), via la fenêtre de partage iOS.
 - Fonctionne hors ligne ; synchronisation automatique entre les deux téléphones via Supabase.
 
@@ -16,7 +16,7 @@ pensée pour une suspicion de maladie de Crohn. Interface en français, saisie e
 |---|---|
 | `index.html`, `css/app.css` | page unique et styles |
 | `js/config.js` | URL Supabase + clé **publique** |
-| `js/catalogue.js` | liste des symptômes, catégories, repas, étiquettes |
+| `js/catalogue.js` | liste des symptômes et catégories |
 | `js/store.js` | stockage local (IndexedDB), modifications en attente |
 | `js/sync.js` | connexion et synchronisation Supabase (API REST, sans librairie) |
 | `js/today.js`, `js/summary.js`, `js/settings.js` | les trois écrans |

@@ -9,6 +9,7 @@ const DB_VERSION = 1;
 export const TABLES = {
   symptom_logs: { key: (r) => `${r.day}|${r.symptom_key}`, conflict: 'owner,day,symptom_key',
     cols: ['day', 'symptom_key', 'intensity', 'details', 'deleted', 'updated_at'] },
+  // Repas : plus saisis dans l'appli, table conservée pour la compatibilité des sauvegardes
   meals: { key: (r) => r.id, conflict: 'id',
     cols: ['id', 'day', 'slot', 'time', 'items', 'tags', 'deleted', 'updated_at'] },
   day_notes: { key: (r) => r.day, conflict: 'owner,day',
@@ -151,8 +152,6 @@ export function symptomDef(key) {
 }
 
 export const logsForDay = (day) => all('symptom_logs').filter((r) => r.day === day && !r.deleted);
-export const mealsForDay = (day) => all('meals').filter((r) => r.day === day && !r.deleted)
-  .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 export const noteForDay = (day) => get('day_notes', day) || { day, note: '', nothing: false };
 
 export function meta(key) {

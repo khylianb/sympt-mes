@@ -1,9 +1,9 @@
-// Écran « Aujourd'hui » : symptômes, note, repas.
+// Écran « Aujourd'hui » : symptômes et note.
 
 import * as store from './store.js';
-import { CATEGORIES, MEAL_SLOTS, MEAL_TAGS } from './catalogue.js';
-import { recentFoods, usualSymptoms } from './analysis.js';
-import { esc, $, $$, debounce, nowTime, uuid, intensityColor, toast, toDay } from './util.js';
+import { CATEGORIES } from './catalogue.js';
+import { usualSymptoms } from './analysis.js';
+import { esc, $, $$, debounce, uuid, intensityColor, toast, toDay } from './util.js';
 
 function greeting() {
   const h = new Date().getHours();
@@ -74,10 +74,7 @@ export function renderToday(container, currentDay) {
   html += `</div>
     <button class="add-btn" data-act="add-symptom">+ Ajouter un symptôme</button>
     <label class="note-label" for="day-note"><span class="st-ico">📝</span>Note libre</label>
-    <textarea id="day-note" rows="3" placeholder="Ex. : stress au travail, règles, médicament pris…">${esc(note.note)}</textarea>
-
-    <h2 class="section-title"><span class="st-ico">🍽️</span>Repas</h2>
-    <div class="card meals">${MEAL_SLOTS.map(slotHtml).join('')}</div>`;
+    <textarea id="day-note" rows="3" placeholder="Ex. : stress au travail, règles, médicament pris…">${esc(note.note)}</textarea>`;
 
   container.innerHTML = html;
 }
@@ -114,21 +111,6 @@ function symptomHtml(def, log) {
       <span class="sym-label">${esc(def.label)}${def.urgent ? ' <span class="dot" title="À signaler vite"></span>' : ''}</span>
     </label>
     ${on ? `<div class="sym-body">${body}</div>` : ''}
-  </div>`;
-}
-
-function slotHtml(slot) {
-  const meals = store.mealsForDay(day).filter((m) => m.slot === slot.id);
-  return `<div class="slot" data-slot="${slot.id}">
-    <div class="slot-head">
-      <span class="slot-name"><span class="slot-ico">${slot.icon}</span>${esc(slot.label)}</span>
-      <button class="slot-add" data-act="meal-add">+ ajouter</button>
-    </div>
-    ${meals.map((m) => `<button class="meal" data-act="meal-edit" data-id="${m.id}">
-      <span class="meal-time">${esc(m.time || '')}</span>
-      <span class="meal-items">${esc((m.items || []).join(', ') || '—')}</span>
-      ${(m.tags || []).length ? `<span class="meal-tags">${m.tags.map((t) => `<span class="tag">${esc(MEAL_TAGS.find((x) => x.id === t)?.label || t)}</span>`).join('')}</span>` : ''}
-    </button>`).join('')}
   </div>`;
 }
 
@@ -199,10 +181,6 @@ export function bindToday(container) {
       }
     } else if (act === 'add-symptom') {
       openAddSymptom();
-    } else if (act === 'meal-add') {
-      openMeal({ id: null, slot: el.closest('.slot').dataset.slot });
-    } else if (act === 'meal-edit') {
-      openMeal(store.get('meals', el.dataset.id));
     }
   });
 
@@ -274,98 +252,5 @@ function openAddSymptom() {
     closedCats.delete(category);
     closeSheet();
     rerender();
-  };
-}
-
-// ---------- feuille repas ----------
-
-function openMeal(existing) {
-  const isNew = !existing.id;
-  const meal = isNew ? { id: null, day, slot: existing.slot, time: nowTime(), items: [], tags: [] }
-    : { ...existing, items: [...(existing.items || [])], tags: [...(existing.tags || [])] };
-  const slot = MEAL_SLOTS.find((s) => s.id === meal.slot);
-
-  const persist = () => {
-    if (!meal.id) meal.id = uuid();
-    store.save('meals', { id: meal.id, day: meal.day, slot: meal.slot, time: meal.time, items: meal.items, tags: meal.tags, deleted: false });
-  };
-
-  const body = openSheet(`
-    <div class="sheet-head">
-      <h3>${slot.icon} ${esc(slot.label)}</h3>
-      <input type="time" id="m-time" value="${esc(meal.time || '')}">
-    </div>
-    <div class="chips" id="m-items"></div>
-    <form id="m-form" class="add-food">
-      <input id="m-input" type="text" placeholder="Ajouter un aliment…" autocomplete="off" enterkeyhint="done">
-      <button class="btn primary small" type="submit">Ajouter</button>
-    </form>
-    <div class="sub">Récents</div>
-    <div class="chips" id="m-recent"></div>
-    <div class="sub">Étiquettes</div>
-    <div class="chips" id="m-tags"></div>
-    <div class="sheet-actions">
-      ${!isNew ? '<button class="btn danger" id="m-del">Supprimer</button>' : '<span></span>'}
-      <button class="btn primary" id="m-ok">OK</button>
-    </div>`, { onClose: () => rerender() });
-
-  const recent = recentFoods(meal.slot);
-  const draw = () => {
-    $('#m-items', body).innerHTML = meal.items.length
-      ? meal.items.map((it, i) => `<button class="chip on" data-i="${i}">${esc(it)} ✕</button>`).join('')
-      : '<span class="muted">Aucun aliment pour l’instant</span>';
-    const lower = new Set(meal.items.map((x) => x.toLowerCase()));
-    const rec = recent.filter((r) => !lower.has(r.toLowerCase()));
-    $('#m-recent', body).innerHTML = rec.length
-      ? rec.map((r) => `<button class="chip" data-food="${esc(r)}">+ ${esc(r)}</button>`).join('')
-      : '<span class="muted">Les aliments saisis apparaîtront ici</span>';
-    $('#m-tags', body).innerHTML = MEAL_TAGS.map((t) => `<button class="chip tagchip ${meal.tags.includes(t.id) ? 'on' : ''}" data-tag="${t.id}">${esc(t.label)}</button>`).join('');
-  };
-  draw();
-
-  const addFood = (name) => {
-    name = name.trim();
-    if (!name || meal.items.some((x) => x.toLowerCase() === name.toLowerCase())) return;
-    meal.items.push(name);
-    persist();
-    draw();
-  };
-
-  $('#m-items', body).onclick = (e) => {
-    const b = e.target.closest('[data-i]');
-    if (!b) return;
-    meal.items.splice(Number(b.dataset.i), 1);
-    persist();
-    draw();
-  };
-  $('#m-recent', body).onclick = (e) => {
-    const b = e.target.closest('[data-food]');
-    if (b) addFood(b.dataset.food);
-  };
-  $('#m-tags', body).onclick = (e) => {
-    const b = e.target.closest('[data-tag]');
-    if (!b) return;
-    const t = b.dataset.tag;
-    meal.tags = meal.tags.includes(t) ? meal.tags.filter((x) => x !== t) : [...meal.tags, t];
-    persist();
-    draw();
-  };
-  $('#m-form', body).onsubmit = (e) => {
-    e.preventDefault();
-    const input = $('#m-input', body);
-    for (const part of input.value.split(',')) addFood(part);
-    input.value = '';
-  };
-  $('#m-time', body).onchange = (e) => { meal.time = e.target.value; if (meal.id) persist(); };
-  $('#m-ok', body).onclick = () => {
-    const input = $('#m-input', body);
-    if (input.value.trim()) { for (const part of input.value.split(',')) addFood(part); }
-    closeSheet();
-  };
-  const del = $('#m-del', body);
-  if (del) del.onclick = () => {
-    if (!confirm('Supprimer ce repas ?')) return;
-    store.save('meals', { ...store.get('meals', meal.id), deleted: true });
-    closeSheet();
   };
 }

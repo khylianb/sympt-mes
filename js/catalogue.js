@@ -82,25 +82,4 @@ export const SYMPTOMS = [
   { key: 'eyes', cat: 'peau', label: 'Yeux rouges ou douloureux' },
 ];
 
-export const DIGESTIVE_CAT = 'digestif';
-
-export const MEAL_SLOTS = [
-  { id: 'breakfast', label: 'Petit-déj', icon: '☕' },
-  { id: 'lunch', label: 'Déjeuner', icon: '🍽️' },
-  { id: 'dinner', label: 'Dîner', icon: '🍲' },
-  { id: 'snack', label: 'Collations', icon: '🍎' },
-  { id: 'drinks', label: 'Boissons', icon: '🥤' },
-];
-
-export const MEAL_TAGS = [
-  { id: 'gras', label: 'Gras' },
-  { id: 'laitier', label: 'Laitier' },
-  { id: 'epice', label: 'Épicé' },
-  { id: 'cafe', label: 'Café' },
-  { id: 'alcool', label: 'Alcool' },
-  { id: 'fibres', label: 'Fibres' },
-];
-
-export const slotLabel = (id) => (MEAL_SLOTS.find((s) => s.id === id) || {}).label || id;
-export const tagLabel = (id) => (MEAL_TAGS.find((t) => t.id === id) || {}).label || id;
 export const catLabel = (id) => (CATEGORIES.find((c) => c.id === id) || {}).label || id;
