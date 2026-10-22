@@ -185,12 +185,14 @@ main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-widt
 .cats { padding: 6px; }
 .cat { border-radius: var(--radius-s); }
 .cat + .cat { margin-top: 2px; }
-.cat[data-cat="digestif"] { --t: var(--t-digestif); --c: var(--c-digestif); }
-.cat[data-cat="general"] { --t: var(--t-general); --c: var(--c-general); }
-.cat[data-cat="osteo"] { --t: var(--t-osteo); --c: var(--c-osteo); }
-.cat[data-cat="renal"] { --t: var(--t-renal); --c: var(--c-renal); }
-.cat[data-cat="thorax"] { --t: var(--t-thorax); --c: var(--c-thorax); }
+.cat[data-cat="transit"] { --t: var(--t-digestif); --c: var(--c-digestif); }
+.cat[data-cat="ventre"] { --t: var(--t-peau); --c: var(--c-peau); }
+.cat[data-cat="anal"] { --t: var(--t-thorax); --c: var(--c-thorax); }
+.cat[data-cat="douleurs"] { --t: var(--t-osteo); --c: var(--c-osteo); }
 .cat[data-cat="neuro"] { --t: var(--t-neuro); --c: var(--c-neuro); }
+.cat[data-cat="general"] { --t: var(--t-general); --c: var(--c-general); }
+.cat[data-cat="coeur"] { --t: var(--t-thorax); --c: var(--c-thorax); }
+.cat[data-cat="urines"] { --t: var(--t-renal); --c: var(--c-renal); }
 .cat[data-cat="peau"] { --t: var(--t-peau); --c: var(--c-peau); }
 .cat.open { background: color-mix(in srgb, var(--t) 45%, transparent); }
 .cat-title {
@@ -258,6 +260,12 @@ main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-widt
 
 /* ---------- chips ---------- */
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.zone-side {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
+  margin-top: 8px; padding: 8px 10px; border-radius: 12px; background: var(--primary-soft);
+}
+.zone-name { font-weight: 800; font-size: .88rem; min-width: 6.5em; }
+.chip.small { padding: 5px 11px; font-size: .82rem; }
 /* Non choisie : blanche avec contour ; choisie : pleine avec ✓ */
 .chip {
   padding: 7px 13px; border-radius: 999px; font-size: .9rem; font-weight: 600;

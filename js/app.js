@@ -111,7 +111,7 @@ function startApp() {
 async function main() {
   initSheet();
   // Démo : base locale séparée, vide, jamais synchronisée
-  await store.init(demo ? 'symptmes-demo-vide' : undefined);
+  await store.init(demo ? 'symptmes-demo-v3' : undefined);
   if (demo) $('#demo-banner').hidden = false;
 
   views.today = $('#view-today');

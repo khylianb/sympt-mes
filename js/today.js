@@ -1,7 +1,7 @@
 // Écran « Aujourd'hui » : symptômes et note.
 
 import * as store from './store.js';
-import { CATEGORIES } from './catalogue.js';
+import { CATEGORIES, BODY_PARTS, SIDES } from './catalogue.js';
 import { usualSymptoms } from './analysis.js';
 import { esc, $, $$, debounce, uuid, intensityColor, toast, toDay } from './util.js';
 
@@ -38,7 +38,7 @@ export function renderToday(container, currentDay) {
   const defs = store.symptomDefs();
   const usual = usualSymptoms(day);
 
-  const nothingOn = note.nothing && logs.size === 0;
+  const nothingOn = note.nothing && ![...logs.values()].some((l) => !store.symptomDef(l.symptom_key).normal);
   const isToday = day === toDay();
   let html = `
     <div class="hero">
@@ -98,6 +98,12 @@ function symptomHtml(def, log) {
         body += `<div class="field"><span class="field-label">${esc(f.label)}</span><div class="chips">
           ${f.options.map((o) => `<button class="chip ${sel.has(o) ? 'on' : ''}" data-act="multi" data-field="${f.id}" data-opt="${esc(o)}">${esc(o)}</button>`).join('')}
         </div></div>`;
+      } else if (f.type === 'choice') {
+        body += `<div class="field"><span class="field-label">${esc(f.label)}</span><div class="chips">
+          ${f.options.map((o) => `<button class="chip ${val === o ? 'on' : ''}" data-act="choice" data-field="${f.id}" data-opt="${esc(o)}">${esc(o)}</button>`).join('')}
+        </div></div>`;
+      } else if (f.type === 'zones') {
+        body += zonesHtml(f, val || {});
       } else if (f.type === 'number') {
         body += `<label class="field inline"><span class="field-label">${esc(f.label)}</span>
           <input type="number" inputmode="decimal" step="${f.step || 1}" min="0" value="${val ?? ''}" data-act="number" data-field="${f.id}">
@@ -111,6 +117,18 @@ function symptomHtml(def, log) {
       <span class="sym-label">${esc(def.label)}${def.urgent ? ' <span class="dot" title="À signaler vite"></span>' : ''}</span>
     </label>
     ${on ? `<div class="sym-body">${body}</div>` : ''}
+  </div>`;
+}
+
+// Zones du corps : on choisit la partie, puis le côté
+function zonesHtml(f, zones) {
+  const picked = BODY_PARTS.filter((p) => p.id in zones);
+  return `<div class="field"><span class="field-label">${esc(f.label)}</span>
+    <div class="chips">${BODY_PARTS.map((p) => `<button class="chip ${p.id in zones ? 'on' : ''}" data-act="zone-part" data-field="${f.id}" data-opt="${esc(p.id)}">${esc(p.id)}</button>`).join('')}</div>
+    ${picked.filter((p) => p.side !== false).map((p) => `<div class="zone-side">
+      <span class="zone-name">${esc(p.id)}</span>
+      <div class="chips">${SIDES.map((s) => `<button class="chip small ${zones[p.id] === s.id ? 'on' : ''}" data-act="zone-side" data-field="${f.id}" data-part="${esc(p.id)}" data-opt="${s.id}">${esc(s.label)}</button>`).join('')}</div>
+    </div>`).join('')}
   </div>`;
 }
 
@@ -137,12 +155,13 @@ const saveNote = debounce((text) => {
 }, 600);
 
 const saveIntensity = debounce((key, v) => saveLog(key, { intensity: v }), 250);
-const saveNumber = debounce((key, field, val) => {
+// Enregistré à chaque frappe : un choix touché juste après ne doit pas effacer la valeur
+function saveNumber(key, field, val) {
   const log = currentLog(key);
   const details = { ...(log && log.details) };
   if (val === '') delete details[field]; else details[field] = Number(val);
   saveLog(key, { details });
-}, 500);
+}
 
 export function bindToday(container) {
   container.addEventListener('click', (e) => {
@@ -154,7 +173,7 @@ export function bindToday(container) {
 
     if (act === 'nothing') {
       const n = store.noteForDay(day);
-      const logs = store.logsForDay(day);
+      const logs = store.logsForDay(day).filter((l) => !store.symptomDef(l.symptom_key).normal);
       if (!n.nothing || logs.length) {
         for (const l of logs) store.save('symptom_logs', { ...l, deleted: true });
         store.save('day_notes', { ...n, day, nothing: true });
@@ -179,6 +198,25 @@ export function bindToday(container) {
       for (const c of $$(`.sym[data-key="${CSS.escape(key)}"] [data-act="multi"][data-field="${el.dataset.field}"][data-opt="${CSS.escape(el.dataset.opt)}"]`, container)) {
         c.classList.toggle('on', set.has(el.dataset.opt));
       }
+    } else if (act === 'choice' || act === 'zone-part' || act === 'zone-side') {
+      e.preventDefault();
+      const log = currentLog(key);
+      const details = { ...(log && log.details) };
+      const f = el.dataset.field;
+      if (act === 'choice') {
+        details[f] = details[f] === el.dataset.opt ? undefined : el.dataset.opt;
+      } else {
+        const zones = { ...(details[f] || {}) };
+        if (act === 'zone-part') {
+          if (el.dataset.opt in zones) delete zones[el.dataset.opt]; else zones[el.dataset.opt] = '';
+        } else {
+          zones[el.dataset.part] = zones[el.dataset.part] === el.dataset.opt ? '' : el.dataset.opt;
+        }
+        details[f] = zones;
+      }
+      if (details[f] === undefined) delete details[f];
+      saveLog(key, { details });
+      rerender();
     } else if (act === 'add-symptom') {
       openAddSymptom();
     }
@@ -196,7 +234,7 @@ export function bindToday(container) {
         intensity: def.noScale ? null : (prev && prev.intensity != null ? prev.intensity : 5),
       });
       const n = store.noteForDay(day);
-      if (n.nothing) store.save('day_notes', { ...n, day, nothing: false });
+      if (n.nothing && !def.normal) store.save('day_notes', { ...n, day, nothing: false });
     } else {
       saveLog(key, { deleted: true });
     }
