@@ -685,8 +685,12 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 }
 
 /* Mascotte de victoire : entrée en bondissant, puis sautille de joie (effet de relief en perspective) */
-.mascot-thumb { display: grid; place-items: center; padding: 10px; margin-bottom: 10px; border-radius: 16px; background: linear-gradient(165deg, #2a1f5e, #12143a); }
-.mascot-thumb img { max-width: 160px; max-height: 140px; }
+.mascot-thumb { flex: none; width: 64px; height: 64px; display: grid; place-items: center; padding: 4px; border-radius: 14px; background: linear-gradient(165deg, #2a1f5e, #12143a); }
+.mascot-thumb img { max-width: 100%; max-height: 100%; }
+/* Réglages : miniature à gauche, boutons à droite */
+.media-row { display: flex; align-items: center; gap: 12px; }
+.media-row .photo-thumb { flex: none; width: 64px; height: 64px; aspect-ratio: auto; margin: 0; border-radius: 14px; }
+.media-row .btn-row { flex: 1; }
 .win-mascot { position: relative; height: 150px; margin: -70px auto 0; perspective: 600px; display: grid; place-items: end center; }
 .win-mascot img {
   max-height: 150px; max-width: 220px; transform-origin: 50% 90%;

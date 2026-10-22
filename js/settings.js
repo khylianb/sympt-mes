@@ -24,19 +24,23 @@ export function renderSettings(container) {
       <h3>Accueil</h3>
       <label class="field-block">Prénom (affiché « Bonjour … » / « Bonsoir … »)<input id="pf-first" type="text" value="${esc(store.meta('first_name') || '')}" autocomplete="off" autocapitalize="words"></label>
       <p class="muted small">La photo en haut de l’accueil. Tu peux mettre une photo de ta galerie : elle reste sur ce téléphone.</p>
-      <div class="photo-thumb" style="background-image:url('${photoUrl()}')"></div>
-      <div class="btn-row">
-        <label class="btn ghost file-btn">Choisir une photo<input type="file" id="st-photo" accept="image/*" hidden></label>
-        ${hasPhoto() ? '<button class="btn ghost" id="st-photo-clear">Remettre la photo d’origine</button>' : ''}
+      <div class="media-row">
+        <div class="photo-thumb" style="background-image:url('${photoUrl()}')"></div>
+        <div class="btn-row">
+          <label class="btn ghost small file-btn">Changer<input type="file" id="st-photo" accept="image/*" hidden></label>
+          ${hasPhoto() ? '<button class="btn ghost small" id="st-photo-clear">Photo d’origine</button>' : ''}
+        </div>
       </div>
     </div>
     <div class="card">
       <h3>Mascotte de victoire</h3>
-      <p class="muted small">Elle saute de joie quand un niveau du jeu des tubes est réussi. Choisis une image dans ta galerie : le fond uni est retiré tout seul. Elle apparaît sur les deux téléphones et n’est jamais publiée.</p>
-      ${mascotUrl() ? `<div class="mascot-thumb"><img src="${mascotUrl()}" alt="Mascotte"></div>` : ''}
-      <div class="btn-row">
-        <label class="btn ghost file-btn">${mascotUrl() ? 'Changer d’image' : 'Choisir une image'}<input type="file" id="st-mascot" accept="image/*" hidden></label>
-        ${mascotUrl() ? '<button class="btn ghost" id="st-mascot-clear">Retirer</button>' : ''}
+      <p class="muted small">Elle saute de joie à chaque niveau réussi. Fond retiré tout seul, visible sur les deux téléphones.</p>
+      <div class="media-row">
+        ${mascotUrl() ? `<div class="mascot-thumb"><img src="${mascotUrl()}" alt="Mascotte"></div>` : ''}
+        <div class="btn-row">
+          <label class="btn ghost small file-btn">${mascotUrl() ? 'Changer' : 'Choisir une image'}<input type="file" id="st-mascot" accept="image/*" hidden></label>
+          ${mascotUrl() ? '<button class="btn ghost small" id="st-mascot-clear">Retirer</button>' : ''}
+        </div>
       </div>
     </div>
 
