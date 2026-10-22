@@ -26,7 +26,8 @@ export function renderHome(container) {
       <p class="hero-status ${t.hasData ? 'done' : ''}">${status}</p>
       <div class="hero-actions">
         <button class="btn primary" data-act="fill" data-day="${today}">✏️ ${t.hasData ? 'Modifier ma journée' : 'Remplir ma journée'}</button>
-        ${t.hasData ? '' : '<button class="nothing" data-act="nothing">🌿 Rien à signaler</button>'}
+        ${t.nothing ? '<button class="nothing" data-act="nothing">↩️ Annuler « rien à signaler »</button>'
+          : t.hasData ? '' : '<button class="nothing" data-act="nothing">🌿 Rien à signaler</button>'}
       </div>
     </div>`;
 
