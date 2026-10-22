@@ -211,10 +211,25 @@ export function renderGame(container) {
     ${g.won ? winHtml() : ''}`;
 }
 
+// Couverture du jeu : on voit tout de suite de quoi il s'agit
+function coverHtml() {
+  // le 2e tube verse son jaune dans le 3e, dont le dessus est jaune aussi
+  const tubes = [[0, 6, 0, 2], [6, 6, 2], [0, 2], [4, 4, 4, 4], [7, 8, 7]];
+  return `<div class="game-cover" aria-hidden="true">
+    <span class="cover-sticker">Anti-stress ✨</span>
+    <div class="cover-tubes">
+      ${tubes.map((t, i) => `<span class="tube mini ${isDone(t) ? 'done' : ''} ${i === 1 ? 'pouring' : ''}">${liquidHtml(t)}</span>`).join('')}
+      <span class="cover-stream"></span>
+    </div>
+    <div class="cover-title">Le jeu des tubes</div>
+    <div class="cover-sub">Trie les couleurs · 100 niveaux</div>
+  </div>`;
+}
+
 function welcomeHtml() {
   return `<div class="card game-welcome">
-    <h3>🎨 Le jeu des tubes</h3>
-    <p class="muted">Transvase les liquides : chaque tube doit finir d’une seule couleur. 100 niveaux, de plus en plus corsés.</p>
+    ${coverHtml()}
+    <p class="muted">Verse les liquides d’un tube à l’autre : chaque tube doit finir d’une seule couleur. Des niveaux de plus en plus corsés, et un classement à deux.</p>
     <label class="field-block">Ton pseudo pour le classement
       <input id="g-name" type="text" maxlength="16" autocomplete="off" autocapitalize="words" placeholder="Ex. : Cléa">
     </label>

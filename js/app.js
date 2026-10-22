@@ -7,7 +7,8 @@ import { renderHome, bindHome } from './home.js';
 import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
 import { renderGame, bindGame } from './game.js';
-import { initSheet, sheetOpen } from './ui.js';
+import { initSheet, sheetOpen, openSheet } from './ui.js';
+import { CHANGELOG, APP_VERSION, newerThan, notesHtml } from './changelog.js';
 import { applyPhoto } from './photo.js';
 import { $, $$, toDay, addDays, fmtDayLong, esc, isEvening } from './util.js';
 
@@ -90,6 +91,7 @@ function showLogin(message) {
       await sync.login($('#login-email').value.trim(), $('#login-password').value);
       $('#login-password').value = '';
       box.hidden = true;
+      store.kvSet('seenVersion', APP_VERSION); // nouvelle installation : pas de « Quoi de neuf »
       startApp();
     } catch (err) {
       $('#login-msg').textContent = navigator.onLine
@@ -121,9 +123,33 @@ function setupUpdates() {
     document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
   }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController) $('#update-banner').hidden = false;
+    if (hadController) showUpdateBanner();
   });
   $('#update-btn').addEventListener('click', () => location.reload());
+}
+
+// Le bandeau va chercher les notes de la nouvelle version (le code en cours est encore l'ancien)
+async function showUpdateBanner() {
+  $('#update-banner').hidden = false;
+  try {
+    const { CHANGELOG: latest } = await import(`./changelog.js?v=${Date.now()}`);
+    const fresh = newerThan(latest, APP_VERSION);
+    if (!fresh.length) return;
+    $('#update-title').textContent = `✨ Nouvelle version ${fresh[0].version}`;
+    $('#update-notes').innerHTML = notesHtml(fresh.slice(0, 1));
+    store.kvSet('notesShown', fresh[0].version);
+  } catch { /* hors ligne : bandeau simple */ }
+}
+
+// Après une mise à jour : montre une fois les nouveautés, si le bandeau ne l'a pas déjà fait
+function showNotesAfterUpdate() {
+  const seen = store.kvGet('seenVersion');
+  store.kvSet('seenVersion', APP_VERSION);
+  if (seen === APP_VERSION) return;
+  const used = seen || store.kvGet('session') || store.kvGet('deviceId') || store.all('symptom_logs').length;
+  if (!used || store.kvGet('notesShown') === APP_VERSION) return;
+  const fresh = newerThan(CHANGELOG, seen).slice(0, seen ? 3 : 1);
+  if (fresh.length) openSheet(`<h3>✨ Quoi de neuf ?</h3>${notesHtml(fresh)}`);
 }
 
 // Thème selon l'heure : clair en journée, foncé le soir
@@ -206,7 +232,7 @@ async function main() {
     }
   });
 
-  if (demo || store.kvGet('session')) startApp();
+  if (demo || store.kvGet('session')) { startApp(); showNotesAfterUpdate(); }
   else showLogin();
 
   setupUpdates();
