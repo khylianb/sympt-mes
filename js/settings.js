@@ -8,7 +8,7 @@ import { openSheet, closeSheet } from './ui.js';
 import { hasPhoto, photoUrl, setPhotoFromFile, clearPhoto } from './photo.js';
 import { openBackupExport, backupLabel } from './export.js';
 
-export const APP_VERSION = '1.3.0';
+export const APP_VERSION = '1.2.0';
 
 export function renderSettings(container) {
   const profile = store.meta('profile') || {};
