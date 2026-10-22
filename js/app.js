@@ -107,6 +107,22 @@ function startApp() {
   sync.startAutoSync();
 }
 
+// Mises à jour : sur iPhone, l'appli installée reste souvent ouverte en arrière-plan
+// avec l'ancienne version. À chaque retour dans l'appli on vérifie s'il y a du nouveau ;
+// si oui, un bandeau propose de recharger (les données sont déjà enregistrées).
+function setupUpdates() {
+  if (!('serviceWorker' in navigator)) return;
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('./sw.js').then((reg) => {
+    if (!reg) return;
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController) $('#update-banner').hidden = false;
+  });
+  $('#update-btn').addEventListener('click', () => location.reload());
+}
+
 async function main() {
   initSheet();
   // Démo : base locale séparée, vide, jamais synchronisée
@@ -174,7 +190,7 @@ async function main() {
   if (demo || store.kvGet('session')) startApp();
   else showLogin();
 
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+  setupUpdates();
 }
 
 main().catch((e) => {

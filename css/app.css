@@ -453,6 +453,14 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
   background: var(--card-glass); color: var(--primary); text-align: center; box-shadow: var(--shadow);
 }
 
+.update-banner {
+  position: fixed; z-index: 55; left: 50%; transform: translateX(-50%);
+  top: calc(var(--safe-t) + 66px); width: min(92vw, 420px);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 10px 10px 16px; border-radius: 999px; font-weight: 800; font-size: .9rem;
+  background: var(--card); color: var(--text); box-shadow: var(--shadow);
+}
+.update-banner .btn { white-space: nowrap; }
 .toast {
   position: fixed; left: 50%; top: calc(var(--safe-t) + 70px); transform: translate(-50%, -20px);
   background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 999px; font-weight: 800;

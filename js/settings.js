@@ -8,7 +8,7 @@ import { openSheet, closeSheet } from './ui.js';
 import { hasPhoto, photoUrl, setPhotoFromFile, clearPhoto } from './photo.js';
 import { openBackupExport, backupLabel } from './export.js';
 
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.1.0';
 
 export function renderSettings(container) {
   const profile = store.meta('profile') || {};
@@ -71,7 +71,10 @@ export function renderSettings(container) {
       <h3>Compte</h3>
       <button class="btn danger" id="st-logout">Se déconnecter de ce téléphone</button>
     </div>`}
-    <p class="muted small center">Sympt'mes v${APP_VERSION} · les données restent dans votre espace Supabase.</p>`;
+    <div class="center">
+      <button class="btn ghost" id="st-reload">🔄 Recharger l’appli</button>
+      <p class="muted small">Sympt'mes v${APP_VERSION} · les données restent dans votre espace Supabase.</p>
+    </div>`;
 }
 
 export function bindSettings(container, { onRender }) {
@@ -109,7 +112,14 @@ export function bindSettings(container, { onRender }) {
   });
 
   container.addEventListener('click', async (e) => {
-    if (e.target.closest('#st-backup')) {
+    if (e.target.closest('#st-reload')) {
+      // Cherche d'abord une nouvelle version, puis recharge (les données sont déjà enregistrées)
+      try {
+        const reg = await navigator.serviceWorker?.getRegistration();
+        await reg?.update();
+      } catch { /* hors ligne : on recharge quand même */ }
+      location.reload();
+    } else if (e.target.closest('#st-backup')) {
       openBackupExport(onRender);
     } else if (e.target.closest('#st-photo-clear')) {
       await clearPhoto();
