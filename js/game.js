@@ -46,7 +46,7 @@ function starsFor(moves, par, extraUsed) {
   if (extraUsed) s = Math.max(1, s - 1); // un tube ajouté coûte une étoile
   return s;
 }
-const starsHtml = (s) => '⭐'.repeat(s) + '<span class="star-off">☆</span>'.repeat(3 - s);
+const starsHtml = (s) => [0, 1, 2].map((k) => `<span class="${k < s ? 'star-on' : 'star-off'}" style="--k:${k}">${k < s ? '⭐' : '☆'}</span>`).join('');
 const top = (t) => t[t.length - 1];
 function runLen(t) {
   let k = 1;
@@ -187,15 +187,16 @@ export function renderGame(container) {
     rec ? `Ton record sur ce niveau : ${plural(rec, 'coup')}` : '',
   ].filter(Boolean).join('<br>');
 
-  container.innerHTML = `
+  container.innerHTML = `<div class="arcade">
+    <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="game-top">
-      <button class="game-level" data-g="levels"><b>Niveau ${g.n}</b><small> / ${LEVELS.length} ▾</small></button>
+      <button class="game-level" data-g="levels"><small>Le jeu des tubes</small><b>Niveau ${g.n} <span>▾</span></b></button>
       <div class="game-top-right">
-        <span class="game-moves">${plural(g.history.length, 'coup')}</span>
-        <button class="icon-btn" data-g="sound" aria-label="${soundOn() ? 'Couper le son' : 'Activer le son'}">${soundOn() ? '🔊' : '🔇'}</button>
+        <span class="glass-pill">${plural(g.history.length, 'coup')}</span>
+        <button class="glass-btn round" data-g="sound" aria-label="${soundOn() ? 'Couper le son' : 'Activer le son'}">${soundOn() ? '🔊' : '🔇'}</button>
       </div>
     </div>
-    <div class="card game-board">
+    <div class="game-board">
       <div class="tubes ${g.tubes.length > 6 ? 'two-rows' : ''}" style="--cols:${cols}">
         ${g.tubes.map((t, i) => `<button class="tube ${g.selected === i ? 'sel' : ''} ${isDone(t) ? 'done' : ''}" data-tube="${i}"
           aria-label="Tube ${i + 1} : ${t.length ? t.map((c) => COLOR_NAMES[c]).join(', ') : 'vide'}">${liquidHtml(t)}</button>`).join('')}
@@ -203,9 +204,10 @@ export function renderGame(container) {
       ${hint ? `<p class="game-hint">${hint}</p>` : ''}
     </div>
     <div class="game-actions">
-      <button class="btn ghost" data-g="undo" ${g.history.length ? '' : 'disabled'}>↩️ Annuler</button>
-      <button class="btn ghost" data-g="restart">🔄 Recommencer</button>
-      <button class="btn ghost" data-g="extra" ${g.extraUsed ? 'disabled' : ''}>➕ Tube</button>
+      <button class="glass-btn" data-g="undo" ${g.history.length ? '' : 'disabled'}><span>↩️</span>Annuler</button>
+      <button class="glass-btn" data-g="restart"><span>🔄</span>Recommencer</button>
+      <button class="glass-btn" data-g="extra" ${g.extraUsed ? 'disabled' : ''}><span>➕</span>Tube</button>
+    </div>
     </div>
     ${leaderboardHtml()}
     ${g.won ? winHtml() : ''}`;
@@ -244,7 +246,7 @@ function leaderboardHtml() {
     .map((r) => ({ me: r.key === me, name: r.value.name, done: doneCount(r.value), stars: starCount(r.value) }))
     .sort((a, b) => b.done - a.done || b.stars - a.stars);
   const medals = ['🥇', '🥈', '🥉'];
-  return `<div class="card leaderboard">
+  return `<div class="card leaderboard arcade-card">
     <h3>🏆 Classement</h3>
     ${players.map((pl) => {
       // Le niveau atteint d'abord ; les étoiles départagent seulement à niveau égal
@@ -267,7 +269,7 @@ function winHtml() {
   const rec = records(myProfile())[g.n];
   const last = g.n >= LEVELS.length;
   return `<div class="win-overlay">
-    <div class="win-card">
+    <div class="win-card arcade-win">
       <div class="win-emoji">🎉</div>
       <h3>Niveau ${g.n} réussi !</h3>
       <p class="win-stars">${starsHtml(g.stars)}</p>
@@ -275,8 +277,8 @@ function winHtml() {
       <p class="muted small">${g.newRecord ? '🏅 Nouveau record sur ce niveau' : `Ton record : ${plural(rec, 'coup')}`}</p>
       ${last ? '<p><b>Bravo, tu as fini les 100 niveaux ! 🏆</b></p>' : ''}
       <div class="btn-row center-row">
-        <button class="btn ghost" data-g="replay">Rejouer</button>
-        ${last ? '' : '<button class="btn primary" data-g="next">Niveau suivant →</button>'}
+        <button class="glass-btn wide" data-g="replay">Rejouer</button>
+        ${last ? '' : '<button class="btn primary arcade-go" data-g="next">Niveau suivant →</button>'}
       </div>
     </div>
   </div>`;
@@ -353,7 +355,7 @@ async function animatePour(i, j, before, k) {
   const stream = document.createElement('span');
   stream.className = 'pour-stream';
   stream.style.cssText = `left:${dr.left + dr.width / 2 - br.left - 3}px;top:${dr.top - 10 - br.top}px;`
-    + `height:${Math.max(0, surface - dr.top + 10)}px;background:${color}`;
+    + `height:${Math.max(0, surface - dr.top + 10)}px;background:${color};color:${color}`;
   board.appendChild(stream);
   const dur = 280 + k * 70;
   pourSound(dur / 1000 + 0.1);
