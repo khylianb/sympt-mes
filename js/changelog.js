@@ -2,6 +2,12 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.4.2',
+    items: [
+      '🎨 Nouvelle icône « SYMPT’MES » bien visible sur l’écran d’accueil',
+    ],
+  },
+  {
     version: '1.4.1',
     items: [
       '↩️ « Rien à signaler » touché par erreur ? Il s’annule maintenant depuis l’accueil',
