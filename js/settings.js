@@ -20,11 +20,11 @@ export function renderSettings(container) {
   container.innerHTML = `
     <div class="card">
       <h3>Photo d’accueil</h3>
-      <p class="muted small">Une photo de ta galerie en haut de l’accueil. Elle reste sur ce téléphone.</p>
-      ${hasPhoto() ? `<div class="photo-thumb" style="background-image:url('${photoUrl()}')"></div>` : ''}
+      <p class="muted small">La photo en haut de l’accueil. Tu peux mettre une photo de ta galerie : elle reste sur ce téléphone.</p>
+      <div class="photo-thumb" style="background-image:url('${photoUrl()}')"></div>
       <div class="btn-row">
-        <label class="btn ghost file-btn">${hasPhoto() ? 'Changer la photo' : 'Choisir une photo'}<input type="file" id="st-photo" accept="image/*" hidden></label>
-        ${hasPhoto() ? '<button class="btn ghost" id="st-photo-clear">Remettre l’illustration</button>' : ''}
+        <label class="btn ghost file-btn">Choisir une photo<input type="file" id="st-photo" accept="image/*" hidden></label>
+        ${hasPhoto() ? '<button class="btn ghost" id="st-photo-clear">Remettre la photo d’origine</button>' : ''}
       </div>
     </div>
 

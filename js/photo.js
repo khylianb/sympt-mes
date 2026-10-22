@@ -1,17 +1,19 @@
-// Photo d'accueil choisie dans la galerie : redimensionnée puis gardée sur ce téléphone
-// uniquement (stockage local), jamais envoyée en ligne.
+// Photo d'accueil : la photo par défaut de l'appli, ou une photo choisie dans la galerie,
+// redimensionnée puis gardée sur ce téléphone uniquement (jamais envoyée en ligne).
 
 import * as store from './store.js';
 
 const KEY = 'homePhoto';
 const MAX_SIZE = 1400;
+const DEFAULT_PHOTO = 'img/accueil.jpg';
 
+// Vrai si une photo personnelle remplace la photo par défaut
 export const hasPhoto = () => !!store.kvGet(KEY);
-export const photoUrl = () => store.kvGet(KEY);
+// Adresse absolue : une url() dans une variable CSS se résout par rapport à la feuille de style
+export const photoUrl = () => store.kvGet(KEY) || new URL(DEFAULT_PHOTO, document.baseURI).href;
 
 export function applyPhoto() {
-  const p = store.kvGet(KEY);
-  document.documentElement.style.setProperty('--home-photo', p ? `url("${p}")` : 'none');
+  document.documentElement.style.setProperty('--home-photo', `url("${photoUrl()}")`);
 }
 
 function loadImage(file) {

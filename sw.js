@@ -1,6 +1,6 @@
 // Service worker : l'application fonctionne hors ligne.
 // Incrémenter VERSION à chaque mise à jour du code pour rafraîchir le cache.
-const VERSION = 'v8';
+const VERSION = 'v9';
 const CACHE = `symptmes-${VERSION}`;
 const FILES = [
   './',
@@ -22,6 +22,7 @@ const FILES = [
   'js/ui.js',
   'js/util.js',
   'vendor/jspdf.umd.min.js',
+  'img/accueil.jpg',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',

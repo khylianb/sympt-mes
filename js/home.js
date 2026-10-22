@@ -1,8 +1,7 @@
 // Écran « Accueil » : état du jour, semaine en un coup d'œil, alertes récentes.
 
 import { analyse, describeDetails, streak } from './analysis.js';
-import { HERO_ART, greeting, toggleNothing } from './today.js';
-import { hasPhoto } from './photo.js';
+import { greeting, toggleNothing } from './today.js';
 import { esc, toDay, addDays, parseDay, fmtDayShort, intensityColor } from './util.js';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
@@ -20,8 +19,7 @@ export function renderHome(container) {
     : 'Pas encore remplie aujourd’hui';
 
   let html = `
-    <div class="hero home-hero ${hasPhoto() ? 'photo' : ''}">
-      ${hasPhoto() ? '' : HERO_ART}
+    <div class="hero home-hero photo">
       <p class="hero-hello">${greeting()}</p>
       <p class="hero-q">Comment te sens-tu aujourd’hui ?</p>
       <p class="hero-status ${t.hasData ? 'done' : ''}">${status}</p>

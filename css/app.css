@@ -151,13 +151,6 @@ main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-widt
   box-shadow: var(--shadow);
   display: flex; flex-direction: column; gap: 4px;
 }
-.hero-art { position: absolute; right: -6px; bottom: 0; width: 64%; max-width: 320px; height: auto; pointer-events: none; }
-.hero-art .sun { fill: var(--sun); opacity: .9; }
-.hero-art .hill1 { fill: var(--hill-1); opacity: .75; }
-.hero-art .hill2 { fill: var(--hill-2); opacity: .55; }
-.hero-art .leaf { fill: var(--leaf); opacity: .85; }
-.hero-art .leaf2 { fill: var(--leaf); opacity: .55; }
-.hero-art .vein { fill: none; stroke: var(--hero-1); stroke-width: 1.2; opacity: .7; }
 .hero-hello { position: relative; margin: 0; font-weight: 800; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--primary); }
 .hero-q { position: relative; margin: 0 0 12px; font-family: var(--font-display); font-weight: 600; font-size: 1.45rem; line-height: 1.2; max-width: 15em; text-wrap: balance; }
 .nothing {
@@ -176,8 +169,8 @@ main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-widt
 .home-hero.photo {
   min-height: 300px; justify-content: flex-end;
   background:
-    linear-gradient(180deg, rgba(10, 25, 30, 0.10) 0%, rgba(10, 25, 30, 0.35) 45%, rgba(10, 25, 30, 0.72) 100%),
-    var(--home-photo) center / cover no-repeat, var(--hero-1);
+    linear-gradient(180deg, rgba(8, 35, 55, 0.38) 0%, rgba(8, 35, 55, 0.22) 40%, rgba(8, 30, 40, 0.62) 100%),
+    var(--home-photo) center 45% / cover no-repeat, var(--hero-1);
 }
 .home-hero.photo .hero-hello { color: #d8f5ef; }
 .home-hero.photo .hero-q { color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35); }
