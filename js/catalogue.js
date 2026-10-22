@@ -74,7 +74,6 @@ export const SYMPTOMS = [
 
   // Douleurs / articulations
   { key: 'joint_pain', cat: 'douleurs', label: 'Douleur articulaire', fields: [ZONES] },
-  { key: 'bone_pain', cat: 'douleurs', label: 'Douleur osseuse', fields: [ZONES] },
   { key: 'muscle_pain', cat: 'douleurs', label: 'Douleur musculaire', fields: [ZONES] },
   { key: 'swelling', cat: 'douleurs', label: 'Gonflement', fields: [ZONES] },
   { key: 'morning_stiffness', cat: 'douleurs', label: 'Raideur au réveil',
@@ -94,6 +93,7 @@ export const SYMPTOMS = [
   { key: 'fever', cat: 'general', label: 'Fièvre',
     fields: [{ id: 'temp', type: 'number', label: 'Température', unit: '°C', step: 0.1 }] },
   { key: 'chills', cat: 'general', label: 'Frissons' },
+  { key: 'nausea', cat: 'general', label: 'Nausées' },
   { key: 'night_sweats', cat: 'general', label: 'Sueurs nocturnes' },
   { key: 'sleep', cat: 'general', label: 'Mauvais sommeil' },
   { key: 'fall', cat: 'general', label: 'Chute', urgent: true,
@@ -119,7 +119,7 @@ export const RETIRED = [
   { key: 'night_stool', cat: 'transit', label: 'Selles la nuit', noScale: true, fields: [STOOL_COUNT] },
   { key: 'urgency', cat: 'transit', label: 'Besoin urgent d’aller aux toilettes' },
   { key: 'tenesmus', cat: 'transit', label: 'Fausse envie' },
-  { key: 'nausea', cat: 'ventre', label: 'Nausées' },
+  { key: 'bone_pain', cat: 'douleurs', label: 'Douleur osseuse', fields: [ZONES] },
   { key: 'appetite_loss', cat: 'ventre', label: 'Perte d’appétit' },
   { key: 'weight_loss', cat: 'general', label: 'Perte de poids', noScale: true,
     fields: [{ id: 'weight', type: 'number', label: 'Poids', unit: 'kg', step: 0.1 }] },
