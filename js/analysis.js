@@ -107,3 +107,12 @@ export function usualSymptoms(today, limit = 6) {
   return [...count.entries()].filter(([k]) => valid.has(k))
     .sort((a, b) => b[1] - a[1]).slice(0, limit).map(([k]) => k);
 }
+
+// Nombre de jours remplis d'affilée (jusqu'à aujourd'hui, ou hier si aujourd'hui est vide)
+export function streak(today) {
+  const filled = (d) => store.logsForDay(d).length > 0 || !!store.noteForDay(d).nothing || !!store.noteForDay(d).note;
+  let d = filled(today) ? today : addDays(today, -1);
+  let n = 0;
+  while (filled(d) && n < 3650) { n++; d = addDays(d, -1); }
+  return n;
+}

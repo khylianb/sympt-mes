@@ -3,13 +3,14 @@
 import * as store from './store.js';
 import * as sync from './sync.js';
 import { renderToday, bindToday } from './today.js';
+import { renderHome, bindHome } from './home.js';
 import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
 import { openExport, backupLabel, backupIsOld } from './export.js';
 import { initSheet, sheetOpen } from './ui.js';
 import { $, $$, toDay, addDays, fmtDayLong, esc } from './util.js';
 
-const state = { tab: 'today', day: toDay() };
+const state = { tab: 'home', day: toDay() };
 const views = {};
 const demo = !sync.isConfigured();
 
@@ -17,6 +18,7 @@ function render() {
   for (const [name, el] of Object.entries(views)) el.hidden = name !== state.tab;
   for (const b of $$('.tabbar button')) b.classList.toggle('on', b.dataset.tab === state.tab);
   renderHeader();
+  if (state.tab === 'home') renderHome(views.home);
   if (state.tab === 'today') renderToday(views.today, state.day);
   if (state.tab === 'summary') renderSummary(views.summary);
   if (state.tab === 'settings') renderSettings(views.settings);
@@ -32,6 +34,8 @@ function renderHeader() {
       <button class="icon-btn" id="day-prev" aria-label="Jour précédent"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="day-title"><small>${label}</small><span>${esc(fmtDayLong(state.day))}</span></div>
       <button class="icon-btn" id="day-next" aria-label="Jour suivant" ${state.day >= today ? 'disabled' : ''}><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 4 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+  } else if (state.tab === 'home') {
+    h.innerHTML = `<div class="day-title"><small>Sympt'mes</small><span>${esc(fmtDayLong(toDay()))}</span></div>`;
   } else {
     h.innerHTML = `<div class="day-title"><span>${state.tab === 'summary' ? 'Synthèse' : 'Réglages'}</span></div>`;
   }
@@ -114,13 +118,16 @@ async function main() {
   await store.init(demo ? 'symptmes-demo-v3' : undefined);
   if (demo) $('#demo-banner').hidden = false;
 
+  views.home = $('#view-home');
   views.today = $('#view-today');
   views.summary = $('#view-summary');
   views.settings = $('#view-settings');
   bindToday(views.today);
+  const openDay = (day) => { state.day = day; state.tab = 'today'; render(); window.scrollTo(0, 0); };
+  bindHome(views.home, { onOpenDay: openDay, onRender: () => renderHome(views.home) });
   bindSummary(views.summary, {
     onRender: () => renderSummary(views.summary),
-    onOpenDay: (day) => { state.day = day; state.tab = 'today'; render(); window.scrollTo(0, 0); },
+    onOpenDay: openDay,
   });
   bindSettings(views.settings, { onRender: () => renderSettings(views.settings) });
 

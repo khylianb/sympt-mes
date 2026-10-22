@@ -5,7 +5,7 @@ import { CATEGORIES, BODY_PARTS, SIDES } from './catalogue.js';
 import { usualSymptoms } from './analysis.js';
 import { esc, $, $$, debounce, uuid, intensityColor, toast, toDay } from './util.js';
 
-function greeting() {
+export function greeting() {
   const h = new Date().getHours();
   if (h < 5 || h >= 18) return 'Bonsoir';
   if (h >= 12) return 'Bon après-midi';
@@ -13,7 +13,7 @@ function greeting() {
 }
 
 // Illustration douce : soleil, collines et feuilles
-const HERO_ART = `<svg class="hero-art" viewBox="0 0 200 120" aria-hidden="true">
+export const HERO_ART = `<svg class="hero-art" viewBox="0 0 200 120" aria-hidden="true">
   <circle cx="150" cy="38" r="22" class="sun"/>
   <path d="M0 95 C40 70 80 72 120 88 S180 100 200 82 V120 H0Z" class="hill1"/>
   <path d="M0 108 C50 92 100 96 140 106 S190 112 200 104 V120 H0Z" class="hill2"/>
@@ -41,9 +41,7 @@ export function renderToday(container, currentDay) {
   const nothingOn = note.nothing && ![...logs.values()].some((l) => !store.symptomDef(l.symptom_key).normal);
   const isToday = day === toDay();
   let html = `
-    <div class="hero">
-      ${HERO_ART}
-      <p class="hero-hello">${isToday ? greeting() : 'Rattrapage'}</p>
+    <div class="hero compact">
       <p class="hero-q">${isToday ? 'Comment te sens-tu aujourd’hui ?' : 'Comment s’est passée cette journée ?'}</p>
       <button class="nothing ${nothingOn ? 'on' : ''}" data-act="nothing">
         ${nothingOn ? '✓ Journée sans symptôme enregistrée' : '🌿 Rien à signaler'}
@@ -134,6 +132,19 @@ function zonesHtml(f, zones) {
 
 // ---------- actions ----------
 
+// « Rien à signaler » : efface les symptômes du jour (sauf les états normaux), ou annule
+export function toggleNothing(d) {
+  const n = store.noteForDay(d);
+  const logs = store.logsForDay(d).filter((l) => !store.symptomDef(l.symptom_key).normal);
+  if (!n.nothing || logs.length) {
+    for (const l of logs) store.save('symptom_logs', { ...l, deleted: true });
+    store.save('day_notes', { ...n, day: d, nothing: true });
+    toast('Journée enregistrée ✓');
+  } else {
+    store.save('day_notes', { ...n, day: d, nothing: false });
+  }
+}
+
 function currentLog(key) {
   return store.get('symptom_logs', `${day}|${key}`);
 }
@@ -172,15 +183,7 @@ export function bindToday(container) {
     const key = sym && sym.dataset.key;
 
     if (act === 'nothing') {
-      const n = store.noteForDay(day);
-      const logs = store.logsForDay(day).filter((l) => !store.symptomDef(l.symptom_key).normal);
-      if (!n.nothing || logs.length) {
-        for (const l of logs) store.save('symptom_logs', { ...l, deleted: true });
-        store.save('day_notes', { ...n, day, nothing: true });
-        toast('Journée enregistrée ✓');
-      } else {
-        store.save('day_notes', { ...n, day, nothing: false });
-      }
+      toggleNothing(day);
       rerender();
     } else if (act === 'cat') {
       const cat = el.closest('.cat').dataset.cat;

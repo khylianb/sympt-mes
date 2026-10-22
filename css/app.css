@@ -169,6 +169,42 @@ main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-widt
 .nothing.on { background: var(--ok); color: #fff; }
 .nothing:active { transform: scale(.97); }
 
+.hero.compact { padding: 16px 18px; }
+.hero.compact .hero-q { font-size: 1.2rem; margin-bottom: 10px; }
+.home-hero { padding-bottom: 22px; min-height: 230px; }
+.hero-status { position: relative; margin: 0 0 14px; font-weight: 700; font-size: .9rem; color: var(--muted); }
+.hero-status.done { color: var(--ok); }
+.hero-actions { position: relative; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.hero-actions .btn { box-shadow: var(--shadow); }
+.hero-actions .nothing { align-self: auto; }
+
+.reminder {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin-top: 14px;
+  background: color-mix(in srgb, var(--sun) 22%, var(--card));
+}
+.rem-ico { font-size: 1.5rem; }
+.rem-text { flex: 1; display: flex; flex-direction: column; }
+.rem-text small { color: var(--muted); font-weight: 600; }
+.home-hero + .card, .reminder + .card { margin-top: 14px; }
+
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.wday { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; border-radius: 14px; }
+.wday.today { background: var(--primary-soft); }
+.wd-l { font-size: .72rem; font-weight: 800; color: var(--muted); }
+.wd-dot {
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-content: center;
+  color: #fff; font-weight: 800; font-size: .9rem; font-variant-numeric: tabular-nums;
+}
+.wd-dot.empty { background: var(--empty); color: var(--ok); border: 2px dashed color-mix(in srgb, var(--muted) 35%, transparent); }
+.wd-n { font-size: .75rem; color: var(--muted); font-weight: 700; }
+.wd-urg { position: absolute; top: 22px; right: calc(50% - 21px); width: 9px; height: 9px; border-radius: 50%; background: var(--danger); border: 1.5px solid var(--card); }
+.week-sum { margin: 10px 0 0; font-size: .85rem; font-weight: 700; color: var(--muted); text-align: center; }
+.top-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.top-chip { padding: 6px 12px; border-radius: 999px; background: var(--primary-soft); font-size: .88rem; font-weight: 600; }
+.top-chip b { color: var(--primary); margin-left: 4px; }
+.top-chip.urgent { background: var(--danger-soft); color: var(--danger); }
+.top-chip.urgent b { color: var(--danger); }
+
 .section-title {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--font-display); font-weight: 600; font-size: 1.3rem; margin: 24px 4px 10px;
