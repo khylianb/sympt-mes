@@ -1,5 +1,6 @@
 // Écran « Accueil » : état du jour, semaine en un coup d'œil, alertes récentes.
 
+import * as store from './store.js';
 import { analyse, describeDetails, streak } from './analysis.js';
 import { greeting, toggleNothing } from './today.js';
 import { esc, toDay, addDays, parseDay, fmtDayShort, intensityColor } from './util.js';
@@ -20,7 +21,7 @@ export function renderHome(container) {
 
   let html = `
     <div class="hero home-hero photo">
-      <p class="hero-hello">${greeting()}</p>
+      <p class="hero-hello">${esc(greeting(store.meta('first_name') || ''))}</p>
       <p class="hero-q">Comment te sens-tu aujourd’hui ?</p>
       <p class="hero-status ${t.hasData ? 'done' : ''}">${status}</p>
       <div class="hero-actions">

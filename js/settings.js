@@ -20,7 +20,8 @@ export function renderSettings(container) {
 
   container.innerHTML = `
     <div class="card">
-      <h3>Photo d’accueil</h3>
+      <h3>Accueil</h3>
+      <label class="field-block">Prénom (affiché « Bonjour … » / « Bonsoir … »)<input id="pf-first" type="text" value="${esc(store.meta('first_name') || '')}" autocomplete="off" autocapitalize="words"></label>
       <p class="muted small">La photo en haut de l’accueil. Tu peux mettre une photo de ta galerie : elle reste sur ce téléphone.</p>
       <div class="photo-thumb" style="background-image:url('${photoUrl()}')"></div>
       <div class="btn-row">
@@ -83,6 +84,7 @@ export function bindSettings(container, { onRender }) {
     birth: $('#pf-birth', container).value.trim(),
   });
   container.addEventListener('change', async (e) => {
+    if (e.target.id === 'pf-first') { store.setMeta('first_name', e.target.value.trim()); toast('Enregistré ✓'); }
     if (e.target.id === 'pf-name' || e.target.id === 'pf-birth') { saveProfile(); toast('Enregistré ✓'); }
     if (e.target.id === 'st-photo') {
       const f = e.target.files[0];
