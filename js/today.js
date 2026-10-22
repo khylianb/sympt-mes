@@ -2,7 +2,6 @@
 
 import * as store from './store.js';
 import { CATEGORIES, BODY_PARTS, SIDES, BELLY } from './catalogue.js';
-import { usualSymptoms } from './analysis.js';
 import { esc, $, $$, debounce, uuid, intensityColor, toast, toDay } from './util.js';
 
 export function greeting() {
@@ -27,7 +26,6 @@ export function renderToday(container, currentDay) {
   const note = store.noteForDay(day);
   const logs = new Map(store.logsForDay(day).map((l) => [l.symptom_key, l]));
   const defs = store.symptomDefs();
-  const usual = usualSymptoms(day);
 
   const isToday = day === toDay();
   let html = `
@@ -36,10 +34,6 @@ export function renderToday(container, currentDay) {
     </div>
     <h2 class="section-title"><span class="st-ico">🩺</span>Symptômes</h2>`;
 
-  if (usual.length) {
-    html += `<div class="card"><div class="cat-title static"><span class="cat-ico">⭐</span>Habituels</div>
-      ${usual.map((k) => symptomHtml(defs.find((d) => d.key === k), logs.get(k))).join('')}</div>`;
-  }
 
   html += '<div class="card cats">';
   for (const cat of CATEGORIES) {

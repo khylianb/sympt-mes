@@ -94,19 +94,6 @@ export function analyse(from, to) {
   };
 }
 
-// Symptômes « habituels » : les plus cochés sur les 60 jours précédents
-// (le jour affiché est exclu pour que la liste ne bouge pas pendant la saisie)
-export function usualSymptoms(today, limit = 6) {
-  const from = addDays(today, -60);
-  const count = new Map();
-  for (const l of store.all('symptom_logs')) {
-    if (l.deleted || l.day < from || l.day >= today) continue;
-    count.set(l.symptom_key, (count.get(l.symptom_key) || 0) + 1);
-  }
-  const valid = new Set(store.symptomDefs().map((s) => s.key));
-  return [...count.entries()].filter(([k]) => valid.has(k))
-    .sort((a, b) => b[1] - a[1]).slice(0, limit).map(([k]) => k);
-}
 
 // Nombre de jours remplis d'affilée (jusqu'à aujourd'hui, ou hier si aujourd'hui est vide)
 export function streak(today) {

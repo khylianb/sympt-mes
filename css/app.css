@@ -260,7 +260,6 @@ main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-widt
   padding: 10px; font-weight: 800; text-align: left; border-radius: var(--radius-s);
 }
 .cat-title > span:nth-child(2) { flex: 1; }
-.cat-title.static { padding: 4px 0 6px; font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; }
 .cat-ico {
   flex: none; width: 38px; height: 38px; border-radius: 12px;
   display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;
