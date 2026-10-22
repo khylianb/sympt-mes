@@ -82,9 +82,8 @@ export const SYMPTOMS = [
 
   // Tête / neurologique
   { key: 'migraine', cat: 'neuro', label: 'Migraine' },
-  { key: 'dizziness', cat: 'neuro', label: 'Vertiges' },
-  { key: 'faintness', cat: 'neuro', label: 'Malaise' },
-  { key: 'brain_fog', cat: 'neuro', label: 'Difficulté à se concentrer' },
+  { key: 'dizziness', cat: 'neuro', label: 'Vertiges', noScale: true },
+  { key: 'brain_fog', cat: 'neuro', label: 'Difficulté à se concentrer', noScale: true },
 
   // État général
   { key: 'fatigue', cat: 'general', label: 'Fatigue' },
@@ -92,6 +91,7 @@ export const SYMPTOMS = [
     fields: [{ id: 'temp', type: 'number', label: 'Température', unit: '°C', step: 0.1 }] },
   { key: 'chills', cat: 'general', label: 'Frissons', noScale: true },
   { key: 'nausea', cat: 'general', label: 'Nausées' },
+  { key: 'faintness', cat: 'general', label: 'Malaise', noScale: true },
   { key: 'night_sweats', cat: 'general', label: 'Sueurs nocturnes' },
   { key: 'sleep', cat: 'general', label: 'Mauvais sommeil', noScale: true },
   { key: 'fall', cat: 'general', label: 'Chute', urgent: true, noScale: true,
