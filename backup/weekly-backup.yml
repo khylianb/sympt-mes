@@ -1,0 +1,95 @@
+# Sauvegarde hebdomadaire chiffrée de Sympt'mes.
+#
+# CE FICHIER EST UN MODÈLE : il doit être copié dans le dépôt PRIVÉ de sauvegarde,
+# sous le chemin .github/workflows/weekly-backup.yml (voir README, « Sauvegarde automatique »).
+#
+# Secrets à créer dans le dépôt privé (Settings → Secrets and variables → Actions) :
+#   SUPABASE_URL        https://xxxx.supabase.co
+#   SUPABASE_KEY        la clé publique (publishable / anon)
+#   SUPABASE_EMAIL      l'email du compte partagé
+#   SUPABASE_PASSWORD   le mot de passe du compte partagé
+#   BACKUP_PASSPHRASE   une longue phrase de passe pour chiffrer (à garder précieusement !)
+#
+# Pour déchiffrer une sauvegarde :
+#   gpg --decrypt sympt-mes-AAAA-MM-JJ.json.gpg > sauvegarde.json
+# puis Réglages → « Restaurer un fichier de sauvegarde » dans l'appli.
+
+name: Sauvegarde hebdomadaire
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'   # chaque lundi vers 4h17 UTC
+  workflow_dispatch:        # bouton « Run workflow » pour tester
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Export chiffré
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_EMAIL: ${{ secrets.SUPABASE_EMAIL }}
+          SUPABASE_PASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          WORK=$(mktemp -d)
+
+          # Connexion avec le compte partagé
+          TOKEN=$(jq -n --arg e "$SUPABASE_EMAIL" --arg p "$SUPABASE_PASSWORD" '{email:$e,password:$p}' \
+            | curl -sf -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
+                -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json" --data @- \
+            | jq -r .access_token)
+          [ -n "$TOKEN" ] && [ "$TOKEN" != "null" ] || { echo "Échec de connexion"; exit 1; }
+          echo "::add-mask::$TOKEN"
+
+          # Export de chaque table (par pages de 1000 lignes)
+          for T in symptom_logs meals day_notes custom_symptoms app_meta; do
+            echo '[]' > "$WORK/$T.json"
+            OFFSET=0
+            while :; do
+              curl -sf "$SUPABASE_URL/rest/v1/$T?select=*&order=synced_at.asc&limit=1000&offset=$OFFSET" \
+                -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $TOKEN" > "$WORK/page.json"
+              N=$(jq length "$WORK/page.json")
+              jq -s '.[0] + .[1]' "$WORK/$T.json" "$WORK/page.json" > "$WORK/tmp.json" && mv "$WORK/tmp.json" "$WORK/$T.json"
+              [ "$N" -lt 1000 ] && break
+              OFFSET=$((OFFSET + 1000))
+            done
+            echo "$T : $(jq length "$WORK/$T.json") lignes"
+          done
+
+          # Même format que la sauvegarde manuelle de l'appli (restaurable depuis Réglages)
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          jq -n --arg now "$NOW" \
+            --slurpfile s "$WORK/symptom_logs.json" --slurpfile m "$WORK/meals.json" \
+            --slurpfile d "$WORK/day_notes.json" --slurpfile c "$WORK/custom_symptoms.json" \
+            --slurpfile a "$WORK/app_meta.json" \
+            '{app:"sympt-mes", version:1, exported_at:$now,
+              data:{symptom_logs:$s[0], meals:$m[0], day_notes:$d[0], custom_symptoms:$c[0], app_meta:$a[0]}}' \
+            > "$WORK/backup.json"
+
+          mkdir -p backups
+          OUT="backups/sympt-mes-$(date -u +%Y-%m-%d).json.gpg"
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 \
+              --symmetric --cipher-algo AES256 -o "$OUT" "$WORK/backup.json" 3<<<"$BACKUP_PASSPHRASE"
+          rm -rf "$WORK"
+
+          # Indique à l'appli la date de la dernière sauvegarde automatique
+          jq -n --arg now "$NOW" '[{key:"last_auto_backup", value:$now, updated_at:$now}]' \
+            | curl -sf -X POST "$SUPABASE_URL/rest/v1/app_meta?on_conflict=owner,key" \
+                -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $TOKEN" \
+                -H "Content-Type: application/json" -H "Prefer: resolution=merge-duplicates,return=minimal" \
+                --data @-
+
+          git config user.name "sauvegarde-auto"
+          git config user.email "actions@users.noreply.github.com"
+          git add backups
+          git commit -m "Sauvegarde du $(date -u +%Y-%m-%d)"
+          git push
