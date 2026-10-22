@@ -505,6 +505,8 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .game-board { position: relative; }
 .pour-stream { position: absolute; width: 6px; border-radius: 3px; transform-origin: top; z-index: 4; pointer-events: none; }
 .game-top-right { display: flex; align-items: center; gap: 8px; }
+.win-stars { font-size: 1.8rem; margin: 6px 0 0; letter-spacing: 4px; }
+.star-off { color: var(--muted); opacity: .5; }
 .win-moves { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; margin: 4px 0; }
 .tube.sel { transform: translateY(-14px); box-shadow: 0 10px 18px rgba(0, 0, 0, .15); border-color: var(--primary); }
 .tube.done { border-color: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }

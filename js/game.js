@@ -28,7 +28,9 @@ function saveProfile(p) { store.setMeta(myKey(), { ...p, updated: new Date().toI
 // moves : meilleur nombre de coups par niveau réussi
 const records = (p) => (p && p.moves) || {};
 const doneCount = (p) => Object.keys(records(p)).length;
-const totalMoves = (p) => Object.values(records(p)).reduce((s, x) => s + x, 0);
+// stars : meilleur nombre d'étoiles par niveau (départage le classement à niveau égal)
+const starMap = (p) => (p && p.stars) || {};
+const starCount = (p) => Object.values(starMap(p)).reduce((s, x) => s + x, 0);
 function nextLevel(p) {
   for (let n = 1; n <= LEVELS.length; n++) if (!records(p)[n]) return n;
   return LEVELS.length;
@@ -36,6 +38,15 @@ function nextLevel(p) {
 
 // ---------- règles ----------
 const parse = (n) => LEVELS[n - 1].split(':')[0].split('.').map((t) => [...t].map(Number));
+const parOf = (n) => Number(LEVELS[n - 1].split(':')[1]);
+
+// Étoiles selon les coups, comparés à une solution connue du niveau (pas affichée pendant la partie)
+function starsFor(moves, par, extraUsed) {
+  let s = moves <= par + 2 ? 3 : moves <= Math.ceil(par * 1.5) ? 2 : 1;
+  if (extraUsed) s = Math.max(1, s - 1); // un tube ajouté coûte une étoile
+  return s;
+}
+const starsHtml = (s) => '⭐'.repeat(s) + '<span class="star-off">☆</span>'.repeat(3 - s);
 const top = (t) => t[t.length - 1];
 function runLen(t) {
   let k = 1;
@@ -215,23 +226,24 @@ function leaderboardHtml() {
   const me = myKey();
   const players = store.all('app_meta')
     .filter((r) => r.key.startsWith('game:') && r.value && r.value.name)
-    .map((r) => ({ me: r.key === me, name: r.value.name, done: doneCount(r.value) }))
-    .sort((a, b) => b.done - a.done);
+    .map((r) => ({ me: r.key === me, name: r.value.name, done: doneCount(r.value), stars: starCount(r.value) }))
+    .sort((a, b) => b.done - a.done || b.stars - a.stars);
   const medals = ['🥇', '🥈', '🥉'];
   return `<div class="card leaderboard">
     <h3>🏆 Classement</h3>
     ${players.map((pl) => {
-      // Classement au seul niveau atteint : à niveau égal, même place
-      const rank = players.filter((o) => o.done > pl.done).length;
+      // Le niveau atteint d'abord ; les étoiles départagent seulement à niveau égal
+      const rank = players.filter((o) => o.done > pl.done || (o.done === pl.done && o.stars > pl.stars)).length;
       return `<div class="lb-row ${pl.me ? 'me' : ''}">
       <span class="lb-medal">${medals[rank] || rank + 1}</span>
       <span class="lb-name">${esc(pl.name)}${pl.me ? ' <small>(toi)</small>' : ''}</span>
-      <span class="lb-score">niveau ${Math.min(pl.done + 1, LEVELS.length)}</span>
+      <span class="lb-score">niveau ${Math.min(pl.done + 1, LEVELS.length)} · ${pl.stars} ⭐</span>
       ${pl.me ? '<button class="lb-edit" data-g="rename" aria-label="Changer de pseudo">✏️</button>' : ''}
     </div>`;
     }).join('')}
     <p class="muted small">${players.length < 2 ? 'L’autre joueur apparaîtra ici dès qu’il aura choisi son pseudo sur son téléphone.'
-      : 'Le plus loin dans les niveaux est premier.'}</p>
+      : 'Le plus loin dans les niveaux est premier ; à niveau égal, le plus d’étoiles l’emporte.'}</p>
+    <p class="muted small">⭐⭐⭐ si tu finis un niveau en peu de coups, ⭐⭐ ou ⭐ sinon.</p>
   </div>`;
 }
 
@@ -243,6 +255,7 @@ function winHtml() {
     <div class="win-card">
       <div class="win-emoji">🎉</div>
       <h3>Niveau ${g.n} réussi !</h3>
+      <p class="win-stars">${starsHtml(g.stars)}</p>
       <p class="win-moves">en ${plural(g.history.length, 'coup')}</p>
       <p class="muted small">${g.newRecord ? '🏅 Nouveau record sur ce niveau' : `Ton record : ${plural(rec, 'coup')}`}</p>
       ${last ? '<p><b>Bravo, tu as fini les 100 niveaux ! 🏆</b></p>' : ''}
@@ -259,14 +272,14 @@ function openLevels() {
   const unlocked = nextLevel(p);
   const body = openSheet(`
     <h3>Niveaux</h3>
-    <p class="muted small">${doneCount(p)} réussi${doneCount(p) > 1 ? 's' : ''} sur ${LEVELS.length} · ${plural(totalMoves(p), 'coup')} au total</p>
+    <p class="muted small">${doneCount(p)} réussi${doneCount(p) > 1 ? 's' : ''} sur ${LEVELS.length} · ${starCount(p)} ⭐</p>
     <div class="level-grid">
       ${LEVELS.map((_, k) => {
         const n = k + 1;
-        const rec = records(p)[n];
+        const st = starMap(p)[n] || 0;
         const locked = n > unlocked;
         return `<button class="level-cell ${locked ? 'locked' : ''} ${n === game.n ? 'cur' : ''}" data-level="${n}" ${locked ? 'disabled' : ''}>
-          <b>${locked ? '🔒' : n}</b><small>${rec ? `✓ ${rec} c.` : '&nbsp;'}</small></button>`;
+          <b>${locked ? '🔒' : n}</b><small>${st ? '⭐'.repeat(st) : '&nbsp;'}</small></button>`;
       }).join('')}
     </div>`);
   body.querySelector('.level-grid').onclick = (e) => {
@@ -399,7 +412,10 @@ function win() {
   const prev = moves[g.n];
   g.newRecord = !prev || g.history.length < prev;
   if (g.newRecord) moves[g.n] = g.history.length;
-  saveProfile({ ...p, moves });
+  g.stars = starsFor(g.history.length, parOf(g.n), g.extraUsed);
+  const stars = { ...starMap(p) };
+  stars[g.n] = Math.max(stars[g.n] || 0, g.stars);
+  saveProfile({ ...p, moves, stars });
   winSound();
   renderGame(root);
   celebrate();
@@ -457,7 +473,7 @@ export function bindGame(container) {
           g.extraUsed = true;
           g.selected = null;
           persist();
-          toast('Tube vide ajouté');
+          toast('Tube vide ajouté : une étoile en moins sur ce niveau');
         }
         break;
       case 'sound':
