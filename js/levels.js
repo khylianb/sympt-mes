@@ -1,6 +1,6 @@
 // 100 niveaux du jeu des tubes, générés et vérifiés solubles (outil de génération hors dépôt).
 // Format : tubes séparés par « . », chaque chiffre = une couleur (du fond vers le haut), puis « :par »
-// où « par » est un nombre de coups pour finir le niveau (sert à calculer les étoiles).
+// où « par » est le nombre de coups de la solution trouvée lors de la vérification.
 export const LEVELS = [
   '2200.0120.2111..:7',
   '0202.1110.2120..:8',
