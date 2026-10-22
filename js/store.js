@@ -1,7 +1,7 @@
 // Stockage local (IndexedDB) : tout est lu en mémoire au démarrage,
 // chaque modification est écrite immédiatement et marquée « à envoyer » (_dirty).
 
-import { SYMPTOMS, CATEGORY_ALIASES } from './catalogue.js';
+import { SYMPTOMS, RETIRED, CATEGORY_ALIASES } from './catalogue.js';
 
 const DB_NAME = 'symptmes';
 const DB_VERSION = 1;
@@ -148,6 +148,7 @@ export function symptomDefs({ includeArchived = false } = {}) {
 
 export function symptomDef(key) {
   return symptomDefs({ includeArchived: true }).find((s) => s.key === key)
+    || RETIRED.find((s) => s.key === key)
     || { key, cat: 'general', label: key };
 }
 

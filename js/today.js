@@ -1,7 +1,7 @@
 // Écran « Aujourd'hui » : symptômes et note.
 
 import * as store from './store.js';
-import { CATEGORIES, BODY_PARTS, SIDES } from './catalogue.js';
+import { CATEGORIES, BODY_PARTS, SIDES, BELLY } from './catalogue.js';
 import { usualSymptoms } from './analysis.js';
 import { esc, $, $$, debounce, uuid, intensityColor, toast, toDay } from './util.js';
 
@@ -29,14 +29,10 @@ export function renderToday(container, currentDay) {
   const defs = store.symptomDefs();
   const usual = usualSymptoms(day);
 
-  const nothingOn = note.nothing && ![...logs.values()].some((l) => !store.symptomDef(l.symptom_key).normal);
   const isToday = day === toDay();
   let html = `
-    <div class="hero compact">
+    <div class="hero compact photo">
       <p class="hero-q">${isToday ? 'Comment te sens-tu aujourd’hui ?' : 'Comment s’est passée cette journée ?'}</p>
-      <button class="nothing ${nothingOn ? 'on' : ''}" data-act="nothing">
-        ${nothingOn ? '✓ Journée sans symptôme enregistrée' : '🌿 Rien à signaler'}
-      </button>
     </div>
     <h2 class="section-title"><span class="st-ico">🩺</span>Symptômes</h2>`;
 
@@ -91,6 +87,14 @@ function symptomHtml(def, log) {
         body += `<div class="field"><span class="field-label">${esc(f.label)}</span><div class="chips">
           ${f.options.map((o) => `<button class="chip ${val === o ? 'on' : ''}" data-act="choice" data-field="${f.id}" data-opt="${esc(o)}">${esc(o)}</button>`).join('')}
         </div></div>`;
+      } else if (f.type === 'belly') {
+        const sel = new Set(val || []);
+        const cell = ([name, hint]) => `<button class="belly-cell ${sel.has(name) ? 'on' : ''}" data-act="multi" data-field="${f.id}" data-opt="${esc(name)}">
+          <b>${esc(name)}</b>${hint ? `<small>${esc(hint)}</small>` : ''}</button>`;
+        body += `<div class="field"><span class="field-label">${esc(f.label)}</span>
+          <div class="belly">${BELLY.map(cell).join('')}</div>
+          <div class="chips belly-all"><button class="chip ${sel.has('Tout le ventre') ? 'on' : ''}" data-act="multi" data-field="${f.id}" data-opt="Tout le ventre">Tout le ventre</button></div>
+        </div>`;
       } else if (f.type === 'zones') {
         body += zonesHtml(f, val || {});
       } else if (f.type === 'number') {
@@ -173,10 +177,7 @@ export function bindToday(container) {
     const sym = el.closest('.sym');
     const key = sym && sym.dataset.key;
 
-    if (act === 'nothing') {
-      toggleNothing(day);
-      rerender();
-    } else if (act === 'cat') {
+    if (act === 'cat') {
       const cat = el.closest('.cat').dataset.cat;
       if (el.closest('.cat').classList.contains('open')) { openCats.delete(cat); closedCats.add(cat); }
       else { closedCats.delete(cat); openCats.add(cat); }

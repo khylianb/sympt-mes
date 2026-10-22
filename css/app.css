@@ -166,16 +166,34 @@ main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-widt
 .hero.compact .hero-q { font-size: 1.2rem; margin-bottom: 10px; }
 .home-hero { padding-bottom: 22px; min-height: 230px; }
 /* Photo d'accueil : voile sombre en dégradé pour garder le texte lisible */
-.home-hero.photo {
-  min-height: 300px; justify-content: flex-end;
+.hero.photo {
   background:
     linear-gradient(180deg, rgba(8, 35, 55, 0.38) 0%, rgba(8, 35, 55, 0.22) 40%, rgba(8, 30, 40, 0.62) 100%),
     var(--home-photo) center 45% / cover no-repeat, var(--hero-1);
 }
-.home-hero.photo .hero-hello { color: #d8f5ef; }
-.home-hero.photo .hero-q { color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35); }
-.home-hero.photo .hero-status { color: rgba(255, 255, 255, 0.85); }
-.home-hero.photo .hero-status.done { color: #9ff0c8; }
+.hero.photo .hero-hello { color: #d8f5ef; }
+.hero.photo .hero-q { color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35); }
+.hero.photo .hero-status { color: rgba(255, 255, 255, 0.85); }
+.hero.photo .hero-status.done { color: #9ff0c8; }
+.home-hero.photo { min-height: 300px; justify-content: flex-end; }
+.hero.compact.photo { min-height: 120px; justify-content: flex-end; background-position: center, center 30%; }
+.hero.compact.photo .hero-q { margin: 0; }
+
+/* Ventre : grille 3 × 3 */
+.belly {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px;
+  padding: 6px; border-radius: 28px 28px 40px 40px; background: var(--primary-soft);
+}
+.belly-cell {
+  min-height: 58px; padding: 6px 4px; border-radius: 12px; background: var(--card);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  text-align: center; font-size: .8rem; line-height: 1.15; border: 1.5px solid transparent;
+}
+.belly-cell small { font-size: .68rem; color: var(--muted); }
+.belly-cell.on { background: var(--primary); color: #fff; }
+.belly-cell.on small { color: rgba(255, 255, 255, .85); }
+.belly-cell.on b::before { content: "✓ "; }
+.belly-all { margin-top: 8px; }
 .photo-thumb { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-s); background: center / cover no-repeat; margin-bottom: 10px; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .hero-status { position: relative; margin: 0 0 14px; font-weight: 700; font-size: .9rem; color: var(--muted); }
