@@ -10,6 +10,18 @@
   <meta name="apple-mobile-web-app-title" content="Sympt'mes">
   <meta name="robots" content="noindex, nofollow">
   <title>Sympt'mes</title>
+  <meta name="description" content="Ton suivi santé en moins d’une minute par jour : symptômes, PDF pour le médecin, synchronisé à deux.">
+  <!-- Aperçu quand on partage le lien (Messages, WhatsApp…) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sympt'mes : ton suivi santé en moins d’1 minute par jour">
+  <meta property="og:description" content="Symptômes en 3 taps, PDF prêt pour le médecin, synchronisé sur vos 2 téléphones… et un jeu anti-stress.">
+  <meta property="og:url" content="https://khylianb.github.io/sympt-mes/">
+  <meta property="og:image" content="https://khylianb.github.io/sympt-mes/img/apercu.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="fr_FR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://khylianb.github.io/sympt-mes/img/apercu.jpg">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -44,6 +56,7 @@
       <section id="view-home" class="view"></section>
       <section id="view-today" class="view" hidden></section>
       <section id="view-summary" class="view" hidden></section>
+      <section id="view-game" class="view" hidden></section>
       <section id="view-settings" class="view" hidden></section>
     </main>
 
@@ -52,6 +65,7 @@
       <button data-tab="home" class="on"><span>🏠</span>Accueil</button>
       <button data-tab="today"><span>✏️</span>Saisie</button>
       <button data-tab="summary"><span>📈</span>Synthèse</button>
+      <button data-tab="game"><span>🧪</span>Détente</button>
       <button data-tab="settings"><span>⚙️</span>Réglages</button>
     </nav>
   </div>
@@ -61,8 +75,11 @@
     <div class="sheet-panel"><div class="sheet-grip"></div><div id="sheet-body"></div></div>
   </div>
   <div id="update-banner" class="update-banner" role="status" hidden>
-    <span>✨ Nouvelle version</span>
-    <button id="update-btn" class="btn primary small">Mettre à jour</button>
+    <div class="ub-head">
+      <span id="update-title">✨ Nouvelle version</span>
+      <button id="update-btn" class="btn primary small">Mettre à jour</button>
+    </div>
+    <div id="update-notes"></div>
   </div>
   <div id="toast" class="toast" role="status"></div>
 

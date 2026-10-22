@@ -5,10 +5,10 @@ import * as sync from './sync.js';
 import { CATEGORIES, catLabel } from './catalogue.js';
 import { esc, $, toast, relativeDays } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
+import { CHANGELOG, APP_VERSION, notesHtml } from './changelog.js';
 import { hasPhoto, photoUrl, setPhotoFromFile, clearPhoto } from './photo.js';
 import { openBackupExport, backupLabel } from './export.js';
 
-export const APP_VERSION = '1.2.0';
 
 export function renderSettings(container) {
   const profile = store.meta('profile') || {};
@@ -73,7 +73,10 @@ export function renderSettings(container) {
       <button class="btn danger" id="st-logout">Se déconnecter de ce téléphone</button>
     </div>`}
     <div class="center">
-      <button class="btn ghost" id="st-reload">🔄 Recharger l’appli</button>
+      <div class="btn-row center-row">
+        <button class="btn ghost" id="st-notes">📝 Nouveautés</button>
+        <button class="btn ghost" id="st-reload">🔄 Recharger l’appli</button>
+      </div>
       <p class="muted small">Sympt'mes v${APP_VERSION} · les données restent dans votre espace Supabase.</p>
     </div>`;
 }
@@ -114,7 +117,9 @@ export function bindSettings(container, { onRender }) {
   });
 
   container.addEventListener('click', async (e) => {
-    if (e.target.closest('#st-reload')) {
+    if (e.target.closest('#st-notes')) {
+      openSheet(`<h3>📝 Nouveautés</h3>${notesHtml(CHANGELOG)}`);
+    } else if (e.target.closest('#st-reload')) {
       // Cherche d'abord une nouvelle version, puis recharge (les données sont déjà enregistrées)
       try {
         const reg = await navigator.serviceWorker?.getRegistration();

@@ -6,7 +6,9 @@ import { renderToday, bindToday } from './today.js';
 import { renderHome, bindHome } from './home.js';
 import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
-import { initSheet, sheetOpen } from './ui.js';
+import { renderGame, bindGame } from './game.js';
+import { initSheet, sheetOpen, openSheet } from './ui.js';
+import { CHANGELOG, APP_VERSION, newerThan, notesHtml } from './changelog.js';
 import { applyPhoto } from './photo.js';
 import { $, $$, toDay, addDays, fmtDayLong, esc, isEvening } from './util.js';
 
@@ -22,6 +24,7 @@ function render() {
   if (state.tab === 'today') renderToday(views.today, state.day);
   if (state.tab === 'summary') renderSummary(views.summary);
   if (state.tab === 'settings') renderSettings(views.settings);
+  if (state.tab === 'game') renderGame(views.game);
 }
 
 function renderHeader() {
@@ -36,7 +39,8 @@ function renderHeader() {
   } else if (state.tab === 'home') {
     h.innerHTML = `<div class="day-title"><small>Sympt'mes</small><span>${esc(fmtDayLong(toDay()))}</span></div>`;
   } else {
-    h.innerHTML = `<div class="day-title"><span>${state.tab === 'summary' ? 'Synthèse' : 'Réglages'}</span></div>`;
+    const titles = { summary: 'Synthèse', settings: 'Réglages', game: 'Détente' };
+    h.innerHTML = `<div class="day-title"><span>${titles[state.tab]}</span></div>`;
   }
 }
 
@@ -87,6 +91,7 @@ function showLogin(message) {
       await sync.login($('#login-email').value.trim(), $('#login-password').value);
       $('#login-password').value = '';
       box.hidden = true;
+      store.kvSet('seenVersion', APP_VERSION); // nouvelle installation : pas de « Quoi de neuf »
       startApp();
     } catch (err) {
       $('#login-msg').textContent = navigator.onLine
@@ -118,9 +123,33 @@ function setupUpdates() {
     document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
   }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController) $('#update-banner').hidden = false;
+    if (hadController) showUpdateBanner();
   });
   $('#update-btn').addEventListener('click', () => location.reload());
+}
+
+// Le bandeau va chercher les notes de la nouvelle version (le code en cours est encore l'ancien)
+async function showUpdateBanner() {
+  $('#update-banner').hidden = false;
+  try {
+    const { CHANGELOG: latest } = await import(`./changelog.js?v=${Date.now()}`);
+    const fresh = newerThan(latest, APP_VERSION);
+    if (!fresh.length) return;
+    $('#update-title').textContent = `✨ Nouvelle version ${fresh[0].version}`;
+    $('#update-notes').innerHTML = notesHtml(fresh.slice(0, 1));
+    store.kvSet('notesShown', fresh[0].version);
+  } catch { /* hors ligne : bandeau simple */ }
+}
+
+// Après une mise à jour : montre une fois les nouveautés, si le bandeau ne l'a pas déjà fait
+function showNotesAfterUpdate() {
+  const seen = store.kvGet('seenVersion');
+  store.kvSet('seenVersion', APP_VERSION);
+  if (seen === APP_VERSION) return;
+  const used = seen || store.kvGet('session') || store.kvGet('deviceId') || store.all('symptom_logs').length;
+  if (!used || store.kvGet('notesShown') === APP_VERSION) return;
+  const fresh = newerThan(CHANGELOG, seen).slice(0, seen ? 3 : 1);
+  if (fresh.length) openSheet(`<h3>✨ Quoi de neuf ?</h3>${notesHtml(fresh)}`);
 }
 
 // Thème selon l'heure : clair en journée, foncé le soir
@@ -129,7 +158,7 @@ function applyTimeTheme() {
   const theme = dark ? 'dark' : 'light';
   if (document.documentElement.dataset.theme === theme) return false;
   document.documentElement.dataset.theme = theme;
-  $('meta[name="theme-color"]').setAttribute('content', dark ? '#0e1a1c' : '#eaf4f2');
+  $('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0e1a1c' : '#eaf4f2');
   return true;
 }
 
@@ -148,6 +177,8 @@ async function main() {
   views.today = $('#view-today');
   views.summary = $('#view-summary');
   views.settings = $('#view-settings');
+  views.game = $('#view-game');
+  bindGame(views.game);
   bindToday(views.today);
   const openDay = (day) => { state.day = day; state.tab = 'today'; render(); window.scrollTo(0, 0); };
   bindHome(views.home, { onOpenDay: openDay, onRender: () => renderHome(views.home) });
@@ -201,7 +232,7 @@ async function main() {
     }
   });
 
-  if (demo || store.kvGet('session')) startApp();
+  if (demo || store.kvGet('session')) { startApp(); showNotesAfterUpdate(); }
   else showLogin();
 
   setupUpdates();

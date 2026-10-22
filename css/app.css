@@ -456,11 +456,14 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .update-banner {
   position: fixed; z-index: 55; left: 50%; transform: translateX(-50%);
   top: calc(var(--safe-t) + 66px); width: min(92vw, 420px);
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding: 10px 10px 10px 16px; border-radius: 999px; font-weight: 800; font-size: .9rem;
+  padding: 12px 12px 12px 16px; border-radius: 22px; font-weight: 800; font-size: .9rem;
   background: var(--card); color: var(--text); box-shadow: var(--shadow);
 }
+.ub-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .update-banner .btn { white-space: nowrap; }
+#update-notes .sub { display: none; }
+.notes-list { margin: 8px 0 4px; padding-left: 4px; list-style: none; display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .9rem; }
+.notes-block + .notes-block { margin-top: 6px; }
 .toast {
   position: fixed; left: 50%; top: calc(var(--safe-t) + 70px); transform: translate(-50%, -20px);
   background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 999px; font-weight: 800;
@@ -468,3 +471,108 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 .fatal { padding: 20px; color: var(--danger); }
+
+/* ---------- jeu des tubes ---------- */
+.game-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.game-level { font-family: var(--font-display); font-size: 1.3rem; padding: 6px 2px; }
+.game-level small { font-family: var(--font-body); font-size: .85rem; color: var(--muted); font-weight: 700; }
+.game-moves { font-weight: 800; color: var(--primary); background: var(--primary-soft); padding: 6px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.game-board { padding: 18px 10px 12px; }
+.tubes {
+  display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 22px 8px; justify-items: center; padding-top: 14px;
+}
+.tube {
+  position: relative; display: block; overflow: hidden; padding: 0;
+  width: min(48px, 100%); height: 172px;
+  border: 3px solid color-mix(in srgb, var(--text) 22%, transparent); border-top-width: 0;
+  border-radius: 6px 6px 24px 24px; background: color-mix(in srgb, var(--card) 70%, transparent);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+/* Deux rangées de tubes : on rétrécit selon la hauteur de l'écran */
+.tubes.two-rows { gap: 18px 8px; }
+.tubes.two-rows .tube { height: clamp(118px, 19vh, 172px); }
+/* Reflet du verre */
+.tube::after {
+  content: ""; position: absolute; top: 6px; bottom: 10px; left: 18%; width: 14%;
+  border-radius: 6px; background: linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(255, 255, 255, .08));
+  pointer-events: none;
+}
+/* Liquide : les couches de même couleur forment une seule masse, sans séparation */
+.liquid { position: absolute; inset: 0; display: flex; flex-direction: column-reverse; }
+.liquid i {
+  display: block; flex: none;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 78%, #000) 0%, var(--c) 30%, color-mix(in srgb, var(--c) 82%, #fff) 55%, var(--c) 80%, color-mix(in srgb, var(--c) 85%, #000) 100%);
+}
+.liquid i:last-child { box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35); }
+.game-board { position: relative; }
+.pour-stream { position: absolute; width: 6px; border-radius: 3px; transform-origin: top; z-index: 4; pointer-events: none; }
+.game-top-right { display: flex; align-items: center; gap: 8px; }
+.win-stars { font-size: 1.8rem; margin: 6px 0 0; letter-spacing: 4px; }
+.star-off { color: var(--muted); opacity: .5; }
+.win-moves { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; margin: 4px 0; }
+.tube.sel { transform: translateY(-14px); box-shadow: 0 10px 18px rgba(0, 0, 0, .15); border-color: var(--primary); }
+.tube.done { border-color: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+.tube.shake { animation: tube-shake .35s ease; }
+@keyframes tube-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.game-hint { text-align: center; font-size: .8rem; color: var(--muted); margin: 16px 0 0; }
+.game-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+.game-actions { flex-wrap: nowrap; }
+.game-actions .btn { padding: 10px 12px; font-size: .88rem; white-space: nowrap; }
+.leaderboard .lb-row { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: 12px; }
+.leaderboard .lb-row.me { background: var(--primary-soft); }
+.lb-medal { font-size: 1.3rem; width: 1.6em; text-align: center; }
+.lb-name { flex: 1; font-weight: 800; min-width: 0; }
+.lb-name small { color: var(--muted); font-weight: 600; }
+.lb-score { font-size: .85rem; color: var(--muted); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lb-edit { font-size: 1rem; padding: 4px; }
+.win-overlay {
+  position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 20px;
+  background: rgba(10, 30, 35, .6); animation: fade-in .2s ease;
+}
+.win-card { width: min(100%, 340px); background: var(--card); border-radius: 26px; padding: 22px; text-align: center; box-shadow: var(--shadow); }
+.win-card h3 { font-family: var(--font-display); font-size: 1.4rem; margin: 6px 0; }
+.win-emoji { font-size: 2.6rem; }
+.center-row { justify-content: center; margin-top: 12px; }
+@keyframes fade-in { from { opacity: 0; } }
+.level-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.level-cell {
+  display: flex; flex-direction: column; align-items: center; padding: 8px 2px; border-radius: 12px;
+  background: var(--primary-soft); font-variant-numeric: tabular-nums;
+}
+.level-cell small { font-size: .55rem; min-height: 1em; }
+.level-cell.cur { outline: 2px solid var(--primary); }
+.level-cell.locked { opacity: .45; }
+.game-welcome h3 { font-family: var(--font-display); }
+
+/* Pluie de paillettes et de 💩 (niveau réussi) */
+.confetti-layer { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
+.confetti-layer span {
+  position: absolute; top: -50px; line-height: 1;
+  animation: confetti-fall var(--d) cubic-bezier(.3, .1, .6, 1) var(--delay) forwards;
+}
+.confetti-layer .glitter { border-radius: 2px; box-shadow: 0 0 6px rgba(255, 255, 255, .7); animation-name: confetti-fall, glitter-shine; animation-duration: var(--d), .35s; animation-iteration-count: 1, infinite; animation-direction: normal, alternate; }
+@keyframes confetti-fall { to { transform: translate(var(--dx), calc(100vh + 80px)) rotate(var(--r)); } }
+@keyframes glitter-shine { from { filter: brightness(1); } to { filter: brightness(1.8); } }
+
+/* Couverture du jeu (écran d'arrivée de l'onglet Détente) */
+.game-cover {
+  position: relative; overflow: hidden; border-radius: 22px; margin: -2px -4px 14px; padding: 26px 14px 18px; text-align: center;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 127, 92, .55), transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(142, 91, 216, .6), transparent 45%),
+    radial-gradient(circle at 50% 110%, rgba(46, 196, 201, .6), transparent 55%),
+    linear-gradient(160deg, #1c3b52, #2a2350);
+  color: #fff;
+}
+.cover-tubes { position: relative; display: flex; justify-content: center; align-items: flex-end; gap: 12px; height: 132px; }
+.tube.mini { width: 34px; height: 108px; pointer-events: none; border-color: rgba(255, 255, 255, .55); background: rgba(255, 255, 255, .12); }
+.tube.mini.done { border-color: #7ee0a8; box-shadow: 0 0 0 3px rgba(126, 224, 168, .3); }
+.tube.mini.pouring { transform: translate(4px, -50px) rotate(62deg); z-index: 2; }
+.cover-stream { position: absolute; left: calc(50% - 2.5px); top: 8px; width: 5px; height: 70px; border-radius: 3px; background: #f5d33d; }
+.cover-title { font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; margin-top: 12px; text-shadow: 0 2px 10px rgba(0, 0, 0, .3); }
+.cover-sub { font-weight: 800; font-size: .9rem; opacity: .9; }
+.cover-sticker {
+  position: absolute; top: 12px; right: 12px; transform: rotate(8deg); z-index: 3;
+  background: #ffc56b; color: #4a2a00; font-weight: 900; font-size: .8rem; padding: 5px 10px; border-radius: 10px;
+}
