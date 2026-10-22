@@ -8,7 +8,7 @@ import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
 import { initSheet, sheetOpen } from './ui.js';
 import { applyPhoto } from './photo.js';
-import { $, $$, toDay, addDays, fmtDayLong, esc } from './util.js';
+import { $, $$, toDay, addDays, fmtDayLong, esc, isEvening } from './util.js';
 
 const state = { tab: 'home', day: toDay() };
 const views = {};
@@ -123,7 +123,21 @@ function setupUpdates() {
   $('#update-btn').addEventListener('click', () => location.reload());
 }
 
+// Thème selon l'heure : clair en journée, foncé le soir
+function applyTimeTheme() {
+  const dark = isEvening();
+  const theme = dark ? 'dark' : 'light';
+  if (document.documentElement.dataset.theme === theme) return false;
+  document.documentElement.dataset.theme = theme;
+  $('meta[name="theme-color"]').setAttribute('content', dark ? '#0e1a1c' : '#eaf4f2');
+  return true;
+}
+
 async function main() {
+  applyTimeTheme();
+  // Bascule à 18 h / 5 h même si l'appli reste ouverte (le message d'accueil suit)
+  setInterval(() => { if (applyTimeTheme() && state.tab === 'home') safeRender(); }, 60 * 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && applyTimeTheme()) safeRender(); });
   initSheet();
   // Démo : base locale séparée, vide, jamais synchronisée
   await store.init(demo ? 'symptmes-demo-v3' : undefined);

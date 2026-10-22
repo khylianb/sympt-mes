@@ -93,3 +93,9 @@ export function toast(msg) {
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.remove('show'), 2500);
 }
+
+// Le soir (18 h → 5 h) : « Bonsoir » et thème foncé
+export function isEvening(d = new Date()) {
+  const h = d.getHours();
+  return h < 5 || h >= 18;
+}
