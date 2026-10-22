@@ -141,7 +141,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .sync-pill.warn { color: var(--danger); }
 .sync-pill.muted { color: var(--muted); }
 
-main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-width: 640px; margin: 0 auto; }
+main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 32px); max-width: 640px; margin: 0 auto; }
 
 /* ---------- accueil illustré ---------- */
 .hero {
@@ -344,25 +344,6 @@ textarea, .field-block input, .field-block select, #login input {
 }
 textarea { box-shadow: var(--shadow); border-color: transparent; }
 
-/* ---------- bouton export ---------- */
-.fab-wrap {
-  position: fixed; left: 0; right: 0; z-index: 20;
-  bottom: calc(var(--tabbar-h) + var(--safe-b) + 18px);
-  display: flex; flex-direction: column; align-items: center; pointer-events: none;
-}
-.fab {
-  pointer-events: auto;
-  background: linear-gradient(120deg, var(--accent), var(--accent-2)); color: #fff; font-weight: 800;
-  padding: 12px 24px; border-radius: 999px; font-size: 1rem; box-shadow: 0 10px 26px color-mix(in srgb, var(--accent-2) 45%, transparent);
-}
-.fab:active { transform: scale(.97); }
-.fab-note {
-  margin-top: 6px; font-size: .74rem; font-weight: 700; color: var(--muted); background: var(--card-glass);
-  padding: 2px 12px; border-radius: 999px; box-shadow: var(--shadow);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-}
-.fab-note.old { color: var(--danger); }
-
 /* ---------- barre d'onglets ---------- */
 .tabbar {
   position: fixed; z-index: 20;
@@ -411,6 +392,7 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .seg { display: flex; background: var(--card-glass); border-radius: 999px; padding: 4px; margin-bottom: 12px; box-shadow: var(--shadow); }
 .seg button { flex: 1; padding: 9px; border-radius: 999px; font-weight: 800; color: var(--muted); }
 .seg button.on { background: var(--primary); color: #fff; }
+.pdf-btn { margin: 0 0 14px; box-shadow: var(--shadow); }
 .period-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .period-nav strong { font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }

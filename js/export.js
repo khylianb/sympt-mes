@@ -16,12 +16,7 @@ export function lastBackupIso() {
 
 export function backupLabel() {
   const iso = lastBackupIso();
-  return iso ? `Dernière sauvegarde : ${relativeDays(iso)}` : 'Aucune sauvegarde pour l’instant';
-}
-
-export function backupIsOld() {
-  const iso = lastBackupIso();
-  return !iso || Date.now() - Date.parse(iso) > 8 * 86400000;
+  return iso ? `Dernière copie : ${relativeDays(iso)}` : 'Aucune copie pour l’instant';
 }
 
 // ---------- partage ----------
@@ -62,20 +57,17 @@ async function deliver(file, body, onDone) {
   }
 }
 
-export function openExport() {
+// PDF pour le médecin (depuis l'onglet Synthèse)
+export function openPdfExport() {
   const body = openSheet(`
-    <h3>Enregistrer / Exporter</h3>
-    <p class="muted small">${esc(backupLabel())}</p>
-    <div class="sub">📄 PDF pour le médecin</div>
+    <h3>📄 PDF pour le médecin</h3>
+    <div class="sub">Période</div>
     <div class="seg" id="exp-period">
       <button data-p="7" class="on">7 jours</button>
       <button data-p="30">30 jours</button>
       <button data-p="all">Tout</button>
     </div>
     <button class="btn primary big" id="exp-pdf">Créer le PDF</button>
-    <div class="sub">🗂 Sauvegarde complète</div>
-    <p class="muted small">Toutes les données dans un fichier, à garder dans Fichiers / iCloud ou à envoyer par mail.</p>
-    <button class="btn accent big" id="exp-json">Créer la sauvegarde</button>
     <div id="exp-ready"></div>`);
 
   let period = '7';
@@ -99,13 +91,24 @@ export function openExport() {
     }
     deliver(file, body);
   };
+}
+
+// Copie de secours de toutes les données (depuis Réglages)
+export function openBackupExport(onDone) {
+  const body = openSheet(`
+    <h3>🗂 Copie de secours</h3>
+    <p class="muted small">Les données sont déjà enregistrées en ligne automatiquement. Ce fichier est une copie en plus,
+      à garder dans Fichiers / iCloud ou à s’envoyer par mail.</p>
+    <button class="btn primary big" id="exp-json">Créer le fichier</button>
+    <div id="exp-ready"></div>`);
 
   $('#exp-json', body).onclick = () => {
     const json = JSON.stringify(store.exportData(), null, 1);
     const file = new File([json], `sympt-mes-sauvegarde-${toDay()}.json`, { type: 'application/json' });
     deliver(file, body, () => {
       store.setMeta('last_export', new Date().toISOString());
-      toast('Sauvegarde enregistrée ✓');
+      toast('Copie de secours créée ✓');
+      if (onDone) onDone();
     });
   };
 }
