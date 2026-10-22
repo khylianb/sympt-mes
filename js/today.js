@@ -2,12 +2,11 @@
 
 import * as store from './store.js';
 import { CATEGORIES, BODY_PARTS, SIDES, BELLY } from './catalogue.js';
-import { esc, $, $$, debounce, uuid, intensityColor, toast, toDay } from './util.js';
+import { esc, $, $$, debounce, uuid, intensityColor, toast, toDay, isEvening } from './util.js';
 
 // « Bonjour » jusqu'à 18 h, « Bonsoir » ensuite, suivi du prénom choisi dans Réglages
 export function greeting(name = '') {
-  const h = new Date().getHours();
-  const word = h < 5 || h >= 18 ? 'Bonsoir' : 'Bonjour';
+  const word = isEvening() ? 'Bonsoir' : 'Bonjour';
   return name ? `${word} ${name}` : word;
 }
 
