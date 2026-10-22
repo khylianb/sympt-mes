@@ -1,6 +1,7 @@
 // Écran « Synthèse » : semaine / mois.
 
 import { analyse, describeDetails } from './analysis.js';
+import { openPdfExport } from './export.js';
 import {
   esc, toDay, addDays, startOfWeek, startOfMonth, endOfMonth, fmtDayShort, fmtMonthName,
   fmtDdMm, parseDay, intensityColor,
@@ -31,6 +32,8 @@ export function renderSummary(container) {
       <strong>${esc(title)}</strong>
       <button class="icon-btn" data-nav="1" aria-label="Période suivante" ${isCurrent ? 'disabled' : ''}><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 4 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
+
+    <button class="btn primary big pdf-btn" id="sum-pdf">📄 Exporter en PDF pour le médecin</button>
 
     <div class="stats">
       <div class="stat"><b>${a.filledDays}</b><span>jours remplis</span></div>
@@ -137,7 +140,8 @@ export function bindSummary(container, { onRender, onOpenDay }) {
     const m = e.target.closest('[data-mode]');
     const nav = e.target.closest('[data-nav]');
     const dayBtn = e.target.closest('[data-day]');
-    if (m) { state.mode = m.dataset.mode; onRender(); }
+    if (e.target.closest('#sum-pdf')) openPdfExport();
+    else if (m) { state.mode = m.dataset.mode; onRender(); }
     else if (nav) {
       const dir = Number(nav.dataset.nav);
       if (state.mode === 'week') state.anchor = addDays(startOfWeek(state.anchor), 7 * dir);

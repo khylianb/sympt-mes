@@ -6,6 +6,7 @@ import { CATEGORIES, catLabel } from './catalogue.js';
 import { esc, $, toast, relativeDays } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { hasPhoto, photoUrl, setPhotoFromFile, clearPhoto } from './photo.js';
+import { openBackupExport, backupLabel } from './export.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -58,8 +59,12 @@ export function renderSettings(container) {
 
     <div class="card">
       <h3>Sauvegardes</h3>
-      <p class="muted small">Sauvegarde automatique hebdomadaire : ${auto ? esc(relativeDays(auto)) : 'pas encore'}</p>
-      <label class="btn ghost file-btn">Restaurer un fichier de sauvegarde…<input type="file" id="st-import" accept="application/json,.json" hidden></label>
+      <p class="muted small">Tout est enregistré en ligne automatiquement. Une copie de secours en plus, de temps en temps, est une bonne précaution.</p>
+      <p class="muted small">${esc(backupLabel())} · sauvegarde automatique : ${auto ? esc(relativeDays(auto)) : 'pas encore activée'}</p>
+      <div class="btn-row">
+        <button class="btn ghost" id="st-backup">Créer une copie de secours</button>
+        <label class="btn ghost file-btn">Restaurer un fichier de sauvegarde…<input type="file" id="st-import" accept="application/json,.json" hidden></label>
+      </div>
     </div>
 
     ${demo ? '' : `<div class="card">
@@ -104,7 +109,9 @@ export function bindSettings(container, { onRender }) {
   });
 
   container.addEventListener('click', async (e) => {
-    if (e.target.closest('#st-photo-clear')) {
+    if (e.target.closest('#st-backup')) {
+      openBackupExport(onRender);
+    } else if (e.target.closest('#st-photo-clear')) {
       await clearPhoto();
       onRender();
     } else if (e.target.closest('#st-demo-reset')) {

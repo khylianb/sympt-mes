@@ -6,7 +6,6 @@ import { renderToday, bindToday } from './today.js';
 import { renderHome, bindHome } from './home.js';
 import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
-import { openExport, backupLabel, backupIsOld } from './export.js';
 import { initSheet, sheetOpen } from './ui.js';
 import { applyPhoto } from './photo.js';
 import { $, $$, toDay, addDays, fmtDayLong, esc } from './util.js';
@@ -23,7 +22,6 @@ function render() {
   if (state.tab === 'today') renderToday(views.today, state.day);
   if (state.tab === 'summary') renderSummary(views.summary);
   if (state.tab === 'settings') renderSettings(views.settings);
-  renderFab();
 }
 
 function renderHeader() {
@@ -57,10 +55,6 @@ function renderStatus(st) {
   el.title = st.error || '';
 }
 
-function renderFab() {
-  $('#fab-note').textContent = backupLabel();
-  $('#fab-note').classList.toggle('old', backupIsOld());
-}
 
 // Re-rendu après des données reçues de l'autre téléphone, sans gêner la saisie
 let pendingRender = false;
@@ -147,7 +141,6 @@ async function main() {
     else return;
     render();
   });
-  $('#fab').addEventListener('click', openExport);
   $('#sync-status').addEventListener('click', () => {
     const st = sync.getStatus();
     if (st.authError || !st.loggedIn) showLogin('Session expirée : reconnectez-vous (vos saisies sont conservées).');
@@ -156,7 +149,6 @@ async function main() {
 
   store.onChange((table, fromRemote) => {
     if (fromRemote) safeRender();
-    else if (table === 'app_meta') renderFab();
   });
   document.addEventListener('focusout', () => setTimeout(() => { if (pendingRender) safeRender(); }, 300));
   new MutationObserver(() => { if (pendingRender && !sheetOpen()) safeRender(); })
@@ -176,7 +168,7 @@ async function main() {
       if (state.day === lastToday) state.day = t;
       lastToday = t;
       render();
-    } else renderFab();
+    }
   });
 
   if (demo || store.kvGet('session')) startApp();
