@@ -103,7 +103,7 @@ function symptomHtml(def, log) {
       <input type="checkbox" ${on ? 'checked' : ''} data-act="toggle">
       <span class="sym-label">${esc(def.label)}${def.urgent ? ' <span class="dot" title="À signaler vite"></span>' : ''}</span>
     </label>
-    ${on ? `<div class="sym-body">${body}</div>` : ''}
+    ${on && body ? `<div class="sym-body">${body}</div>` : ''}
   </div>`;
 }
 

@@ -52,7 +52,7 @@ export const SYMPTOMS = [
   // Transit / selles
   { key: 'stool_formed', cat: 'transit', label: 'Selles moulées (normales)', normal: true, noScale: true, fields: [STOOL_COUNT, STOOL_QTY] },
   { key: 'stool_liquid', cat: 'transit', label: 'Selles liquides (diarrhée)', noScale: true, fields: [STOOL_COUNT, STOOL_QTY] },
-  { key: 'constipation', cat: 'transit', label: 'Constipation', fields: [STOOL_COUNT, STOOL_QTY] },
+  { key: 'constipation', cat: 'transit', label: 'Constipation', noScale: true, fields: [STOOL_COUNT, STOOL_QTY] },
   { key: 'no_stool', cat: 'transit', label: 'Pas de selle aujourd’hui', noScale: true },
   { key: 'blood_stool', cat: 'transit', label: 'Sang dans les selles', urgent: true, noScale: true,
     fields: [{ id: 'qty', type: 'choice', label: 'Quantité', options: ['Traces', 'Visible', 'Abondant'] }] },
@@ -61,48 +61,46 @@ export const SYMPTOMS = [
   // Ventre / digestion
   { key: 'abdo_pain', cat: 'ventre', label: 'Douleur au ventre',
     fields: [{ id: 'zone', type: 'belly', label: 'Où ? (comme si tu regardais ton ventre)' }] },
-  { key: 'bloating', cat: 'ventre', label: 'Ventre gonflé / ballonnements' },
-  { key: 'gas', cat: 'ventre', label: 'Gaz' },
-  { key: 'vomiting', cat: 'ventre', label: 'Vomissements', fields: [{ id: 'count', type: 'number', label: 'Nombre de fois', unit: '' }] },
+  { key: 'bloating', cat: 'ventre', label: 'Ventre gonflé / ballonnements', noScale: true },
+  { key: 'gas', cat: 'ventre', label: 'Gaz', noScale: true },
   { key: 'reflux', cat: 'ventre', label: 'Brûlures d’estomac / reflux' },
 
   // Zone anale
   { key: 'anal_pain', cat: 'anal', label: 'Douleur anale' },
-  { key: 'fissure', cat: 'anal', label: 'Fissure' },
-  { key: 'hemorrhoids', cat: 'anal', label: 'Hémorroïdes' },
-  { key: 'abscess', cat: 'anal', label: 'Abcès / gonflement anal' },
+  { key: 'fissure', cat: 'anal', label: 'Fissure', noScale: true },
+  { key: 'hemorrhoids', cat: 'anal', label: 'Hémorroïdes', noScale: true },
+  { key: 'abscess', cat: 'anal', label: 'Abcès / gonflement anal', noScale: true },
 
   // Douleurs / articulations
   { key: 'joint_pain', cat: 'douleurs', label: 'Douleur articulaire', fields: [ZONES] },
   { key: 'muscle_pain', cat: 'douleurs', label: 'Douleur musculaire', fields: [ZONES] },
-  { key: 'swelling', cat: 'douleurs', label: 'Gonflement', fields: [ZONES] },
-  { key: 'morning_stiffness', cat: 'douleurs', label: 'Raideur au réveil',
+  { key: 'swelling', cat: 'douleurs', label: 'Gonflement', noScale: true, fields: [ZONES] },
+  { key: 'morning_stiffness', cat: 'douleurs', label: 'Raideur au réveil', noScale: true,
     fields: [ZONES, { id: 'minutes', type: 'number', label: 'Durée', unit: 'min' }] },
   { key: 'cracking', cat: 'douleurs', label: 'Envie de craquement', fields: [ZONES] },
   { key: 'numbness', cat: 'douleurs', label: 'Engourdissement / fourmillements', fields: [ZONES] },
 
   // Tête / neurologique
   { key: 'migraine', cat: 'neuro', label: 'Migraine' },
-  { key: 'headache', cat: 'neuro', label: 'Mal de tête' },
   { key: 'dizziness', cat: 'neuro', label: 'Vertiges' },
   { key: 'faintness', cat: 'neuro', label: 'Malaise' },
   { key: 'brain_fog', cat: 'neuro', label: 'Difficulté à se concentrer' },
 
   // État général
   { key: 'fatigue', cat: 'general', label: 'Fatigue' },
-  { key: 'fever', cat: 'general', label: 'Fièvre',
+  { key: 'fever', cat: 'general', label: 'Fièvre', noScale: true,
     fields: [{ id: 'temp', type: 'number', label: 'Température', unit: '°C', step: 0.1 }] },
-  { key: 'chills', cat: 'general', label: 'Frissons' },
+  { key: 'chills', cat: 'general', label: 'Frissons', noScale: true },
   { key: 'nausea', cat: 'general', label: 'Nausées' },
   { key: 'night_sweats', cat: 'general', label: 'Sueurs nocturnes' },
-  { key: 'sleep', cat: 'general', label: 'Mauvais sommeil' },
-  { key: 'fall', cat: 'general', label: 'Chute', urgent: true,
+  { key: 'sleep', cat: 'general', label: 'Mauvais sommeil', noScale: true },
+  { key: 'fall', cat: 'general', label: 'Chute', urgent: true, noScale: true,
     fields: [{ id: 'minutes', type: 'number', label: 'Temps avant de pouvoir se relever', unit: 'min' }] },
 
   // Cœur / respiration
   { key: 'chest_pain', cat: 'coeur', label: 'Douleur dans la poitrine', urgent: true },
-  { key: 'palpitations', cat: 'coeur', label: 'Palpitations' },
-  { key: 'dyspnea', cat: 'coeur', label: 'Essoufflement', urgent: true },
+  { key: 'palpitations', cat: 'coeur', label: 'Palpitations', noScale: true },
+  { key: 'dyspnea', cat: 'coeur', label: 'Essoufflement', urgent: true, noScale: true },
 
   // Reins / urines
   { key: 'kidney_pain', cat: 'urines', label: 'Douleur aux reins', fields: [SIDE] },
@@ -110,11 +108,13 @@ export const SYMPTOMS = [
   { key: 'dysuria', cat: 'urines', label: 'Brûlure en urinant' },
 
   // États cutanés
-  { key: 'red_patches', cat: 'peau', label: 'Plaques rouges sur la peau', fields: [ZONES] },
+  { key: 'red_patches', cat: 'peau', label: 'Plaques rouges sur la peau', noScale: true, fields: [ZONES] },
 ];
 
 // Symptômes retirés de la saisie : gardés pour afficher correctement l'historique
 export const RETIRED = [
+  { key: 'vomiting', cat: 'ventre', label: 'Vomissements', fields: [{ id: 'count', type: 'number', label: 'Nombre de fois', unit: '' }] },
+  { key: 'headache', cat: 'neuro', label: 'Mal de tête' },
   { key: 'stool_soft', cat: 'transit', label: 'Selles molles', noScale: true, fields: [STOOL_COUNT, STOOL_QTY] },
   { key: 'night_stool', cat: 'transit', label: 'Selles la nuit', noScale: true, fields: [STOOL_COUNT] },
   { key: 'urgency', cat: 'transit', label: 'Besoin urgent d’aller aux toilettes' },
