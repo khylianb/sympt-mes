@@ -1,6 +1,6 @@
 // Écran « Synthèse » : semaine / mois.
 
-import { analyse, describeDetails, DIGESTIVE_THRESHOLD } from './analysis.js';
+import { analyse, describeDetails, crossVerdict, CROSS_EXPLAIN } from './analysis.js';
 import {
   esc, toDay, addDays, startOfWeek, startOfMonth, endOfMonth, fmtDayShort, fmtMonthName,
   fmtDdMm, parseDay, intensityColor,
@@ -142,14 +142,16 @@ const pct = (x) => (x == null ? '–' : `${Math.round(x * 100)} %`);
 
 function crossingsHtml(c) {
   if (c.meals < 3) return '<p class="muted">Pas assez de repas saisis sur la période pour croiser avec les symptômes.</p>';
-  const row = (r) => `<div class="cross-row">
-    <div class="cross-label"><b>${esc(r.label)}</b> <small>${r.hits}/${r.n} repas${r.n < 5 ? ' · peu de données' : ''}</small></div>
-    <div class="cross-bars">
-      <span class="bar with"><i style="width:${(r.pctWith || 0) * 100}%"></i></span><small>avec ${pct(r.pctWith)}</small>
-      <span class="bar without"><i style="width:${(r.pctWithout || 0) * 100}%"></i></span><small>sans ${pct(r.pctWithout)}</small>
-    </div>
-  </div>`;
-  return `<p class="muted small">Part des repas suivis (le jour même ou le lendemain) d'un trouble digestif d'intensité ≥ ${DIGESTIVE_THRESHOLD}/10.</p>
+  const row = (r) => {
+    const v = crossVerdict(r);
+    return `<div class="cross-row">
+      <div class="cross-head"><b>${esc(r.label.charAt(0).toUpperCase() + r.label.slice(1))}</b><span class="verdict v-${v.level}">${esc(v.text)}</span></div>
+      <div class="cross-line"><span>Repas avec</span><span class="bar with"><i style="width:${(r.pctWith || 0) * 100}%"></i></span><b>${pct(r.pctWith)}</b></div>
+      <div class="cross-line"><span>Autres repas</span><span class="bar without"><i style="width:${(r.pctWithout || 0) * 100}%"></i></span><b>${pct(r.pctWithout)}</b></div>
+      <small class="muted">${r.hits} repas sur ${r.n} suivis de troubles</small>
+    </div>`;
+  };
+  return `<p class="muted small">${esc(CROSS_EXPLAIN)}</p>
     ${c.tags.length ? `<div class="sub">Par étiquette</div>${c.tags.map(row).join('')}` : '<p class="muted">Aucune étiquette utilisée au moins 2 fois.</p>'}
     ${c.foods.length ? `<div class="sub">Aliments fréquents</div>${c.foods.map(row).join('')}` : ''}
     <p class="muted small">Ce sont des observations, pas une preuve : à discuter avec le médecin.</p>`;

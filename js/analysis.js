@@ -134,6 +134,19 @@ function crossings(days, logsByDay) {
   return { meals: meals.length, tags, foods };
 }
 
+// Conclusion en clair pour une ligne du croisement repas × symptômes
+export function crossVerdict(r) {
+  if (r.n < 5) return { level: 'none', text: 'Trop peu de repas pour conclure' };
+  if (r.pctWithout == null) return { level: 'none', text: 'Pas de comparaison possible' };
+  const diff = r.pctWith - r.pctWithout;
+  if (diff >= 0.15) return { level: 'high', text: 'Nettement plus de troubles' };
+  if (diff >= 0.05) return { level: 'mid', text: 'Un peu plus de troubles' };
+  if (diff > -0.05) return { level: 'same', text: 'Pas de différence' };
+  return { level: 'low', text: 'Moins de troubles' };
+}
+
+export const CROSS_EXPLAIN = `Pour chaque aliment : après les repas qui en contenaient, combien ont été suivis de troubles digestifs (au moins ${DIGESTIVE_THRESHOLD}/10, le jour même ou le lendemain), comparé aux autres repas.`;
+
 // Aliments récents pour la saisie rapide (ceux du même repas en premier)
 export function recentFoods(slot, limit = 24) {
   const m = new Map();

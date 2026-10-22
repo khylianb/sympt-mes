@@ -1,7 +1,7 @@
 // Export : PDF pour le médecin et sauvegarde complète (JSON), via la fenêtre de partage.
 
 import * as store from './store.js';
-import { analyse, describeDetails, firstDay, DIGESTIVE_THRESHOLD } from './analysis.js';
+import { analyse, describeDetails, firstDay, crossVerdict, CROSS_EXPLAIN } from './analysis.js';
 import { slotLabel, tagLabel } from './catalogue.js';
 import { esc, $, toDay, addDays, fmtDayFull, fmtDayShort, relativeDays, toast } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
@@ -240,11 +240,36 @@ export function buildPdf(from, to) {
   const c = a.crossings;
   if (c.tags.length || c.foods.length) {
     heading('Repas et symptômes digestifs');
-    text(`Part des repas suivis (le jour même ou le lendemain) d'un trouble digestif d'intensité >= ${DIGESTIVE_THRESHOLD}/10. Observations, pas une preuve.`, M, { size: 9, color: GREY });
-    y += 1;
-    const row = (r) => text(`- ${r.label} : ${Math.round((r.pctWith || 0) * 100)} % (${r.hits}/${r.n} repas) contre ${r.pctWithout == null ? '-' : Math.round(r.pctWithout * 100) + ' %'} sans${r.n < 5 ? ' (peu de données)' : ''}`, M);
-    for (const t of c.tags) row(t);
-    for (const f of c.foods) row(f);
+    text(`${CROSS_EXPLAIN} Observations, pas une preuve.`, M, { size: 9, color: GREY });
+    y += 2;
+    const cc = [M, M + 45, M + 92, M + 122];
+    const head = () => {
+      ensure(9);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
+      doc.text('Aliment', cc[0], y + 3);
+      doc.text(clean('Repas avec cet aliment'), cc[1], y + 3);
+      doc.text(clean('suivis de troubles'), cc[1], y + 6.5);
+      doc.text('Autres repas', cc[2], y + 3);
+      doc.text('Conclusion', cc[3], y + 3);
+      y += 9;
+    };
+    const row = (r) => {
+      const v = crossVerdict(r);
+      ensure(5.5);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...DARK);
+      doc.text(clean(r.label.charAt(0).toUpperCase() + r.label.slice(1)).slice(0, 26), cc[0], y + 3);
+      doc.setFont('helvetica', 'normal');
+      doc.text(clean(`${Math.round((r.pctWith || 0) * 100)} %  (${r.hits} sur ${r.n})`), cc[1], y + 3);
+      doc.text(r.pctWithout == null ? '-' : `${Math.round(r.pctWithout * 100)} %`, cc[2], y + 3);
+      const col = v.level === 'high' ? RED : v.level === 'mid' ? [190, 110, 20] : GREY;
+      doc.setFont('helvetica', v.level === 'high' || v.level === 'mid' ? 'bold' : 'normal');
+      doc.setTextColor(...col);
+      doc.text(clean(v.text), cc[3], y + 3);
+      y += 5.5;
+    };
+    if (c.tags.length) { text('Par étiquette', M, { bold: true, size: 9.5, color: ACCENT }); head(); c.tags.forEach(row); y += 2; }
+    if (c.foods.length) { text('Aliments fréquents', M, { bold: true, size: 9.5, color: ACCENT }); head(); c.foods.forEach(row); }
   }
 
   // Journal

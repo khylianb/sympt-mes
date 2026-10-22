@@ -408,11 +408,16 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .hard-day + .hard-day { border-top: 1px solid var(--line); }
 .hd-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .hd-main small { font-size: .82rem; }
-.cross-row { padding: 8px 0; }
+.cross-row { padding: 10px 0; display: flex; flex-direction: column; gap: 5px; }
 .cross-row + .cross-row { border-top: 1px solid var(--line); }
-.cross-label small { color: var(--muted); }
-.cross-bars { display: grid; grid-template-columns: 1fr 70px; gap: 3px 8px; align-items: center; margin-top: 6px; }
-.cross-bars small { font-size: .76rem; color: var(--muted); font-weight: 700; }
+.cross-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cross-line { display: grid; grid-template-columns: 92px 1fr 44px; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); }
+.cross-line b { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+.cross-row > small { font-size: .76rem; }
+.verdict { font-size: .74rem; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--empty); color: var(--muted); }
+.verdict.v-high { background: var(--danger-soft); color: var(--danger); }
+.verdict.v-mid { background: color-mix(in srgb, var(--accent) 18%, var(--card)); color: color-mix(in srgb, var(--accent) 70%, var(--text)); }
+.verdict.v-low { background: var(--ok-soft); color: var(--ok); }
 .bar { height: 9px; background: var(--empty); border-radius: 5px; overflow: hidden; }
 .bar i { display: block; height: 100%; border-radius: 5px; }
 .bar.with i { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
