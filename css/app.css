@@ -258,12 +258,14 @@ main { padding: 8px 14px calc(var(--tabbar-h) + var(--safe-b) + 110px); max-widt
 
 /* ---------- chips ---------- */
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+/* Non choisie : blanche avec contour ; choisie : pleine avec ✓ */
 .chip {
-  padding: 7px 13px; border-radius: 999px; background: var(--primary-soft); color: var(--text); font-size: .9rem; font-weight: 600;
+  padding: 7px 13px; border-radius: 999px; font-size: .9rem; font-weight: 600;
+  background: var(--card); color: var(--text); border: 1.5px solid color-mix(in srgb, var(--muted) 35%, transparent);
 }
-.chip.on { background: var(--primary); color: #fff; }
-.tagchip { background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
-.tagchip.on { background: var(--accent); }
+.chip.on { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 800; }
+.tagchip.on { background: var(--accent); border-color: var(--accent); }
+.chip[data-opt].on::before, .tagchip.on::before { content: "✓ "; }
 
 .add-btn {
   width: 100%; padding: 14px; border-radius: var(--radius); font-weight: 800;
