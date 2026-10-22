@@ -6,6 +6,7 @@ import { renderToday, bindToday } from './today.js';
 import { renderHome, bindHome } from './home.js';
 import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
+import { renderGame, bindGame } from './game.js';
 import { initSheet, sheetOpen } from './ui.js';
 import { applyPhoto } from './photo.js';
 import { $, $$, toDay, addDays, fmtDayLong, esc, isEvening } from './util.js';
@@ -22,6 +23,7 @@ function render() {
   if (state.tab === 'today') renderToday(views.today, state.day);
   if (state.tab === 'summary') renderSummary(views.summary);
   if (state.tab === 'settings') renderSettings(views.settings);
+  if (state.tab === 'game') renderGame(views.game);
 }
 
 function renderHeader() {
@@ -36,7 +38,8 @@ function renderHeader() {
   } else if (state.tab === 'home') {
     h.innerHTML = `<div class="day-title"><small>Sympt'mes</small><span>${esc(fmtDayLong(toDay()))}</span></div>`;
   } else {
-    h.innerHTML = `<div class="day-title"><span>${state.tab === 'summary' ? 'Synthèse' : 'Réglages'}</span></div>`;
+    const titles = { summary: 'Synthèse', settings: 'Réglages', game: 'Détente' };
+    h.innerHTML = `<div class="day-title"><span>${titles[state.tab]}</span></div>`;
   }
 }
 
@@ -129,7 +132,7 @@ function applyTimeTheme() {
   const theme = dark ? 'dark' : 'light';
   if (document.documentElement.dataset.theme === theme) return false;
   document.documentElement.dataset.theme = theme;
-  $('meta[name="theme-color"]').setAttribute('content', dark ? '#0e1a1c' : '#eaf4f2');
+  $('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0e1a1c' : '#eaf4f2');
   return true;
 }
 
@@ -148,6 +151,8 @@ async function main() {
   views.today = $('#view-today');
   views.summary = $('#view-summary');
   views.settings = $('#view-settings');
+  views.game = $('#view-game');
+  bindGame(views.game);
   bindToday(views.today);
   const openDay = (day) => { state.day = day; state.tab = 'today'; render(); window.scrollTo(0, 0); };
   bindHome(views.home, { onOpenDay: openDay, onRender: () => renderHome(views.home) });
