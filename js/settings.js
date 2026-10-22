@@ -35,8 +35,8 @@ export function renderSettings(container) {
 
     ${demo ? `<div class="card">
       <h3>Mode démo</h3>
-      <p class="muted small">Les jours passés contiennent des exemples fictifs. Tes essais restent dans ce navigateur.</p>
-      <button class="btn ghost" id="st-demo-reset">Remettre la démo à zéro</button>
+      <p class="muted small">Tes essais restent seulement dans ce navigateur, rien n’est envoyé en ligne.</p>
+      <button class="btn ghost" id="st-demo-reset">Tout effacer et recommencer</button>
     </div>` : `<div class="card">
       <h3>Synchronisation</h3>
       <p>${st.pending ? `⏳ ${st.pending} modification(s) en attente d’envoi` : '✓ Tout est synchronisé'}</p>

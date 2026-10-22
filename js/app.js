@@ -7,7 +7,6 @@ import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
 import { openExport, backupLabel, backupIsOld } from './export.js';
 import { initSheet, sheetOpen } from './ui.js';
-import { seedDemo } from './demo.js';
 import { $, $$, toDay, addDays, fmtDayLong, esc } from './util.js';
 
 const state = { tab: 'today', day: toDay() };
@@ -111,11 +110,9 @@ function startApp() {
 
 async function main() {
   initSheet();
-  await store.init(demo ? 'symptmes-demo' : undefined);
-  if (demo) {
-    seedDemo();
-    $('#demo-banner').hidden = false;
-  }
+  // Démo : base locale séparée, vide, jamais synchronisée
+  await store.init(demo ? 'symptmes-demo-vide' : undefined);
+  if (demo) $('#demo-banner').hidden = false;
 
   views.today = $('#view-today');
   views.summary = $('#view-summary');
