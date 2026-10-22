@@ -2,6 +2,15 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.5.0',
+    items: [
+      '🌌 Le jeu des tubes fait peau neuve : ambiance de nuit, tubes en verre',
+      '🫧 Liquides lumineux avec des bulles, tubes terminés qui scintillent',
+      '⭐ Écran de victoire animé, avec les étoiles qui apparaissent une à une',
+      '🐿️ Mascotte de victoire au choix (Réglages) : elle saute de joie à chaque niveau réussi',
+    ],
+  },
+  {
     version: '1.4.2',
     items: [
       '🎨 Nouvelle icône « SYMPT’MES » bien visible sur l’écran d’accueil',

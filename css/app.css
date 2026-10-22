@@ -576,3 +576,139 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
   position: absolute; top: 12px; right: 12px; transform: rotate(8deg); z-index: 3;
   background: #ffc56b; color: #4a2a00; font-weight: 900; font-size: .8rem; padding: 5px 10px; border-radius: 10px;
 }
+
+/* ---------- Jeu des tubes : habillage « jeu mobile » ---------- */
+.arcade {
+  position: relative; overflow: hidden; margin: 0 -6px 14px; padding: 18px 12px 16px; border-radius: 30px; color: #fff;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(124, 92, 255, .55), transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(14, 140, 160, .55), transparent 50%),
+    linear-gradient(170deg, #1b1640, #0b0e26);
+  box-shadow: 0 16px 40px rgba(10, 8, 40, .35), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+.arcade-bokeh i { position: absolute; border-radius: 50%; filter: blur(18px); opacity: .5; pointer-events: none; animation: bokeh 9s ease-in-out infinite alternate; }
+.arcade-bokeh i:nth-child(1) { width: 120px; height: 120px; left: -30px; top: 40%; background: #ff4f9a; }
+.arcade-bokeh i:nth-child(2) { width: 90px; height: 90px; right: -20px; top: 8%; background: #22d3ee; animation-delay: -3s; }
+.arcade-bokeh i:nth-child(3) { width: 70px; height: 70px; left: 45%; bottom: -20px; background: #ffc93c; animation-delay: -6s; }
+@keyframes bokeh { to { transform: translate(20px, -24px) scale(1.15); } }
+.arcade > *:not(.arcade-bokeh) { position: relative; }
+.arcade .game-top { margin-bottom: 4px; }
+.arcade .game-level { display: flex; flex-direction: column; align-items: flex-start; padding: 2px 4px; color: #fff; }
+.arcade .game-level small { font-family: var(--font-body); font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: #b9b6ff; }
+.arcade .game-level b { font-family: var(--font-display); font-size: 1.65rem; line-height: 1.05; text-shadow: 0 3px 12px rgba(0, 0, 0, .35); }
+.arcade .game-level b span { font-size: .9rem; opacity: .7; }
+.glass-pill, .glass-btn {
+  background: linear-gradient(160deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05));
+  border: 1px solid rgba(255, 255, 255, .18); color: #fff; font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 8px 18px rgba(0, 0, 0, .25);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.glass-pill { padding: 8px 14px; border-radius: 14px; font-size: .88rem; font-variant-numeric: tabular-nums; }
+.glass-btn { border-radius: 18px; padding: 8px 12px; font-size: .78rem; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 86px; transition: transform .12s; }
+.glass-btn span { font-size: 1.35rem; line-height: 1.1; }
+.glass-btn.round { min-width: 0; width: 44px; height: 44px; padding: 0; border-radius: 15px; display: grid; place-items: center; font-size: 1.15rem; }
+.glass-btn.wide { flex-direction: row; padding: 12px 20px; border-radius: 999px; font-size: .95rem; }
+.glass-btn:active { transform: scale(.94); }
+.glass-btn:disabled { opacity: .4; box-shadow: none; }
+.arcade .game-actions { gap: 10px; margin: 6px 0 0; }
+.arcade .game-board { padding: 10px 2px 6px; background: none; box-shadow: none; }
+.arcade .game-hint { color: #c8c6f0; font-weight: 700; }
+
+/* Tubes en verre */
+.arcade .tube {
+  border: 2px solid rgba(255, 255, 255, .42); border-top: 0; border-radius: 8px 8px 26px 26px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .03) 40%, rgba(255, 255, 255, .02) 60%, rgba(255, 255, 255, .1));
+  box-shadow: inset 0 -6px 14px rgba(0, 0, 0, .25), inset 4px 0 8px rgba(255, 255, 255, .06), 0 10px 22px rgba(0, 0, 0, .3);
+  overflow: visible; transition: transform .2s cubic-bezier(.3, 1.6, .5, 1), box-shadow .2s, filter .2s;
+}
+.arcade .tube .liquid { border-radius: 0 0 24px 24px; overflow: hidden; inset: 0 0 0 0; }
+/* Col du tube : un rebord brillant */
+.arcade .tube::before {
+  content: ""; position: absolute; left: -5px; right: -5px; top: -6px; height: 9px; border-radius: 6px; z-index: 2;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .75), rgba(255, 255, 255, .25));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+}
+.arcade .tube::after { z-index: 3; left: 16%; width: 13%; top: 8px; background: linear-gradient(180deg, rgba(255, 255, 255, .7), rgba(255, 255, 255, .05)); }
+/* Liquide lumineux, avec surface brillante et bulles */
+.arcade .liquid i {
+  position: relative;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #000) 0%, var(--c) 28%, color-mix(in srgb, var(--c) 70%, #fff) 52%, var(--c) 76%, color-mix(in srgb, var(--c) 75%, #000) 100%);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 60%, transparent);
+}
+.arcade .liquid i:last-child::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -4px; height: 8px; border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 55%, #fff); opacity: .9;
+}
+.arcade .liquid i::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 80%, rgba(255, 255, 255, .55) 0 2px, transparent 3px),
+    radial-gradient(circle at 65% 60%, rgba(255, 255, 255, .45) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 45% 30%, rgba(255, 255, 255, .4) 0 1.5px, transparent 2.5px);
+  background-size: 100% 60px; animation: bubbles 3.5s linear infinite;
+}
+@keyframes bubbles { from { background-position: 0 60px; } to { background-position: 0 0; } }
+.arcade .tube.sel { transform: translateY(-18px); border-color: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, .25), 0 0 24px rgba(180, 160, 255, .6), 0 18px 26px rgba(0, 0, 0, .35); }
+.arcade .tube.done { border-color: #7ee0a8; box-shadow: 0 0 0 3px rgba(126, 224, 168, .3), 0 0 24px rgba(126, 224, 168, .45); }
+.arcade .tube.done .liquid::after {
+  content: "✨"; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 16px; z-index: 4;
+  animation: done-twinkle 1.4s ease-in-out infinite alternate;
+}
+@keyframes done-twinkle { to { transform: translateX(-50%) scale(1.25); opacity: .6; } }
+.arcade .pour-stream { box-shadow: 0 0 10px currentColor; filter: brightness(1.15); }
+
+/* Classement et victoire dans le même style */
+.arcade-card { background: linear-gradient(165deg, #221b4d, #141633); color: #fff; box-shadow: 0 12px 30px rgba(10, 8, 40, .3); }
+.arcade-card .muted { color: #b8b6dd; }
+.arcade-card .lb-row.me { background: rgba(255, 255, 255, .1); }
+.arcade-card .lb-score { color: #d8d6ff; }
+.arcade-card .lb-name small { color: #b8b6dd; }
+.arcade-win {
+  color: #fff; background:
+    radial-gradient(circle at 50% 0%, rgba(255, 201, 60, .35), transparent 55%),
+    linear-gradient(165deg, #2a1f5e, #12143a);
+  border: 1px solid rgba(255, 255, 255, .15); animation: win-pop .45s cubic-bezier(.3, 1.6, .5, 1);
+}
+.arcade-win .muted { color: #c8c6f0; }
+.arcade-win h3 { font-size: 1.6rem; text-shadow: 0 4px 16px rgba(0, 0, 0, .4); }
+.arcade-win .win-emoji { font-size: 3.2rem; animation: win-bounce 1s ease-in-out infinite alternate; }
+.arcade-win .win-stars { font-size: 2.4rem; letter-spacing: 6px; }
+.arcade-win .win-stars span { display: inline-block; animation: star-pop .5s cubic-bezier(.3, 1.8, .5, 1) both; animation-delay: calc(.25s + var(--k) * .22s); }
+.arcade-win .win-stars .star-on { filter: drop-shadow(0 0 10px rgba(255, 201, 60, .9)); }
+.arcade-win .win-stars .star-off { color: rgba(255, 255, 255, .35); opacity: 1; }
+.btn.arcade-go { background: linear-gradient(135deg, #7c5cff, #ff4f9a); box-shadow: 0 10px 24px rgba(255, 79, 154, .45); }
+@keyframes win-pop { from { transform: scale(.6); opacity: 0; } }
+@keyframes win-bounce { to { transform: translateY(-6px) rotate(-6deg); } }
+@keyframes star-pop { from { transform: scale(0) rotate(-40deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .arcade-bokeh i, .arcade .liquid i::after, .arcade .tube.done .liquid::after, .arcade-win .win-emoji { animation: none; }
+}
+
+/* Mascotte de victoire : entrée en bondissant, puis sautille de joie (effet de relief en perspective) */
+.mascot-thumb { display: grid; place-items: center; padding: 10px; margin-bottom: 10px; border-radius: 16px; background: linear-gradient(165deg, #2a1f5e, #12143a); }
+.mascot-thumb img { max-width: 160px; max-height: 140px; }
+.win-mascot { position: relative; height: 150px; margin: -70px auto 0; perspective: 600px; display: grid; place-items: end center; }
+.win-mascot img {
+  max-height: 150px; max-width: 220px; transform-origin: 50% 90%;
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .45));
+  animation: mascot-in .9s cubic-bezier(.25, 1.5, .5, 1) both, mascot-dance 1.1s ease-in-out .9s infinite;
+}
+.mascot-bubble {
+  position: absolute; top: 4px; right: 4px; z-index: 2; background: #fff; color: #24133f; font-weight: 900; font-size: .95rem;
+  padding: 6px 12px; border-radius: 16px; box-shadow: 0 6px 16px rgba(0, 0, 0, .3); white-space: nowrap;
+  animation: bubble-in .4s cubic-bezier(.3, 1.8, .5, 1) .7s both;
+}
+.mascot-bubble::after { content: ""; position: absolute; left: 14px; bottom: -6px; border: 7px solid transparent; border-top-color: #fff; border-bottom: 0; }
+@keyframes mascot-in {
+  0% { transform: translate(-160px, 140px) rotateY(-70deg) rotate(-40deg) scale(.4); opacity: 0; }
+  60% { transform: translate(10px, -30px) rotateY(20deg) rotate(8deg) scale(1.08); opacity: 1; }
+  100% { transform: none; }
+}
+@keyframes mascot-dance {
+  0%, 100% { transform: translateY(0) rotateY(0) scale(1, 1); }
+  20% { transform: translateY(0) scale(1.08, .9); }
+  45% { transform: translateY(-22px) rotateY(25deg) rotate(-5deg) scale(.96, 1.06); }
+  70% { transform: translateY(0) rotateY(-15deg) scale(1.06, .93); }
+}
+@keyframes bubble-in { from { transform: scale(0) rotate(-12deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .win-mascot img, .mascot-bubble { animation: none; } }
