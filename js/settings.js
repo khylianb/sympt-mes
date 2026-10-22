@@ -5,6 +5,7 @@ import * as sync from './sync.js';
 import { CATEGORIES, catLabel } from './catalogue.js';
 import { esc, $, toast, relativeDays } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
+import { hasPhoto, photoUrl, setPhotoFromFile, clearPhoto } from './photo.js';
 
 export const APP_VERSION = '1.0.0';
 
@@ -17,6 +18,16 @@ export function renderSettings(container) {
   const demo = !sync.isConfigured();
 
   container.innerHTML = `
+    <div class="card">
+      <h3>Photo d’accueil</h3>
+      <p class="muted small">Une photo de ta galerie en haut de l’accueil. Elle reste sur ce téléphone.</p>
+      ${hasPhoto() ? `<div class="photo-thumb" style="background-image:url('${photoUrl()}')"></div>` : ''}
+      <div class="btn-row">
+        <label class="btn ghost file-btn">${hasPhoto() ? 'Changer la photo' : 'Choisir une photo'}<input type="file" id="st-photo" accept="image/*" hidden></label>
+        ${hasPhoto() ? '<button class="btn ghost" id="st-photo-clear">Remettre l’illustration</button>' : ''}
+      </div>
+    </div>
+
     <div class="card">
       <h3>En-tête du PDF</h3>
       <p class="muted small">Facultatif. Laissez vide pour un PDF anonyme.</p>
@@ -65,6 +76,18 @@ export function bindSettings(container, { onRender }) {
   });
   container.addEventListener('change', async (e) => {
     if (e.target.id === 'pf-name' || e.target.id === 'pf-birth') { saveProfile(); toast('Enregistré ✓'); }
+    if (e.target.id === 'st-photo') {
+      const f = e.target.files[0];
+      if (!f) return;
+      try {
+        await setPhotoFromFile(f);
+        toast('Photo enregistrée ✓');
+        onRender();
+      } catch (err) {
+        toast('Impossible de lire cette photo');
+      }
+      e.target.value = '';
+    }
     if (e.target.id === 'st-import') {
       const f = e.target.files[0];
       if (!f) return;
@@ -81,7 +104,10 @@ export function bindSettings(container, { onRender }) {
   });
 
   container.addEventListener('click', async (e) => {
-    if (e.target.closest('#st-demo-reset')) {
+    if (e.target.closest('#st-photo-clear')) {
+      await clearPhoto();
+      onRender();
+    } else if (e.target.closest('#st-demo-reset')) {
       await store.clearAll();
       location.reload();
     } else if (e.target.closest('#st-sync')) {

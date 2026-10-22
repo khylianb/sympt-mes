@@ -8,6 +8,7 @@ import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
 import { openExport, backupLabel, backupIsOld } from './export.js';
 import { initSheet, sheetOpen } from './ui.js';
+import { applyPhoto } from './photo.js';
 import { $, $$, toDay, addDays, fmtDayLong, esc } from './util.js';
 
 const state = { tab: 'home', day: toDay() };
@@ -116,6 +117,7 @@ async function main() {
   initSheet();
   // Démo : base locale séparée, vide, jamais synchronisée
   await store.init(demo ? 'symptmes-demo-v3' : undefined);
+  applyPhoto();
   if (demo) $('#demo-banner').hidden = false;
 
   views.home = $('#view-home');
