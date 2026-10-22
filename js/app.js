@@ -132,7 +132,7 @@ function applyTimeTheme() {
   const theme = dark ? 'dark' : 'light';
   if (document.documentElement.dataset.theme === theme) return false;
   document.documentElement.dataset.theme = theme;
-  $('meta[name="theme-color"]').setAttribute('content', dark ? '#0e1a1c' : '#eaf4f2');
+  $('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0e1a1c' : '#eaf4f2');
   return true;
 }
 
