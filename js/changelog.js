@@ -2,6 +2,12 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.4.1',
+    items: [
+      '↩️ « Rien à signaler » touché par erreur ? Il s’annule maintenant depuis l’accueil',
+    ],
+  },
+  {
     version: '1.4.0',
     items: [
       '📝 Les nouveautés de chaque mise à jour s’affichent maintenant ici',
