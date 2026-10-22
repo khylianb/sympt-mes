@@ -215,19 +215,23 @@ function leaderboardHtml() {
   const me = myKey();
   const players = store.all('app_meta')
     .filter((r) => r.key.startsWith('game:') && r.value && r.value.name)
-    .map((r) => ({ me: r.key === me, name: r.value.name, done: doneCount(r.value), moves: totalMoves(r.value) }))
-    .sort((a, b) => b.done - a.done || a.moves - b.moves);
+    .map((r) => ({ me: r.key === me, name: r.value.name, done: doneCount(r.value) }))
+    .sort((a, b) => b.done - a.done);
   const medals = ['🥇', '🥈', '🥉'];
   return `<div class="card leaderboard">
     <h3>🏆 Classement</h3>
-    ${players.map((pl, i) => `<div class="lb-row ${pl.me ? 'me' : ''}">
-      <span class="lb-medal">${medals[i] || i + 1}</span>
+    ${players.map((pl) => {
+      // Classement au seul niveau atteint : à niveau égal, même place
+      const rank = players.filter((o) => o.done > pl.done).length;
+      return `<div class="lb-row ${pl.me ? 'me' : ''}">
+      <span class="lb-medal">${medals[rank] || rank + 1}</span>
       <span class="lb-name">${esc(pl.name)}${pl.me ? ' <small>(toi)</small>' : ''}</span>
-      <span class="lb-score">niveau ${Math.min(pl.done + 1, LEVELS.length)} · ${plural(pl.moves, 'coup')}</span>
+      <span class="lb-score">niveau ${Math.min(pl.done + 1, LEVELS.length)}</span>
       ${pl.me ? '<button class="lb-edit" data-g="rename" aria-label="Changer de pseudo">✏️</button>' : ''}
-    </div>`).join('')}
+    </div>`;
+    }).join('')}
     <p class="muted small">${players.length < 2 ? 'L’autre joueur apparaîtra ici dès qu’il aura choisi son pseudo sur son téléphone.'
-      : 'Le plus loin dans les niveaux gagne ; à égalité, celui qui a utilisé le moins de coups.'}</p>
+      : 'Le plus loin dans les niveaux est premier.'}</p>
   </div>`;
 }
 
