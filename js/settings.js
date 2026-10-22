@@ -14,6 +14,7 @@ export function renderSettings(container) {
   const st = sync.getStatus();
   const lastSync = store.kvGet('lastSync');
   const auto = store.meta('last_auto_backup');
+  const demo = !sync.isConfigured();
 
   container.innerHTML = `
     <div class="card">
@@ -32,13 +33,17 @@ export function renderSettings(container) {
         </button>`).join('') : '<p class="muted">Aucun pour l’instant. Utilisez « + Ajouter un symptôme » sur l’écran du jour.</p>'}
     </div>
 
-    <div class="card">
+    ${demo ? `<div class="card">
+      <h3>Mode démo</h3>
+      <p class="muted small">Les jours passés contiennent des exemples fictifs. Tes essais restent dans ce navigateur.</p>
+      <button class="btn ghost" id="st-demo-reset">Remettre la démo à zéro</button>
+    </div>` : `<div class="card">
       <h3>Synchronisation</h3>
       <p>${st.pending ? `⏳ ${st.pending} modification(s) en attente d’envoi` : '✓ Tout est synchronisé'}</p>
       <p class="muted small">Dernière synchronisation : ${lastSync ? esc(relativeDays(lastSync)) + ' à ' + new Date(lastSync).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'jamais'}</p>
       ${st.error ? `<p class="red small">${esc(st.error)}</p>` : ''}
       <button class="btn ghost" id="st-sync">Synchroniser maintenant</button>
-    </div>
+    </div>`}
 
     <div class="card">
       <h3>Sauvegardes</h3>
@@ -46,10 +51,10 @@ export function renderSettings(container) {
       <label class="btn ghost file-btn">Restaurer un fichier de sauvegarde…<input type="file" id="st-import" accept="application/json,.json" hidden></label>
     </div>
 
-    <div class="card">
+    ${demo ? '' : `<div class="card">
       <h3>Compte</h3>
       <button class="btn danger" id="st-logout">Se déconnecter de ce téléphone</button>
-    </div>
+    </div>`}
     <p class="muted small center">Sympt'mes v${APP_VERSION} · les données restent dans votre espace Supabase.</p>`;
 }
 
@@ -76,7 +81,10 @@ export function bindSettings(container, { onRender }) {
   });
 
   container.addEventListener('click', async (e) => {
-    if (e.target.closest('#st-sync')) {
+    if (e.target.closest('#st-demo-reset')) {
+      await store.clearAll();
+      location.reload();
+    } else if (e.target.closest('#st-sync')) {
       await sync.syncNow();
       onRender();
       const st = sync.getStatus();
