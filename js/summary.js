@@ -144,10 +144,11 @@ function crossingsHtml(c) {
   if (c.meals < 3) return '<p class="muted">Pas assez de repas saisis sur la période pour croiser avec les symptômes.</p>';
   const row = (r) => {
     const v = crossVerdict(r);
+    const name = esc(r.label.toLowerCase());
     return `<div class="cross-row">
       <div class="cross-head"><b>${esc(r.label.charAt(0).toUpperCase() + r.label.slice(1))}</b><span class="verdict v-${v.level}">${esc(v.text)}</span></div>
-      <div class="cross-line"><span>Repas avec</span><span class="bar with"><i style="width:${(r.pctWith || 0) * 100}%"></i></span><b>${pct(r.pctWith)}</b></div>
-      <div class="cross-line"><span>Autres repas</span><span class="bar without"><i style="width:${(r.pctWithout || 0) * 100}%"></i></span><b>${pct(r.pctWithout)}</b></div>
+      <div class="cross-line"><span>Repas avec ${name}</span><span class="bar with"><i style="width:${(r.pctWith || 0) * 100}%"></i></span><b>${pct(r.pctWith)}</b></div>
+      <div class="cross-line"><span>Repas sans ${name}</span><span class="bar without"><i style="width:${(r.pctWithout || 0) * 100}%"></i></span><b>${pct(r.pctWithout)}</b></div>
       <small class="muted">${r.hits} repas sur ${r.n} suivis de troubles</small>
     </div>`;
   };

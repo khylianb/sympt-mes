@@ -145,7 +145,7 @@ export function crossVerdict(r) {
   return { level: 'low', text: 'Moins de troubles' };
 }
 
-export const CROSS_EXPLAIN = `Pour chaque aliment : après les repas qui en contenaient, combien ont été suivis de troubles digestifs (au moins ${DIGESTIVE_THRESHOLD}/10, le jour même ou le lendemain), comparé aux autres repas.`;
+export const CROSS_EXPLAIN = `Pour chaque aliment : après les repas qui en contenaient, combien ont été suivis de troubles digestifs (au moins ${DIGESTIVE_THRESHOLD}/10, le jour même ou le lendemain), comparé aux repas qui n’en contenaient pas.`;
 
 // Aliments récents pour la saisie rapide (ceux du même repas en premier)
 export function recentFoods(slot, limit = 24) {

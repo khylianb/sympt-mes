@@ -249,7 +249,8 @@ export function buildPdf(from, to) {
       doc.text('Aliment', cc[0], y + 3);
       doc.text(clean('Repas avec cet aliment'), cc[1], y + 3);
       doc.text(clean('suivis de troubles'), cc[1], y + 6.5);
-      doc.text('Autres repas', cc[2], y + 3);
+      doc.text('Repas sans', cc[2], y + 3);
+      doc.text(clean('cet aliment'), cc[2], y + 6.5);
       doc.text('Conclusion', cc[3], y + 3);
       y += 9;
     };
