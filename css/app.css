@@ -15,10 +15,10 @@
   --tabbar-h: 62px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
-  color-scheme: light dark;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #111518;
     --card: #1b2125;
     --text: #e8ecef;
@@ -30,7 +30,22 @@
     --danger: #ef5350;
     --danger-soft: #3a1d1d;
     --empty: #2a3136;
+    color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #111518;
+  --card: #1b2125;
+  --text: #e8ecef;
+  --muted: #9aa3ab;
+  --line: #2b3338;
+  --primary: #3fb3bd;
+  --primary-soft: #183236;
+  --accent: #f08a2c;
+  --danger: #ef5350;
+  --danger-soft: #3a1d1d;
+  --empty: #2a3136;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -280,3 +295,8 @@ textarea, .field-block input, .field-block select, .add-food input, #login input
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 .fatal { padding: 20px; color: var(--danger); }
+
+.demo-banner {
+  margin: 0 0 12px; padding: 8px 12px; border-radius: 10px; font-size: .85rem;
+  background: var(--primary-soft); color: var(--primary); text-align: center;
+}

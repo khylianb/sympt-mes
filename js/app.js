@@ -7,10 +7,12 @@ import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
 import { openExport, backupLabel, backupIsOld } from './export.js';
 import { initSheet, sheetOpen } from './ui.js';
+import { seedDemo } from './demo.js';
 import { $, $$, toDay, addDays, fmtDayLong, esc } from './util.js';
 
 const state = { tab: 'today', day: toDay() };
 const views = {};
+const demo = !sync.isConfigured();
 
 function render() {
   for (const [name, el] of Object.entries(views)) el.hidden = name !== state.tab;
@@ -39,7 +41,7 @@ function renderHeader() {
 function renderStatus(st) {
   const el = $('#sync-status');
   let txt, cls;
-  if (!sync.isConfigured()) { txt = 'non configuré'; cls = 'warn'; }
+  if (demo) { txt = 'démo'; cls = 'muted'; }
   else if (st.authError) { txt = '⚠ se reconnecter'; cls = 'warn'; }
   else if (st.state === 'syncing') { txt = '⟳'; cls = ''; }
   else if (st.state === 'offline') { txt = st.pending ? `hors ligne · ${st.pending}` : 'hors ligne'; cls = 'muted'; }
@@ -109,7 +111,11 @@ function startApp() {
 
 async function main() {
   initSheet();
-  await store.init();
+  await store.init(demo ? 'symptmes-demo' : undefined);
+  if (demo) {
+    seedDemo();
+    $('#demo-banner').hidden = false;
+  }
 
   views.today = $('#view-today');
   views.summary = $('#view-summary');
@@ -167,8 +173,8 @@ async function main() {
     } else renderFab();
   });
 
-  if (!store.kvGet('session')) showLogin();
-  else startApp();
+  if (demo || store.kvGet('session')) startApp();
+  else showLogin();
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }

@@ -24,9 +24,9 @@ for (const t of Object.keys(TABLES)) mem[t] = new Map();
 const listeners = new Set();
 let db;
 
-function openDb() {
+function openDb(name) {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    const req = indexedDB.open(name, DB_VERSION);
     req.onupgradeneeded = () => {
       const d = req.result;
       for (const t of Object.keys(TABLES)) if (!d.objectStoreNames.contains(t)) d.createObjectStore(t);
@@ -61,8 +61,9 @@ function idbPut(store, key, value) {
   });
 }
 
-export async function init() {
-  db = await openDb();
+// name : base séparée pour le mode démo
+export async function init(name = DB_NAME) {
+  db = await openDb(name);
   for (const t of Object.keys(TABLES)) {
     for (const [k, v] of await idbAll(t)) mem[t].set(k, v);
   }
