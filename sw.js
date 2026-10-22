@@ -1,6 +1,6 @@
 // Service worker : l'application fonctionne hors ligne.
 // Incrémenter VERSION à chaque mise à jour du code pour rafraîchir le cache.
-const VERSION = 'v18';
+const VERSION = 'v19';
 const CACHE = `symptmes-${VERSION}`;
 const FILES = [
   './',
@@ -29,7 +29,10 @@ const FILES = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload' : ne jamais reprendre une ancienne copie gardée par le navigateur (GitHub Pages les garde 10 min)
+  e.waitUntil(caches.open(CACHE)
+    .then((c) => c.addAll(FILES.map((f) => new Request(f, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -55,7 +58,8 @@ self.addEventListener('fetch', (e) => {
   }
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
   e.respondWith(
-    fetch(e.request)
+    // no-cache : on redemande toujours au serveur s'il y a plus récent (réponse légère si rien n'a changé)
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
