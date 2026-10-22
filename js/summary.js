@@ -28,9 +28,9 @@ export function renderSummary(container) {
       <button class="${state.mode === 'month' ? 'on' : ''}" data-mode="month">Mois</button>
     </div>
     <div class="period-nav">
-      <button class="icon-btn" data-nav="-1" aria-label="Période précédente">‹</button>
+      <button class="icon-btn" data-nav="-1" aria-label="Période précédente"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <strong>${esc(title)}</strong>
-      <button class="icon-btn" data-nav="1" aria-label="Période suivante" ${isCurrent ? 'disabled' : ''}>›</button>
+      <button class="icon-btn" data-nav="1" aria-label="Période suivante" ${isCurrent ? 'disabled' : ''}><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 4 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
 
     <div class="stats">
@@ -47,15 +47,15 @@ export function renderSummary(container) {
     </div>` : ''}
 
     <div class="card">
-      <h3>Intensité par jour</h3>
+      <h3><span class="h-ico">📈</span>Intensité par jour</h3>
       ${chartSvg(a.days, state.mode)}
       <div class="legend"><span><i class="l-max"></i>maximum</span><span><i class="l-avg"></i>moyenne</span><span><i class="l-urg"></i>à signaler</span></div>
     </div>
 
-    ${state.mode === 'month' ? `<div class="card"><h3>Calendrier</h3>${calendarHtml(a.days)}</div>` : ''}
+    ${state.mode === 'month' ? `<div class="card"><h3><span class="h-ico">🗓️</span>Calendrier</h3>${calendarHtml(a.days)}</div>` : ''}
 
     <div class="card">
-      <h3>Symptômes les plus fréquents</h3>
+      <h3><span class="h-ico">🔁</span>Symptômes les plus fréquents</h3>
       ${a.top.length ? `<div class="toplist">${a.top.slice(0, 8).map((s) => `
         <div class="top-row ${s.urgent ? 'urgent' : ''}">
           <span class="top-label">${esc(s.label)}</span>
@@ -65,7 +65,7 @@ export function renderSummary(container) {
     </div>
 
     <div class="card">
-      <h3>Jours les plus difficiles</h3>
+      <h3><span class="h-ico">🌧️</span>Jours les plus difficiles</h3>
       ${a.hardest.length ? a.hardest.map((d) => `
         <button class="hard-day" data-day="${d.day}">
           <span class="pill" style="background:${intensityColor(d.max)}">${d.max ?? '–'}</span>
@@ -77,7 +77,7 @@ export function renderSummary(container) {
     </div>
 
     <div class="card">
-      <h3>Repas × symptômes</h3>
+      <h3><span class="h-ico">🍽️</span>Repas × symptômes</h3>
       ${crossingsHtml(a.crossings)}
     </div>`;
 }

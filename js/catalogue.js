@@ -6,13 +6,13 @@
 const JOINTS = ['Genoux', 'Hanches', 'Tibias', 'Pied', 'Dos', 'Autre'];
 
 export const CATEGORIES = [
-  { id: 'digestif', label: 'Digestifs / transit' },
-  { id: 'general', label: 'Général' },
-  { id: 'osteo', label: 'Ostéo-articulaires' },
-  { id: 'renal', label: 'Rénaux' },
-  { id: 'thorax', label: 'Thoraciques / cardiaques' },
-  { id: 'neuro', label: 'Neurologiques' },
-  { id: 'peau', label: 'Bouche / peau / yeux' },
+  { id: 'digestif', label: 'Digestifs / transit', icon: '🌀' },
+  { id: 'general', label: 'Général', icon: '🌡️' },
+  { id: 'osteo', label: 'Ostéo-articulaires', icon: '🦴' },
+  { id: 'renal', label: 'Rénaux', icon: '💧' },
+  { id: 'thorax', label: 'Thoraciques / cardiaques', icon: '❤️' },
+  { id: 'neuro', label: 'Neurologiques', icon: '🧠' },
+  { id: 'peau', label: 'Bouche / peau / yeux', icon: '👁️' },
 ];
 
 export const SYMPTOMS = [

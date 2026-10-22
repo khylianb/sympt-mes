@@ -1,6 +1,6 @@
 // Service worker : l'application fonctionne hors ligne.
 // Incrémenter VERSION à chaque mise à jour du code pour rafraîchir le cache.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `symptmes-${VERSION}`;
 const FILES = [
   './',
@@ -42,6 +42,15 @@ self.addEventListener('activate', (e) => {
 // Les appels à Supabase (autre domaine) ne passent pas par ici.
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+  // Polices Google : cache d'abord (elles ne changent pas)
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    e.respondWith(caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+      const copy = res.clone();
+      caches.open(CACHE).then((c) => c.put(e.request, copy));
+      return res;
+    })));
+    return;
+  }
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
   e.respondWith(
     fetch(e.request)

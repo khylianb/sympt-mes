@@ -30,9 +30,9 @@ function renderHeader() {
     const today = toDay();
     const label = state.day === today ? "Aujourd'hui" : state.day === addDays(today, -1) ? 'Hier' : '';
     h.innerHTML = `
-      <button class="icon-btn" id="day-prev" aria-label="Jour précédent">‹</button>
+      <button class="icon-btn" id="day-prev" aria-label="Jour précédent"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="day-title"><small>${label}</small><span>${esc(fmtDayLong(state.day))}</span></div>
-      <button class="icon-btn" id="day-next" aria-label="Jour suivant" ${state.day >= today ? 'disabled' : ''}>›</button>`;
+      <button class="icon-btn" id="day-next" aria-label="Jour suivant" ${state.day >= today ? 'disabled' : ''}><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 4 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   } else {
     h.innerHTML = `<div class="day-title"><span>${state.tab === 'summary' ? 'Synthèse' : 'Réglages'}</span></div>`;
   }

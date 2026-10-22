@@ -3,7 +3,24 @@
 import * as store from './store.js';
 import { CATEGORIES, MEAL_SLOTS, MEAL_TAGS } from './catalogue.js';
 import { recentFoods, usualSymptoms } from './analysis.js';
-import { esc, $, $$, debounce, nowTime, uuid, intensityColor, toast } from './util.js';
+import { esc, $, $$, debounce, nowTime, uuid, intensityColor, toast, toDay } from './util.js';
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 5 || h >= 18) return 'Bonsoir';
+  if (h >= 12) return 'Bon après-midi';
+  return 'Bonjour';
+}
+
+// Illustration douce : soleil, collines et feuilles
+const HERO_ART = `<svg class="hero-art" viewBox="0 0 200 120" aria-hidden="true">
+  <circle cx="150" cy="38" r="22" class="sun"/>
+  <path d="M0 95 C40 70 80 72 120 88 S180 100 200 82 V120 H0Z" class="hill1"/>
+  <path d="M0 108 C50 92 100 96 140 106 S190 112 200 104 V120 H0Z" class="hill2"/>
+  <path d="M38 92 C34 74 44 62 58 58 C58 74 50 86 38 92Z" class="leaf"/>
+  <path d="M40 92 C46 80 50 70 56 61" class="vein"/>
+  <path d="M60 96 C66 82 78 78 88 80 C82 90 72 96 60 96Z" class="leaf2"/>
+</svg>`;
 import { openSheet, closeSheet } from './ui.js';
 
 // Catégories ouvertes / fermées à la main ; par défaut, celles qui ont
@@ -22,14 +39,20 @@ export function renderToday(container, currentDay) {
   const usual = usualSymptoms(day);
 
   const nothingOn = note.nothing && logs.size === 0;
+  const isToday = day === toDay();
   let html = `
-    <button class="nothing ${nothingOn ? 'on' : ''}" data-act="nothing">
-      ${nothingOn ? '✓ Rien à signaler aujourd’hui' : '🙂 Rien à signaler aujourd’hui'}
-    </button>
-    <h2 class="section-title">Symptômes</h2>`;
+    <div class="hero">
+      ${HERO_ART}
+      <p class="hero-hello">${isToday ? greeting() : 'Rattrapage'}</p>
+      <p class="hero-q">${isToday ? 'Comment te sens-tu aujourd’hui ?' : 'Comment s’est passée cette journée ?'}</p>
+      <button class="nothing ${nothingOn ? 'on' : ''}" data-act="nothing">
+        ${nothingOn ? '✓ Journée sans symptôme enregistrée' : '🌿 Rien à signaler'}
+      </button>
+    </div>
+    <h2 class="section-title"><span class="st-ico">🩺</span>Symptômes</h2>`;
 
   if (usual.length) {
-    html += `<div class="card"><div class="cat-title static">★ Habituels</div>
+    html += `<div class="card"><div class="cat-title static"><span class="cat-ico">⭐</span>Habituels</div>
       ${usual.map((k) => symptomHtml(defs.find((d) => d.key === k), logs.get(k))).join('')}</div>`;
   }
 
@@ -40,6 +63,7 @@ export function renderToday(container, currentDay) {
     const open = openCats.has(cat.id) || (n > 0 && !closedCats.has(cat.id));
     html += `<div class="cat ${open ? 'open' : ''}" data-cat="${cat.id}">
       <button class="cat-title" data-act="cat">
+        <span class="cat-ico">${cat.icon}</span>
         <span>${esc(cat.label)}</span>
         ${n ? `<span class="count">${n}</span>` : ''}
         <span class="chev">›</span>
@@ -49,10 +73,10 @@ export function renderToday(container, currentDay) {
   }
   html += `</div>
     <button class="add-btn" data-act="add-symptom">+ Ajouter un symptôme</button>
-    <label class="note-label" for="day-note">Note libre</label>
+    <label class="note-label" for="day-note"><span class="st-ico">📝</span>Note libre</label>
     <textarea id="day-note" rows="3" placeholder="Ex. : stress au travail, règles, médicament pris…">${esc(note.note)}</textarea>
 
-    <h2 class="section-title">Repas</h2>
+    <h2 class="section-title"><span class="st-ico">🍽️</span>Repas</h2>
     <div class="card meals">${MEAL_SLOTS.map(slotHtml).join('')}</div>`;
 
   container.innerHTML = html;
@@ -97,7 +121,7 @@ function slotHtml(slot) {
   const meals = store.mealsForDay(day).filter((m) => m.slot === slot.id);
   return `<div class="slot" data-slot="${slot.id}">
     <div class="slot-head">
-      <span class="slot-name">${slot.icon} ${esc(slot.label)}</span>
+      <span class="slot-name"><span class="slot-ico">${slot.icon}</span>${esc(slot.label)}</span>
       <button class="slot-add" data-act="meal-add">+ ajouter</button>
     </div>
     ${meals.map((m) => `<button class="meal" data-act="meal-edit" data-id="${m.id}">
