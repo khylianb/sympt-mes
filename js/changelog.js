@@ -7,6 +7,7 @@ export const CHANGELOG = [
       '🌌 Le jeu des tubes fait peau neuve : ambiance de nuit, tubes en verre',
       '🫧 Liquides lumineux avec des bulles, tubes terminés qui scintillent',
       '⭐ Écran de victoire animé, avec les étoiles qui apparaissent une à une',
+      '🐿️ Mascotte de victoire au choix (Réglages) : elle saute de joie à chaque niveau réussi',
     ],
   },
   {

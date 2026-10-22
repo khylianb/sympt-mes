@@ -5,6 +5,7 @@ import * as store from './store.js';
 import { LEVELS } from './levels.js';
 import { esc, uuid, toast } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
+import { mascotUrl, cheer } from './mascot.js';
 
 const CAP = 4;
 const UNIT = 21; // hauteur d'une couche, en % de l'intérieur du tube (4 couches = 84 %)
@@ -270,7 +271,7 @@ function winHtml() {
   const last = g.n >= LEVELS.length;
   return `<div class="win-overlay">
     <div class="win-card arcade-win">
-      <div class="win-emoji">🎉</div>
+      ${mascotUrl() ? `<div class="win-mascot"><span class="mascot-bubble">${cheer()}</span><img src="${mascotUrl()}" alt=""></div>` : '<div class="win-emoji">🎉</div>'}
       <h3>Niveau ${g.n} réussi !</h3>
       <p class="win-stars">${starsHtml(g.stars)}</p>
       <p class="win-moves">en ${plural(g.history.length, 'coup')}</p>

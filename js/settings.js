@@ -7,6 +7,7 @@ import { esc, $, toast, relativeDays } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { CHANGELOG, APP_VERSION, notesHtml } from './changelog.js';
 import { hasPhoto, photoUrl, setPhotoFromFile, clearPhoto } from './photo.js';
+import { mascotUrl, setMascotFromFile, clearMascot } from './mascot.js';
 import { openBackupExport, backupLabel } from './export.js';
 
 
@@ -27,6 +28,15 @@ export function renderSettings(container) {
       <div class="btn-row">
         <label class="btn ghost file-btn">Choisir une photo<input type="file" id="st-photo" accept="image/*" hidden></label>
         ${hasPhoto() ? '<button class="btn ghost" id="st-photo-clear">Remettre la photo d’origine</button>' : ''}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Mascotte de victoire</h3>
+      <p class="muted small">Elle saute de joie quand un niveau du jeu des tubes est réussi. Choisis une image dans ta galerie : le fond uni est retiré tout seul. Elle apparaît sur les deux téléphones et n’est jamais publiée.</p>
+      ${mascotUrl() ? `<div class="mascot-thumb"><img src="${mascotUrl()}" alt="Mascotte"></div>` : ''}
+      <div class="btn-row">
+        <label class="btn ghost file-btn">${mascotUrl() ? 'Changer d’image' : 'Choisir une image'}<input type="file" id="st-mascot" accept="image/*" hidden></label>
+        ${mascotUrl() ? '<button class="btn ghost" id="st-mascot-clear">Retirer</button>' : ''}
       </div>
     </div>
 
@@ -101,6 +111,18 @@ export function bindSettings(container, { onRender }) {
       }
       e.target.value = '';
     }
+    if (e.target.id === 'st-mascot') {
+      const f = e.target.files[0];
+      if (!f) return;
+      try {
+        await setMascotFromFile(f);
+        toast('Mascotte enregistrée ✓');
+        onRender();
+      } catch (err) {
+        toast('Impossible de lire cette image');
+      }
+      e.target.value = '';
+    }
     if (e.target.id === 'st-import') {
       const f = e.target.files[0];
       if (!f) return;
@@ -128,6 +150,9 @@ export function bindSettings(container, { onRender }) {
       location.reload();
     } else if (e.target.closest('#st-backup')) {
       openBackupExport(onRender);
+    } else if (e.target.closest('#st-mascot-clear')) {
+      clearMascot();
+      onRender();
     } else if (e.target.closest('#st-photo-clear')) {
       await clearPhoto();
       onRender();
