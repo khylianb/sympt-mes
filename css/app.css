@@ -539,3 +539,13 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .level-cell.cur { outline: 2px solid var(--primary); }
 .level-cell.locked { opacity: .45; }
 .game-welcome h3 { font-family: var(--font-display); }
+
+/* Pluie de paillettes et de 💩 (niveau réussi) */
+.confetti-layer { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
+.confetti-layer span {
+  position: absolute; top: -50px; line-height: 1;
+  animation: confetti-fall var(--d) cubic-bezier(.3, .1, .6, 1) var(--delay) forwards;
+}
+.confetti-layer .glitter { border-radius: 2px; box-shadow: 0 0 6px rgba(255, 255, 255, .7); animation-name: confetti-fall, glitter-shine; animation-duration: var(--d), .35s; animation-iteration-count: 1, infinite; animation-direction: normal, alternate; }
+@keyframes confetti-fall { to { transform: translate(var(--dx), calc(100vh + 80px)) rotate(var(--r)); } }
+@keyframes glitter-shine { from { filter: brightness(1); } to { filter: brightness(1.8); } }

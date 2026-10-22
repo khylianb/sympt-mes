@@ -398,6 +398,26 @@ function win() {
   saveProfile({ ...p, moves });
   winSound();
   renderGame(root);
+  celebrate();
+}
+
+// Pluie de paillettes et de 💩 sur tout l'écran quand un niveau est réussi
+function celebrate() {
+  if (reduceMotion()) return;
+  const layer = document.createElement('div');
+  layer.className = 'confetti-layer';
+  const rand = (a, b) => a + Math.random() * (b - a);
+  let html = '';
+  for (let k = 0; k < 70; k++) {
+    const poop = k % 3 === 0;
+    const style = `left:${rand(0, 100)}%;--d:${rand(2.2, 3.6)}s;--delay:${rand(0, 0.9)}s;`
+      + `--dx:${rand(-60, 60)}px;--r:${rand(-540, 540)}deg;`
+      + (poop ? `font-size:${rand(24, 40)}px` : `background:${PALETTE[k % PALETTE.length]};width:${rand(6, 10)}px;height:${rand(9, 15)}px`);
+    html += poop ? `<span class="poop" style="${style}">💩</span>` : `<span class="glitter" style="${style}"></span>`;
+  }
+  layer.innerHTML = html;
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 5000);
 }
 
 function shake(i) {
