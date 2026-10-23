@@ -722,3 +722,115 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .bonus-banner .bb-text small { color: #ffe3b0; font-weight: 700; }
 .bonus-banner .bb-go { font-weight: 900; font-size: .8rem; background: #ffc56b; color: #4a2a00; padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
 .bonus-ok { margin: 10px 0 0; text-align: center; font-size: .78rem; font-weight: 800; color: #9ef0c4; }
+
+/* ---------- Détente : choix entre l'axolotl et le jeu ---------- */
+.hub-card { position: relative; display: block; width: 100%; padding: 0; margin-bottom: 14px; text-align: left; border-radius: 22px; box-shadow: var(--shadow); transition: transform .15s; }
+.hub-card:active { transform: scale(.98); }
+.hub-card .game-cover { margin: 0; }
+.pet-card {
+  display: flex; align-items: center; gap: 8px; padding: 10px 16px 10px 6px; overflow: hidden; color: #fff;
+  background: radial-gradient(circle at 15% 30%, rgba(255, 143, 184, .55), transparent 50%), linear-gradient(160deg, #3a1f5e, #12224a 70%, #0e4a5c);
+}
+.pet-card .pc-art { flex: none; width: 118px; display: grid; place-items: center; }
+.pet-card .pc-text { display: flex; flex-direction: column; gap: 2px; }
+.pet-card small { font-weight: 900; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #ffc2d8; }
+.pet-card b { font-family: var(--font-display); font-size: 1.7rem; line-height: 1.05; }
+.pet-card .pc-text > span { font-weight: 800; font-size: .9rem; color: #e6e2ff; }
+.pet-home { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin-top: 14px; padding: 8px 14px 8px 8px; }
+.pet-home .ph-art { flex: none; width: 66px; display: grid; place-items: center; }
+.pet-home .ph-art.egg { font-size: 2.2rem; height: 56px; }
+.pet-home.mood-sad, .pet-home.mood-cry { background: color-mix(in srgb, #7fd3ff 18%, var(--card)); }
+.pet-home + .card, .pet-home + .reminder { margin-top: 14px; }
+
+/* ---------- Page de l'axolotl ---------- */
+.drops-pill { padding: 8px 14px; border-radius: 16px; font-weight: 900; font-size: 1.05rem; color: #fff; background: linear-gradient(135deg, #22d3ee, #3b7ddd); box-shadow: 0 8px 20px rgba(34, 211, 238, .35); }
+.tank {
+  position: relative; height: 290px; margin: 6px 0 12px; border-radius: 24px; overflow: hidden;
+  display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px;
+  background: radial-gradient(ellipse at 50% 110%, rgba(255, 210, 230, .35), transparent 60%), linear-gradient(180deg, rgba(64, 196, 255, .22), rgba(30, 90, 160, .25) 60%, rgba(255, 220, 180, .18));
+  border: 1px solid rgba(255, 255, 255, .15); box-shadow: inset 0 0 40px rgba(120, 210, 255, .2);
+}
+.tank.small { height: 200px; }
+.tank::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: linear-gradient(180deg, transparent, rgba(255, 214, 170, .35)); }
+.tank-bubbles i { position: absolute; bottom: -12px; width: var(--s); height: var(--s); border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .6); background: rgba(255, 255, 255, .12); animation: tank-bubble var(--d) linear var(--delay) infinite; }
+@keyframes tank-bubble { to { transform: translate(8px, -320px); opacity: 0; } }
+.tank-plants { position: absolute; left: 0; right: 0; bottom: 4px; display: flex; justify-content: space-between; padding: 0 10px; font-size: 2rem; z-index: 1; pointer-events: none; }
+.tank-plants span:nth-child(2) { font-size: 1.7rem; }
+.pet-stage { position: relative; z-index: 2; padding: 0; background: none; border: 0; line-height: 0; }
+.pet-stage .pet-svg { overflow: visible; }
+.pet-body { transform-box: fill-box; transform-origin: 50% 100%; animation: pet-breathe 2.6s ease-in-out infinite; }
+@keyframes pet-breathe { 50% { transform: scale(1.03, .97); } }
+.pet-gills { transform-box: fill-box; transform-origin: center; animation: pet-gills 1.8s ease-in-out infinite; }
+@keyframes pet-gills { 50% { transform: scaleX(1.06) rotate(1deg); } }
+.pet-eye { transform-box: fill-box; transform-origin: center; animation: pet-blink 4.2s infinite; }
+@keyframes pet-blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
+.mood-joy .pet-stage { animation: pet-joy 1.1s ease-in-out infinite; }
+@keyframes pet-joy { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-16px) rotate(-3deg); } 60% { transform: translateY(-16px) rotate(3deg); } }
+.mood-cry .pet-stage { animation: pet-sob .5s ease-in-out infinite; }
+@keyframes pet-sob { 50% { transform: translateY(2px) scale(1.01, .98); } }
+.pet-tear { animation: pet-tear 1.6s ease-in infinite; }
+@keyframes pet-tear { 0% { transform: translateY(-4px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
+.pet-drop { animation: pet-tear 1s ease-in infinite; }
+.pet-stream { stroke-dasharray: 6 5; animation: pet-stream .5s linear infinite; }
+@keyframes pet-stream { to { stroke-dashoffset: -11; } }
+.pet-stage.boing { animation: pet-boing .55s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pet-boing { 30% { transform: translateY(-24px) scale(.95, 1.08); } 60% { transform: translateY(0) scale(1.1, .9); } }
+.pet-stage.born { animation: pet-born .8s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pet-born { from { transform: scale(.2); opacity: 0; } }
+.pet-bubble {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 3; max-width: 88%; width: max-content;
+  background: #fff; color: #24133f; font-weight: 900; font-size: .92rem; text-align: center; padding: 8px 14px; border-radius: 16px; box-shadow: 0 8px 18px rgba(0, 0, 0, .25);
+}
+.pet-bubble::after { content: ""; position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; }
+.tank-heart { position: absolute; left: 50%; bottom: 150px; z-index: 4; font-size: 1.8rem; animation: tank-heart 1.2s ease-out forwards; }
+@keyframes tank-heart { to { transform: translate(-20px, -80px) scale(1.4); opacity: 0; } }
+.tank-spark { position: absolute; z-index: 4; font-size: 1.4rem; animation: tank-spark 1.6s ease-out both; }
+@keyframes tank-spark { from { transform: scale(0); opacity: 0; } 30% { transform: scale(1.3); opacity: 1; } to { transform: translateY(-40px) scale(.8); opacity: 0; } }
+/* Éclosion */
+.egg-stage .egg-body { transform-box: fill-box; transform-origin: 50% 100%; animation: egg-wobble 2.4s ease-in-out infinite; }
+@keyframes egg-wobble { 0%, 70%, 100% { transform: rotate(0); } 75% { transform: rotate(-8deg); } 85% { transform: rotate(8deg); } 92% { transform: rotate(-4deg); } }
+.egg-stage.hatching .egg-body { animation: egg-shake .12s linear infinite; }
+@keyframes egg-shake { 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+.egg-stage.flash::after { content: ""; position: absolute; inset: -60px; border-radius: 50%; background: radial-gradient(circle, #fff, rgba(255, 255, 255, 0) 65%); animation: egg-flash .35s ease-out forwards; }
+@keyframes egg-flash { from { transform: scale(.2); } to { transform: scale(1.6); } }
+.pet-intro { color: #e6e2ff; font-weight: 700; text-align: center; margin: 0 6px 12px; }
+.pet-name-field { display: flex; flex-direction: column; gap: 6px; font-weight: 900; color: #ffc2d8; margin: 0 4px 6px; }
+.pet-name-field input { font-size: 1.15rem; font-weight: 800; text-align: center; color: #24133f; }
+/* Progression */
+.pet-progress { margin-top: 12px; padding: 12px; border-radius: 18px; background: linear-gradient(160deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .04)); border: 1px solid rgba(255, 255, 255, .14); }
+.pp-head { display: flex; justify-content: space-between; font-weight: 800; color: #c8c6f0; margin-bottom: 8px; }
+.pp-head b { color: #fff; }
+.pp-days { display: flex; justify-content: space-between; }
+.pp-days span { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .72rem; font-weight: 900; color: #b8b6dd; }
+.pp-days i { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-style: normal; color: #fff; background: rgba(255, 255, 255, .08); }
+.pp-days .on i { background: linear-gradient(135deg, #34e39a, #1fb47a); box-shadow: 0 0 10px rgba(52, 227, 154, .45); }
+.pp-days .today i { outline: 2px dashed #ffc56b; outline-offset: 1px; }
+.pp-days .future i { opacity: .45; }
+.pp-next { margin: 10px 0 0; text-align: center; font-size: .85rem; font-weight: 700; color: #e6e2ff; }
+.pet-page .game-actions { margin-top: 12px; }
+.pet-page .bonus-banner { margin-top: 0; }
+/* Boutique */
+.shop-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; scrollbar-width: none; }
+.shop-tabs button { flex: none; padding: 8px 14px; border-radius: 999px; font-weight: 900; font-size: .85rem; color: #fff; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); }
+.shop-tabs button.on { background: #fff; color: #24133f; }
+.shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.shop-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 8px; border-radius: 18px; color: #fff; background: linear-gradient(160deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .04)); border: 1px solid rgba(255, 255, 255, .15); }
+.shop-item b { font-size: .85rem; }
+.shop-item.worn { border-color: #34e39a; box-shadow: 0 0 0 2px rgba(52, 227, 154, .35); }
+.shop-item.trying { border-color: #ffc56b; box-shadow: 0 0 0 2px rgba(255, 197, 107, .45); }
+.shop-item .badge { position: absolute; top: -8px; left: 8px; font-size: .62rem; font-weight: 900; padding: 3px 8px; border-radius: 999px; background: #ff4f9a; }
+.shop-item .price { margin-top: 4px; padding: 4px 12px; border-radius: 999px; font-weight: 900; font-size: .82rem; background: #ffc56b; color: #4a2a00; }
+.shop-item .price.poor { background: rgba(255, 197, 107, .35); color: #ffe3b0; }
+.shop-item .price.owned { background: rgba(255, 255, 255, .16); color: #fff; }
+.shop-item .price.eq { background: #34e39a; color: #06331f; }
+.try-tag { position: absolute; top: 10px; right: 12px; z-index: 3; font-weight: 900; font-size: .78rem; padding: 4px 10px; border-radius: 999px; background: #ffc56b; color: #4a2a00; }
+.pet-page > .btn.big { margin-top: 14px; }
+.drops-list div { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-weight: 700; }
+.drops-list b { color: #1f9fc0; white-space: nowrap; }
+.win-mascot .pet-svg { filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .45)); animation: mascot-in .9s cubic-bezier(.25, 1.5, .5, 1) both, mascot-dance 1.1s ease-in-out .9s infinite; transform-origin: 50% 90%; }
+@media (prefers-reduced-motion: reduce) {
+  .pet-body, .pet-gills, .pet-eye, .mood-joy .pet-stage, .mood-cry .pet-stage, .tank-bubbles i, .egg-stage .egg-body, .win-mascot .pet-svg { animation: none; }
+}
+.game-top-left { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.arcade .game-top-left .icon-btn { flex: none; width: 38px; height: 38px; padding: 0; font-size: 1.5rem; line-height: 1; color: #fff; background: rgba(255, 255, 255, .12); box-shadow: none; }
+.shop-poor { width: 100%; justify-content: center; margin-top: 14px; }

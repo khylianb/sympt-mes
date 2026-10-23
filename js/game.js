@@ -6,6 +6,7 @@ import { LEVELS } from './levels.js';
 import { uuid, toast, toDay } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { mascotUrl, cheer } from './mascot.js';
+import { getPet, petMini } from './pet.js';
 
 const CAP = 4;
 const UNIT = 21; // hauteur d'une couche, en % de l'intérieur du tube (4 couches = 84 %)
@@ -15,6 +16,7 @@ const COLOR_NAMES = ['rouge', 'orange', 'jaune', 'vert clair', 'vert', 'turquois
 let root;
 let game = null; // partie en cours : { n, tubes, history, extraUsed, selected, won }
 let busy = false; // une animation de versement est en cours
+export const gameBusy = () => busy;
 
 // ---------- joueur de ce téléphone ----------
 function deviceId() {
@@ -217,7 +219,10 @@ export function renderGame(container) {
   container.innerHTML = `<div class="arcade">
     <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="game-top">
-      <button class="game-level" data-g="levels"><small>Le jeu des tubes</small><b>Niveau ${g.n} <span>▾</span></b></button>
+      <div class="game-top-left">
+        <button class="icon-btn" data-d="hub" aria-label="Retour">‹</button>
+        <button class="game-level" data-g="levels"><small>Le jeu des tubes</small><b>Niveau ${g.n} <span>▾</span></b></button>
+      </div>
       <div class="game-top-right">
         <span class="glass-pill">${plural(g.history.length, 'coup')}</span>
         <button class="glass-btn round" data-g="sound" aria-label="${soundOn() ? 'Couper le son' : 'Activer le son'}">${soundOn() ? '🔊' : '🔇'}</button>
@@ -246,7 +251,7 @@ export function renderGame(container) {
 }
 
 // Couverture du jeu : on voit tout de suite de quoi il s'agit
-function coverHtml() {
+export function coverHtml() {
   // le 2e tube verse son jaune dans le 3e, dont le dessus est jaune aussi
   const tubes = [[0, 6, 0, 2], [6, 6, 2], [0, 2], [4, 4, 4, 4], [7, 8, 7]];
   return `<div class="game-cover" aria-hidden="true">
@@ -274,7 +279,8 @@ function winHtml() {
   const last = g.n >= LEVELS.length;
   return `<div class="win-overlay">
     <div class="win-card arcade-win">
-      ${mascotUrl() ? `<div class="win-mascot"><span class="mascot-bubble">${cheer()}</span><img src="${mascotUrl()}" alt=""></div>` : '<div class="win-emoji">🎉</div>'}
+      ${mascotUrl() ? `<div class="win-mascot"><span class="mascot-bubble">${cheer()}</span><img src="${mascotUrl()}" alt=""></div>`
+        : getPet() ? `<div class="win-mascot"><span class="mascot-bubble">${cheer()}</span>${petMini(150, 'joy')}</div>` : '<div class="win-emoji">🎉</div>'}
       <h3>Niveau ${g.n} réussi !</h3>
       <p class="win-stars">${starsHtml(g.stars)}</p>
       <p class="win-moves">en ${plural(g.history.length, 'coup')}</p>
