@@ -3,9 +3,11 @@
 
 import * as store from './store.js';
 import { renderGame, bindGame, coverHtml, gameBusy, closeGameShop } from './game.js';
+import { renderRun, bindRun, runCover, runBusy, leaveRun } from './run.js';
 
 const GAMES = [
   { id: 'tubes', cover: coverHtml, render: renderGame, bind: bindGame, busy: gameBusy, leave: closeGameShop },
+  { id: 'run', cover: runCover, render: renderRun, bind: bindRun, busy: runBusy, leave: leaveRun },
 ];
 
 const KEY = 'gameView';
@@ -16,7 +18,7 @@ function hubHtml() {
     <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="hub-head"><small>Salle de jeux</small><b>Choisis ton jeu</b></div>
     ${GAMES.map((g) => `<button class="hub-card" data-d="${g.id}">${g.cover()}</button>`).join('')}
-    <div class="soon-card"><span>🎁</span><p><b>D’autres jeux arrivent bientôt</b><small>Chaque jeu rapportera des gouttes pour ton axolotl</small></p></div>
+    <div class="soon-card"><span>🎁</span><p><b>D’autres jeux arrivent bientôt</b><small>Chaque jeu rapporte des gouttes pour ton axolotl</small></p></div>
   </div>`;
 }
 
