@@ -9,11 +9,11 @@ export const COLORS = {
 };
 
 export const STAGES = [
-  { id: 'baby', label: 'Bébé', weeks: 0, scale: 0.6 },
-  { id: 'kid', label: 'Petit', weeks: 1, scale: 0.74 },
-  { id: 'teen', label: 'Ado', weeks: 3, scale: 0.87 },
-  { id: 'adult', label: 'Adulte', weeks: 6, scale: 1 },
-  { id: 'legend', label: 'Légendaire', weeks: 12, scale: 1 },
+  { id: 'baby', label: 'Bébé', days: 0, scale: 0.6 },
+  { id: 'kid', label: 'Petit', days: 3, scale: 0.74 },
+  { id: 'teen', label: 'Ado', days: 6, scale: 0.87 },
+  { id: 'adult', label: 'Adulte', days: 10, scale: 1 },
+  { id: 'legend', label: 'Légendaire', days: 14, scale: 1 },
 ];
 
 const INK = '#2a1f2a';

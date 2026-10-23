@@ -39,7 +39,7 @@ export function petState(pet = getPet()) {
   for (const d of days) { const k = startOfWeek(d); perWeek.set(k, (perWeek.get(k) || 0) + 1); }
   const fullWeeks = [...perWeek.values()].filter((n) => n >= 5).length;
   let si = 0;
-  STAGES.forEach((s, i) => { if (fullWeeks >= s.weeks) si = i; });
+  STAGES.forEach((s, i) => { if (days.length >= s.days) si = i; }); // Légendaire en 14 jours remplis
   const next = STAGES[si + 1] || null;
   const filledToday = set.has(today);
   let missed = 0;
@@ -50,7 +50,7 @@ export function petState(pet = getPet()) {
   const earned = DROPS.welcome + DROPS.day * days.length + DROPS.week * fullWeeks;
   const weekStart = startOfWeek(today);
   return {
-    stage: STAGES[si], next, fullWeeks, filledToday, missed, mood,
+    stage: STAGES[si], next, filledCount: days.length, filledToday, missed, mood,
     balance: earned - (pet.spent || 0),
     weekDays: Array.from({ length: 7 }, (_, k) => { const d = addDays(weekStart, k); return { d, on: set.has(d), today: d === today, future: d > today }; }),
     weekCount: perWeek.get(weekStart) || 0,
@@ -92,7 +92,7 @@ function hatchHtml() {
       <div class="game-level"><small>Détente</small><b>Un œuf mystère</b></div>
     </div></div>
     <div class="tank">${bubblesHtml()}<div class="pet-stage egg-stage">${eggSvg(150, 1)}</div></div>
-    <p class="pet-intro">Un petit axolotl attend de naître 🩷 Il grandira à chaque semaine où tu remplis ta journée… et il pleurera si tu l’oublies !</p>
+    <p class="pet-intro">Un petit axolotl attend de naître 🩷 Il grandit à chaque journée remplie, jusqu’à devenir légendaire en 2 semaines… et il pleure si tu l’oublies !</p>
     <label class="pet-name-field">Choisis son prénom
       <input id="pet-name" type="text" maxlength="14" autocomplete="off" autocapitalize="words" placeholder="Ex. : Bulle">
     </label>
@@ -102,7 +102,7 @@ function hatchHtml() {
 
 function homeHtml(pet, s) {
   const nextTxt = s.next
-    ? `Encore ${s.next.weeks - s.fullWeeks} semaine${s.next.weeks - s.fullWeeks > 1 ? 's' : ''} complète${s.next.weeks - s.fullWeeks > 1 ? 's' : ''} pour devenir <b>${s.next.label}</b>`
+    ? `Encore ${s.next.days - s.filledCount} journée${s.next.days - s.filledCount > 1 ? 's' : ''} remplie${s.next.days - s.filledCount > 1 ? 's' : ''} pour devenir <b>${s.next.label}</b>`
     : '<b>Forme légendaire atteinte !</b> 👑';
   return `<div class="arcade pet-page">
     <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -253,7 +253,7 @@ function dropsSheet() {
       <div><span>📅 Chaque semaine complète (5 jours sur 7)</span><b>+${DROPS.week} 💧</b></div>
       <div><span>🥚 Cadeau de naissance</span><b>+${DROPS.welcome} 💧</b></div>
     </div>
-    <p class="muted small">Une journée compte comme remplie avec au moins un symptôme, « Rien à signaler » ou une note. Chaque semaine complète fait aussi grandir ${esc(pet.name)} : Petit après 1 semaine, Ado après 3, Adulte après 6, Légendaire après 12.</p>
+    <p class="muted small">Une journée compte comme remplie avec au moins un symptôme, « Rien à signaler » ou une note. Chaque journée remplie fait aussi grandir ${esc(pet.name)} : Petit après 3 jours, Ado après 6, Adulte après 10, Légendaire après 14.</p>
     <div class="sheet-actions"><button class="btn ghost" data-close>Fermer</button>${s.filledToday ? '' : '<button class="btn primary" id="pet-fill">✏️ Remplir ma journée</button>'}</div>`);
   body.querySelector('[data-close]').onclick = closeSheet;
   const f = body.querySelector('#pet-fill');

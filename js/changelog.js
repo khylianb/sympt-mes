@@ -5,7 +5,7 @@ export const CHANGELOG = [
     version: '1.7.0',
     items: [
       '🥚 Un œuf t’attend dans Détente : choisis le prénom de ton axolotl et il éclot',
-      '🩷 Il grandit à chaque semaine remplie (Bébé → Petit → Ado → Adulte → Légendaire)',
+      '🩷 Il grandit à chaque journée remplie : légendaire en 2 semaines (Bébé → Petit → Ado → Adulte → Légendaire)',
       '😭 Il pleure si tu oublies ta journée, et saute de joie quand tu la remplis',
       '🛍️ Sa boutique : blouse d’infirmière, stéthoscope, coiffe, lunettes, couleurs… payés en gouttes 💧',
       '💧 +10 gouttes par journée remplie, +30 par semaine complète',
