@@ -47,6 +47,16 @@ function makeTextures() {
       r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(.4, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)');
       g.fillStyle = r; g.fillRect(0, 0, 64, 64);
     }),
+    flame: canvasTex(64, 64, (g) => {
+      const r = g.createRadialGradient(32, 36, 0, 32, 32, 32);
+      r.addColorStop(0, 'rgba(255,255,220,1)'); r.addColorStop(.25, 'rgba(255,214,90,.95)'); r.addColorStop(.55, 'rgba(255,110,30,.6)'); r.addColorStop(1, 'rgba(220,30,0,0)');
+      g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+    }),
+    spark: canvasTex(64, 64, (g) => {
+      g.translate(32, 32); g.fillStyle = 'rgba(255,255,255,1)';
+      for (let i = 0; i < 4; i++) { g.rotate(Math.PI / 4); g.beginPath(); g.moveTo(0, -30); g.lineTo(4, 0); g.lineTo(0, 30); g.lineTo(-4, 0); g.fill(); }
+      const r = g.createRadialGradient(0, 0, 0, 0, 0, 14); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(-14, -14, 28, 28);
+    }),
     ray: canvasTex(64, 256, (g) => {
       const lg = g.createLinearGradient(0, 0, 0, 256); lg.addColorStop(0, 'rgba(255,255,240,.9)'); lg.addColorStop(1, 'rgba(255,255,240,0)');
       g.fillStyle = lg; g.fillRect(0, 0, 64, 256);
@@ -127,7 +137,10 @@ function buildAxolotl(look) {
     const piv = new THREE.Group(); piv.position.set(sx * .4, -.2, z); parent.add(piv);
     piv.add(sph(.11, M.main, [1, .8, 1.25], [sx * .06, -.06, .04]));
     for (let f = 0; f < 3; f++) piv.add(sph(.04, M.dark, [1, .8, 1.3], [sx * (.1 + f * .02), -.13, -.04 + f * .05]));
-    legs.push({ piv, sx });
+    // Palmes (bonus) : cachées tant que le bonus n'est pas actif
+    const fin = new THREE.Mesh(new THREE.ConeGeometry(.26, .62, 3), new THREE.MeshStandardMaterial({ color: '#2fd17f', emissive: '#18a85d', emissiveIntensity: .45, roughness: .4 }));
+    fin.scale.set(1, 1, .2); fin.rotation.set(Math.PI / 2, 0, sx * .5); fin.position.set(sx * .3, -.16, .28); fin.visible = false; piv.add(fin);
+    legs.push({ piv, sx, fin });
   }
 
   // ---------- tenues ----------
@@ -561,7 +574,7 @@ export async function mount(host, look, ui) {
     emit();
   }
   const move = (d) => { if (st.mode === 'play') st.lane = Math.max(0, Math.min(2, st.lane + d)); };
-  const jump = () => { if (st.mode === 'play' && !st.pw.turbo && st.y <= SWIM_Y + .05) { st.roll = 0; st.vy = st.pw.fins ? 13.5 : 9.5; puff(st.x, st.y, .6, st.pw.fins ? 10 : 5); } };
+  const jump = () => { if (st.mode === 'play' && !st.pw.turbo && st.y <= SWIM_Y + .05) { st.roll = 0; st.vy = st.pw.fins ? 13.5 : 9.5; puff(st.x, st.y, .6, st.pw.fins ? 10 : 5); if (st.pw.fins) wave(st.x); } };
   // Vers le bas : plongeon s'il est en l'air (puis roulade à l'arrivée), sinon roulade
   const down = () => {
     if (st.mode !== 'play' || st.pw.turbo) return;
@@ -626,6 +639,34 @@ export async function mount(host, look, ui) {
   const turboGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex.dot, color: '#ffb02e', transparent: true, opacity: .9, depthWrite: false, blending: THREE.AdditiveBlending }));
   turboGlow.scale.set(2.6, 2.6, 1); turboGlow.visible = false; scene.add(turboGlow);
   let baseFov = 62;
+  // Aimant : deux anneaux rouge et bleu qui pulsent
+  const magnetFx = new THREE.Group();
+  for (const [c, r] of [['#ff3d5a', 1.15], ['#3d8bff', 1.35]]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r, .05, 10, 48), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .85, blending: THREE.AdditiveBlending, depthWrite: false }));
+    magnetFx.add(ring);
+  }
+  magnetFx.visible = false; scene.add(magnetFx);
+  // ×2 : aura dorée
+  const goldAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex.dot, color: '#ffd23f', transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending }));
+  goldAura.scale.set(3.4, 3.4, 1); goldAura.visible = false; scene.add(goldAura);
+  // Petites particules (flammes, étincelles, « +2 », ondes) : réserve réutilisée
+  const fx = [];
+  function particle(map, color, pos, o = {}) {
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map, color, transparent: true, opacity: o.op ?? 1, depthWrite: false, blending: o.normal ? THREE.NormalBlending : THREE.AdditiveBlending }));
+    m.position.copy(pos); m.scale.setScalar(o.s0 ?? .5);
+    scene.add(m);
+    fx.push({ m, life: o.life ?? .6, max: o.life ?? .6, v: o.v || new THREE.Vector3(), s0: o.s0 ?? .5, s1: o.s1 ?? .1, op: o.op ?? 1, scroll: o.scroll ?? 1, colorTo: o.colorTo });
+  }
+  const plusTex = canvasTex(128, 64, (c) => { c.font = '900 52px Nunito, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineWidth = 8; c.strokeStyle = '#a05a00'; c.strokeText('+2', 64, 34); c.fillStyle = '#ffd23f'; c.fillText('+2', 64, 34); });
+  const waveMat = new THREE.MeshBasicMaterial({ color: '#7dffb5', transparent: true, opacity: .8, depthWrite: false, blending: THREE.AdditiveBlending });
+  const waves = [];
+  function wave(x) {
+    const r = new THREE.Mesh(new THREE.RingGeometry(.5, .62, 40), waveMat.clone());
+    r.rotation.x = -Math.PI / 2; r.position.set(x, .05, 0); scene.add(r); waves.push({ r, life: .7 });
+  }
+  const _v = new THREE.Vector3();
+  // Bonus qui se termine : l'effet clignote les 2 dernières secondes
+  const fading = (k, t) => st.pw[k] > 0 && (st.pw[k] > 2 || Math.floor(t * 8) % 2 === 0);
 
   // ---------- rendu ----------
   const composer = new THREE.EffectComposer(renderer);
@@ -706,8 +747,34 @@ export async function mount(host, look, ui) {
     shieldMesh.position.set(st.x, axo.position.y + .05, 0);
     shieldMesh.material.opacity = st.shield ? .3 + Math.sin(t * 5) * .06 : .15 * (Math.floor(t * 10) % 2);
     shieldMesh.rotation.y = t;
-    turboGlow.visible = !!st.pw.turbo;
+    turboGlow.visible = fading('turbo', t);
     turboGlow.position.set(st.x, st.y - .6, .6);
+    // Turbo : aura de flammes qui lèche le corps et file vers l'arrière
+    if (fading('turbo', t)) {
+      for (let i = 0; i < 4; i++) {
+        // Sur le pourtour du corps (côtés, dessus, queue), jamais devant le visage
+        const side = i % 2 ? 1 : -1;
+        _v.set(st.x + side * rand(.55, .95), st.y + rand(-.3, .75), rand(-.2, 1.3));
+        particle(tex.flame, i % 3 ? '#ffb347' : '#ff5a1f', _v, { s0: rand(.45, .8), s1: .1, life: rand(.3, .5), op: .85, v: new THREE.Vector3(side * rand(.2, .8), rand(1.2, 2.6), rand(3, 6)), scroll: .2 });
+      }
+      if (Math.random() < .5) particle(tex.flame, '#ff7a2a', _v.set(st.x + rand(-.3, .3), st.y + .2, rand(1, 1.6)), { s0: rand(.8, 1.1), s1: .2, life: .45, op: .8, v: new THREE.Vector3(0, .8, 5), scroll: .2 });
+    }
+    // Aimant
+    magnetFx.visible = fading('magnet', t);
+    if (magnetFx.visible) {
+      magnetFx.position.set(st.x, axo.position.y + .1, 0);
+      magnetFx.children.forEach((r, i) => { const p = 1 + Math.sin(t * 6 + i * 1.6) * .12; r.scale.setScalar(p); r.rotation.set(Math.PI / 2 + Math.sin(t * 2 + i) * .5, t * (i ? -1.5 : 1.5), 0); });
+    }
+    // ×2 : aura dorée et étincelles
+    goldAura.visible = fading('x2', t);
+    if (goldAura.visible) {
+      goldAura.position.set(st.x, axo.position.y + .2, 0); goldAura.material.opacity = .4 + Math.sin(t * 6) * .15;
+      if (Math.random() < dt * 14) particle(tex.spark, '#ffe27a', _v.set(st.x + rand(-1, 1), axo.position.y + rand(-.4, 1), rand(-.6, .6)), { s0: .5, s1: .05, life: .6, v: new THREE.Vector3(0, .8, 0) });
+    }
+    // Palmes
+    const finsOn = fading('fins', t);
+    for (const l of axo.userData.legs) l.fin.visible = finsOn;
+    if (st.pw.fins && st.y > SWIM_Y + .3 && Math.random() < dt * 30) puff(st.x + rand(-.3, .3), st.y - .4, .4, 1);
     // Champ de vision élargi pendant le turbo : sensation de vitesse
     const fovT = baseFov + (st.pw.turbo ? 12 : 0);
     if (Math.abs(camera.fov - fovT) > .05) { camera.fov += (fovT - camera.fov) * Math.min(1, dt * 3); camera.updateProjectionMatrix(); }
@@ -729,6 +796,7 @@ export async function mount(host, look, ui) {
         if (st.pw.magnet && it.position.z > -22 && it.position.z < 1) {
           const k = Math.min(1, dt * 7);
           it.position.x += (st.x - it.position.x) * k; it.position.y += (st.y - it.position.y) * k; it.position.z += (0 - it.position.z) * k * .6;
+          if (Math.random() < dt * 20) particle(tex.spark, Math.random() < .5 ? '#ff6b80' : '#7fb6ff', it.position, { s0: .45, s1: .05, life: .4 });
         }
       }
       if (u.type === 'power') { it.rotation.y += dt * 2; it.position.y = SWIM_Y + .35 + Math.sin(t * 2.5 + u.ph) * .15; u.ring.rotation.x = t * 1.7; }
@@ -741,6 +809,7 @@ export async function mount(host, look, ui) {
       if (playing && Math.abs(it.position.z) < 1 && Math.abs(it.position.x - st.x) < 1.1) {
         if (u.type === 'shrimp' && Math.abs(it.position.y - st.y) < 1.1) {
           st.shrimps += st.pw.x2 ? 2 : 1; puff(it.position.x, it.position.y, 0, 4); emit();
+          if (st.pw.x2) particle(plusTex, '#ffffff', _v.set(it.position.x, it.position.y + .6, 0), { s0: 1.1, s1: 1.4, life: .8, v: new THREE.Vector3(0, 2.2, 0), normal: true, scroll: 0 });
           removeItem(it); world.items.splice(i, 1); continue;
         }
         if (u.type === 'power' && Math.abs(it.position.y - st.y) < 1.6) {
@@ -772,6 +841,19 @@ export async function mount(host, look, ui) {
       if (b.userData.life <= 0) { scene.remove(b); bubbles.splice(i, 1); }
     }
     for (const m of mixers) m.update(dt);
+    for (let i = fx.length - 1; i >= 0; i--) {
+      const f = fx[i]; f.life -= dt;
+      if (f.life <= 0) { scene.remove(f.m); f.m.material.dispose(); fx.splice(i, 1); continue; }
+      const k = 1 - f.life / f.max;
+      f.m.position.addScaledVector(f.v, dt); f.m.position.z += dz * f.scroll;
+      f.m.scale.setScalar(f.s0 + (f.s1 - f.s0) * k);
+      f.m.material.opacity = f.op * (1 - k * k);
+    }
+    for (let i = waves.length - 1; i >= 0; i--) {
+      const w = waves[i]; w.life -= dt;
+      if (w.life <= 0) { scene.remove(w.r); w.r.geometry.dispose(); w.r.material.dispose(); waves.splice(i, 1); continue; }
+      const k = 1 - w.life / .7; w.r.scale.setScalar(1 + k * 4); w.r.material.opacity = .8 * (1 - k);
+    }
 
     // Caméra : de face sur l'écran d'accueil et de fin, derrière l'axolotl en jeu
     st.camBlend += ((playing ? 1 : 0) - st.camBlend) * Math.min(1, dt * 2.2);
