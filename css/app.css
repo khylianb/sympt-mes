@@ -1115,3 +1115,14 @@ body.immersive .tank { height: clamp(290px, 42dvh, 400px); }
 .up-buy { flex: none; padding: 8px 12px; border-radius: 999px; font-weight: 900; color: #4a1630; background: linear-gradient(180deg, #ffe08a, #ffb84d); box-shadow: 0 3px 0 #c9781c; }
 .up-buy:disabled { opacity: .45; box-shadow: none; }
 .up-max { flex: none; font-weight: 900; color: #9ef0c4; padding: 0 6px; }
+/* Turbo : traits de vitesse depuis le centre de l'écran */
+.run-speed { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .3s; }
+.run-stage.turbo .run-speed { opacity: 1; }
+.run-speed i {
+  position: absolute; left: 50%; top: 42%; width: 30vmax; height: 3px; border-radius: 2px; transform-origin: 0 50%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 244, 214, 1)); box-shadow: 0 0 6px rgba(255, 200, 120, .8); animation: run-streak .5s linear infinite; animation-delay: var(--d);
+}
+@keyframes run-streak { from { transform: rotate(var(--a)) translateX(12vmax) scaleX(.2); opacity: 0; } 30% { opacity: 1; } to { transform: rotate(var(--a)) translateX(48vmax) scaleX(1); opacity: 0; } }
+.run-pw.ending { animation: pw-end .25s steps(2) infinite; }
+@keyframes pw-end { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .run-speed { display: none; } }

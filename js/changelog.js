@@ -2,6 +2,16 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '2.3.1',
+    items: [
+      '🔥 Turbo-bulle : aura de flammes et traits de vitesse',
+      '🧲 Aimant : anneaux magnétiques et crevettes qui laissent des étincelles',
+      '🦶 Palmes visibles sur ses pattes, avec une onde à chaque saut',
+      '⭐ ×2 : aura dorée et « +2 » à chaque crevette',
+      '⏳ Un bonus clignote quand il ne lui reste que 2 secondes',
+    ],
+  },
+  {
     version: '2.3.0',
     items: [
       '🚀 Axolo Run : 5 bonus à attraper ! Turbo-bulle (vol + invincible), Aimant, Palmes, Crevettes ×2 et Bulle-bouclier',

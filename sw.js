@@ -1,6 +1,6 @@
 // Service worker : l'application fonctionne hors ligne.
 // Incrémenter VERSION à chaque mise à jour du code pour rafraîchir le cache.
-const VERSION = 'v49';
+const VERSION = 'v50';
 const CACHE = `symptmes-${VERSION}`;
 const FILES = [
   './',

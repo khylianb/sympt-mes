@@ -126,6 +126,7 @@ function stageHtml() {
       <span class="run-pill run-shrimps">🍤 <b id="run-shrimps">0</b></span>
     </div>
     <div class="run-meter" id="run-meter" hidden>${meterHtml(best)}</div>
+    <div class="run-speed" aria-hidden="true">${Array.from({ length: 14 }, (_, i) => `<i style="--a:${Math.round(i * 360 / 14 + (i % 3) * 7)}deg;--d:-${((i * 7) % 10) / 20}s"></i>`).join('')}</div>
     <div class="run-powers" id="run-powers"></div>
     <div class="run-banner" id="run-banner"></div>
     <div class="run-flash" id="run-flash"></div>
@@ -200,7 +201,8 @@ async function mountEngine() {
         });
         life.classList.toggle('low', s.hearts === 1);
         life.classList.toggle('shielded', !!s.shield);
-        $('run-powers').innerHTML = (s.powers || []).map((p) => `<span class="run-pw" style="--k:${(p.left / p.dur).toFixed(3)}"><b>${p.icon}</b><i></i></span>`).join('');
+        $('run-powers').innerHTML = (s.powers || []).map((p) => `<span class="run-pw ${p.left < 2 ? 'ending' : ''}" style="--k:${(p.left / p.dur).toFixed(3)}"><b>${p.icon}</b><i></i></span>`).join('');
+        el.classList.toggle('turbo', (s.powers || []).some((p) => p.k === 'turbo'));
       },
       onPower: (type, P) => banner(`<small>Bonus !</small>${P.icon} ${P.name}`, 'power'),
       onShield: () => banner('<small>Ouf !</small>🫧 Bulle éclatée', 'power'),
