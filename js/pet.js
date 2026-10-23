@@ -60,14 +60,31 @@ export function petMini(size = 90, mood) {
 
 // ---------- phrases ----------
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
-function moodLine(pet, s) {
-  const n = esc(pet.name);
-  if (s.mood === 'joy') return pick(['Merci d’avoir rempli ta journée ! 🩷', 'Tu prends soin de toi, j’adore ! ✨', 'Youpi ! Je grandis grâce à toi 🫧']);
-  if (s.mood === 'happy') return pick([`Tu me racontes ta journée ? ✏️`, 'Coucou ! Comment tu te sens aujourd’hui ?']);
-  if (s.mood === 'sad') return pick(['Tu m’as oublié hier… 🥲', 'Snif… tu remplis ta journée ?']);
-  return pick([`Ça fait ${s.missed} jours… tu me manques 😭`, `Bouhouhou… ${n} est tout triste 😭`]);
+// Phrases positives : il fait des compliments et encourage, même quand il est triste
+export const COMPLIMENTS = [
+  'Tu es une infirmière incroyable 💉', 'Tu prends soin des autres, prends soin de toi aussi 🩷', 'Tu es courageuse, chaque jour 💪',
+  'Ton sourire illumine la journée ☀️', 'Je suis fier de toi ✨', 'Tu as le droit de te reposer aujourd’hui 🛋️',
+  'Tu es forte, même les jours difficiles 🌈', 'Respire… tu gères 🌸', 'Tu mérites toute la douceur du monde 🧸',
+  'Un pas à la fois, c’est déjà énorme 🐾', 'Pense à boire un grand verre d’eau 💧', 'Tu es la meilleure 🩷',
+  'Tu fais de ton mieux, et c’est parfait 🌷', 'Tu rends le monde plus doux 🫧', 'Je t’envoie plein de bonnes ondes 💫',
+];
+// Le compliment du jour reste le même toute la journée
+export function dailyCompliment() {
+  let h = 0;
+  for (const ch of toDay()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return COMPLIMENTS[h % COMPLIMENTS.length];
 }
-const TAP = ['Je t’aime fort 🩷', 'Tu as bu de l’eau aujourd’hui ? 💧', 'Bisou d’axolotl 😘', 'Meilleure infirmière du monde 💉', 'Glou glou 🫧', 'Hihi, ça chatouille !'];
+export function encouragement(s) {
+  return {
+    joy: 'Merci d’avoir pris soin de toi aujourd’hui 🩷',
+    happy: 'Quand tu veux, raconte-moi ta journée ✏️',
+    sad: 'Tu m’as manqué hier ! On reprend ensemble ? 🩷',
+    cry: 'Tu me manques… on reprend ensemble quand tu veux 🩷',
+  }[s.mood];
+}
+function moodLine(pet, s) {
+  return s.mood === 'joy' || s.mood === 'happy' ? dailyCompliment() : encouragement(s);
+}
 
 // ---------- écrans ----------
 function bubblesHtml() {
@@ -110,7 +127,7 @@ function homeHtml(pet, s) {
       <button class="pet-stage" data-p="pet" aria-label="Caresser ${esc(pet.name)}">${petSvg({ ...look(pet), stage: s.stage.id, mood: s.mood, size: s.stage.id === 'baby' ? 260 : 230 })}</button>
     </div>
     ${s.filledToday ? '' : `<button class="bonus-banner" data-p="fill"><span class="bb-ico">${s.mood === 'happy' ? '✏️' : '😢'}</span>
-      <span class="bb-text"><b>${s.mood === 'happy' ? 'Remplis ta journée' : `${esc(pet.name)} pleure…`}</b><small>${s.mood === 'happy' ? `+${DROPS.day} 💧 et ${esc(pet.name)} sera tout content` : 'Remplis ta journée pour sécher ses larmes'}</small></span>
+      <span class="bb-text"><b>${s.mood === 'happy' ? 'Remplis ta journée' : `${esc(pet.name)} t’attend`}</b><small>${s.mood === 'happy' ? `+${DROPS.day} 💧 et ${esc(pet.name)} sera tout content` : 'Remplis ta journée pour lui faire un câlin 🩷'}</small></span>
       <span class="bb-go">Remplir</span></button>`}
     <div class="pet-progress">
       <div class="pp-head"><span>Cette semaine</span><b>${s.weekCount} / 5 jours</b></div>
@@ -225,12 +242,12 @@ function petTap() {
   stage.classList.remove('boing');
   stage.getBoundingClientRect();
   stage.classList.add('boing');
-  const heart = document.createElement('span');
+  const heart = document.createElement('span'); // petit cœur à chaque caresse
   heart.className = 'tank-heart';
-  heart.textContent = s.mood === 'sad' || s.mood === 'cry' ? '💧' : '🩷';
+  heart.textContent = '🩷';
   root.querySelector('.tank').appendChild(heart);
   setTimeout(() => heart.remove(), 1200);
-  root.querySelector('.pet-bubble').textContent = s.mood === 'sad' || s.mood === 'cry' ? moodLine(pet, s) : pick(TAP);
+  root.querySelector('.pet-bubble').textContent = pick(COMPLIMENTS);
 }
 
 function dropsSheet() {

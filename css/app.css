@@ -900,3 +900,6 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .arcade-game .tubes.two-rows .tube { height: clamp(100px, calc((100vh - 520px) / 2), 210px); height: clamp(100px, calc((100dvh - 520px) / 2), 210px); }
 .arcade-game .tubes.shape-syringe .tube { height: clamp(140px, calc(100dvh - 540px), 340px); }
 .arcade-game .tubes.two-rows.shape-syringe .tube { height: clamp(90px, calc((100dvh - 600px) / 2), 190px); }
+.pet-home .ph-art { width: 80px; }
+.pet-home .ph-from { font-weight: 800; color: var(--primary); }
+.pet-home .ph-quote { font-size: 1rem; line-height: 1.25; margin: 1px 0 2px; }
