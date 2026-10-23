@@ -74,22 +74,7 @@ export const COMPLIMENTS = [
   'Tu as tout pour toi : le cœur, la force et le sourire 💫', 'Tu mérites d’être fière de toi, autant que je le suis 🥰', 'Tu es incroyable, et je ne le dirai jamais assez ✨',
   'Je suis tellement fier de toi, tu n’imagines pas 🩷', 'Je t’admire plus que tout 🌟',
 ];
-// Citations (auteurs vérifiés), mêlées aux compliments
-export const CITATIONS = [
-  ['On ne voit bien qu’avec le cœur. L’essentiel est invisible pour les yeux.', 'Antoine de Saint-Exupéry'],
-  ['Aimer, ce n’est pas se regarder l’un l’autre, c’est regarder ensemble dans la même direction.', 'Antoine de Saint-Exupéry'],
-  ['C’est le temps que tu as perdu pour ta rose qui fait ta rose si importante.', 'Antoine de Saint-Exupéry'],
-  ['Ce n’est pas parce que les choses sont difficiles que nous n’osons pas, c’est parce que nous n’osons pas qu’elles sont difficiles.', 'Sénèque'],
-  ['Dans la vie, rien n’est à craindre, tout est à comprendre.', 'Marie Curie'],
-  ['Je dois mon succès à ceci : je n’ai jamais donné ni accepté d’excuse.', 'Florence Nightingale'],
-  ['L’espoir est la chose avec des plumes qui se perche dans l’âme.', 'Emily Dickinson'],
-  ['Il faut cultiver notre jardin.', 'Voltaire'],
-  ['À cœur vaillant, rien d’impossible.', 'Jacques Cœur'],
-  ['Petit à petit, l’oiseau fait son nid.', 'Proverbe'],
-  ['Après la pluie, le beau temps.', 'Proverbe'],
-].map(([t, a]) => `« ${t} » — ${a}`);
-// La phrase du jour reste la même toute la journée : surtout des compliments, parfois une citation,
-// souvent précédée de son prénom (Réglages → Accueil)
+// La phrase du jour reste la même toute la journée, souvent précédée de son prénom (Réglages → Accueil)
 function withName(text, n) {
   const name = (store.meta('first_name') || '').trim();
   return name && n % 2 === 0 && text.startsWith('Tu ') ? `${name}, t${text.slice(1)}` : text;
@@ -98,7 +83,6 @@ export function dailyCompliment() {
   let h = 0;
   for (const ch of toDay()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   if (hardDay()) return withName(COMFORT[h % COMFORT.length], h >>> 3);
-  if (h % 5 === 0) return CITATIONS[h % CITATIONS.length];
   return withName(COMPLIMENTS[h % COMPLIMENTS.length], h >>> 3);
 }
 // Coup de blues ou journée difficile : que des mots de réconfort, toujours positifs
@@ -114,7 +98,7 @@ export function hardDay() {
   const logs = store.logsForDay(toDay()).map((l) => ({ l, def: store.symptomDef(l.symptom_key) })).filter((x) => x.def && !x.def.normal);
   return logs.some((x) => (x.l.intensity || 0) >= 6 || x.def.urgent) || logs.length >= 3;
 }
-const randomPhrase = () => (Math.random() < 0.85 ? withName(pick(COMPLIMENTS), Math.floor(Math.random() * 4)) : pick(CITATIONS));
+const randomPhrase = () => withName(pick(COMPLIMENTS), Math.floor(Math.random() * 4));
 export function encouragement(s) {
   return {
     joy: hardDay() ? 'Journée pas facile… mais tu l’as remplie, quelle force 🩷' : 'Merci d’avoir pris soin de toi, tu es formidable 🩷',
