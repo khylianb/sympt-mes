@@ -6,6 +6,7 @@ export const CHANGELOG = [
     items: [
       '🩷 L’axolotl te fait un compliment chaque jour sur l’accueil',
       '💬 Des phrases positives et encourageantes, même quand tu as oublié ta journée',
+      '📜 Il partage aussi des citations (Saint-Exupéry, Marie Curie, Florence Nightingale…)',
     ],
   },
   {

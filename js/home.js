@@ -38,7 +38,7 @@ export function renderHome(container) {
     const ps = petState(pet);
     html += `<button class="card pet-home mood-${ps.mood}" data-act="pet">
       <span class="ph-art">${petMini(76)}</span>
-      <span class="rem-text"><small class="ph-from">${esc(pet.name)} te dit :</small><b class="ph-quote">${esc(dailyCompliment())}</b><small>${esc(encouragement(ps))}</small></span>
+      <span class="rem-text"><small class="ph-from">${esc(pet.name)} ${dailyCompliment().startsWith('«') ? 'partage une citation' : 'te dit'} :</small><b class="ph-quote ${dailyCompliment().startsWith('«') ? 'cite' : ''}">${esc(dailyCompliment())}</b><small>${esc(encouragement(ps))}</small></span>
       <span class="chev">›</span>
     </button>`;
   } else {

@@ -70,11 +70,26 @@ export const COMPLIMENTS = [
   'Je suis fier de ton courage 🦁', 'Chaque jour, je suis un peu plus fier de toi 🌱', 'Je suis heureux que tu sois là ☀️',
   'Je suis fier de toi, vraiment 🥹', 'Je veille sur toi aujourd’hui 🫧', 'Je suis fier de la super infirmière que tu es 💉',
 ];
+// Citations (auteurs vérifiés), mêlées aux compliments
+export const CITATIONS = [
+  ['On ne voit bien qu’avec le cœur. L’essentiel est invisible pour les yeux.', 'Antoine de Saint-Exupéry'],
+  ['Aimer, ce n’est pas se regarder l’un l’autre, c’est regarder ensemble dans la même direction.', 'Antoine de Saint-Exupéry'],
+  ['C’est le temps que tu as perdu pour ta rose qui fait ta rose si importante.', 'Antoine de Saint-Exupéry'],
+  ['Ce n’est pas parce que les choses sont difficiles que nous n’osons pas, c’est parce que nous n’osons pas qu’elles sont difficiles.', 'Sénèque'],
+  ['Dans la vie, rien n’est à craindre, tout est à comprendre.', 'Marie Curie'],
+  ['Je dois mon succès à ceci : je n’ai jamais donné ni accepté d’excuse.', 'Florence Nightingale'],
+  ['L’espoir est la chose avec des plumes qui se perche dans l’âme.', 'Emily Dickinson'],
+  ['Il faut cultiver notre jardin.', 'Voltaire'],
+  ['À cœur vaillant, rien d’impossible.', 'Jacques Cœur'],
+  ['Petit à petit, l’oiseau fait son nid.', 'Proverbe'],
+  ['Après la pluie, le beau temps.', 'Proverbe'],
+].map(([t, a]) => `« ${t} » — ${a}`);
+const PHRASES = [...COMPLIMENTS, ...CITATIONS];
 // Le compliment du jour reste le même toute la journée
 export function dailyCompliment() {
   let h = 0;
   for (const ch of toDay()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return COMPLIMENTS[h % COMPLIMENTS.length];
+  return PHRASES[h % PHRASES.length];
 }
 export function encouragement(s) {
   return {
@@ -249,7 +264,7 @@ function petTap() {
   heart.textContent = '🩷';
   root.querySelector('.tank').appendChild(heart);
   setTimeout(() => heart.remove(), 1200);
-  root.querySelector('.pet-bubble').textContent = pick(COMPLIMENTS);
+  root.querySelector('.pet-bubble').textContent = pick(PHRASES);
 }
 
 function dropsSheet() {

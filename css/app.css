@@ -903,3 +903,4 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .pet-home .ph-art { width: 80px; }
 .pet-home .ph-from { font-weight: 800; color: var(--primary); }
 .pet-home .ph-quote { font-size: 1rem; line-height: 1.25; margin: 1px 0 2px; }
+.pet-home .ph-quote.cite { font-style: italic; font-size: .93rem; font-weight: 700; }
