@@ -2,6 +2,14 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '2.3.0',
+    items: [
+      '🚀 Axolo Run : 5 bonus à attraper ! Turbo-bulle (vol + invincible), Aimant, Palmes, Crevettes ×2 et Bulle-bouclier',
+      '🔧 Atelier des bonus : dépense tes crevettes pour qu’ils durent plus longtemps',
+      '🫧 « Départ protégé » : commence chaque course avec une bulle',
+    ],
+  },
+  {
     version: '2.2.0',
     items: [
       '🌀 Axolo Run : glisse vers le bas pour faire une roulade (ou plonger quand tu sautes)',

@@ -1088,3 +1088,30 @@ body.immersive .tank { height: clamp(290px, 42dvh, 400px); }
 .run-moves span { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 70px; padding: 6px 8px; border-radius: 14px; background: rgba(255, 255, 255, .12); font-size: .75rem; font-weight: 800; }
 .run-moves b { font-size: 1.15rem; }
 @media (prefers-reduced-motion: reduce) { .run-banner.show { animation-duration: .01s; opacity: 1; } .run-life.low .hp.on svg { animation: none; } }
+/* Bonus actifs : pastille qui se vide */
+.run-powers { position: absolute; left: max(14px, env(safe-area-inset-left, 0px)); top: calc(var(--safe-t) + 64px); z-index: 2; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.run-pw { position: relative; width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(#ffd23f calc(var(--k) * 360deg), rgba(255, 255, 255, .15) 0); box-shadow: 0 4px 14px rgba(0, 30, 50, .4); }
+.run-pw::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: rgba(6, 36, 58, .8); }
+.run-pw b { position: relative; font-size: 1.5rem; }
+.run-life.shielded { box-shadow: 0 0 0 2px #7fe9ff, 0 0 16px rgba(127, 233, 255, .8); }
+.run-life.shielded::after { content: "🫧"; margin-left: 2px; font-size: 1.1rem; }
+.run-banner.power { color: #fff; text-shadow: 0 4px 0 #c96a00, 0 12px 30px rgba(0, 0, 0, .45); font-size: 2.2rem; }
+.run-link { margin-top: 2px; color: #cdeefa; font-weight: 800; font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; }
+/* Atelier des bonus */
+.run-shop { top: 0; justify-content: flex-end; background: linear-gradient(to top, rgba(4, 22, 36, .95) 55%, rgba(4, 22, 36, .4)); }
+.up-bank { padding: 6px 16px; border-radius: 999px; background: rgba(255, 210, 63, .18); border: 1px solid rgba(255, 210, 63, .5); font-weight: 800; }
+.up-bank b { font-size: 1.15rem; color: #ffd76a; }
+.up-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 420px; }
+.up-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 18px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .12); text-align: left; }
+.up-ico { font-size: 1.8rem; }
+.up-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.up-txt b { color: #fff; }
+.up-txt small { font-size: .74rem; color: #a9d9ea; font-weight: 700; }
+.up-lv { display: flex; align-items: center; gap: 3px; margin-top: 4px; }
+.up-lv i { width: 14px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .2); }
+.up-lv i.on { background: linear-gradient(90deg, #ffd23f, #ff8a3d); }
+.up-lv em { margin-left: 6px; font-style: normal; font-size: .72rem; font-weight: 800; color: #ffd76a; }
+.up-buy { flex: none; padding: 8px 12px; border-radius: 999px; font-weight: 900; color: #4a1630; background: linear-gradient(180deg, #ffe08a, #ffb84d); box-shadow: 0 3px 0 #c9781c; }
+.up-buy:disabled { opacity: .45; box-shadow: none; }
+.up-max { flex: none; font-weight: 900; color: #9ef0c4; padding: 0 6px; }
