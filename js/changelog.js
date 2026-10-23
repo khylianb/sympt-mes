@@ -2,6 +2,13 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.5.2',
+    items: [
+      '🤕 Toutes les douleurs (ventre, anale, migraine, poitrine, reins, articulations…) sont regroupées dans « Douleurs »',
+      '✅ Ce qui avait déjà été coché est conservé',
+    ],
+  },
+  {
     version: '1.5.1',
     items: [
       '🔄 Les mises à jour s’installent toutes seules, plus besoin de toucher « Mettre à jour »',

@@ -28,9 +28,9 @@ const STOOL_QTY = { id: 'qty', type: 'choice', label: 'Quantité', options: ['Fa
 
 export const CATEGORIES = [
   { id: 'transit', label: 'Transit / selles', icon: '🚽' },
+  { id: 'douleurs', label: 'Douleurs / articulations', icon: '🤕' },
   { id: 'ventre', label: 'Ventre / digestion', icon: '🌀' },
   { id: 'anal', label: 'Zone anale', icon: '🩹' },
-  { id: 'douleurs', label: 'Douleurs / articulations', icon: '🦴' },
   { id: 'neuro', label: 'Tête / neurologique', icon: '🧠' },
   { id: 'general', label: 'État général', icon: '🌡️' },
   { id: 'coeur', label: 'Cœur / respiration', icon: '❤️' },
@@ -59,19 +59,22 @@ export const SYMPTOMS = [
   { key: 'mucus_stool', cat: 'transit', label: 'Glaires dans les selles', noScale: true },
 
   // Ventre / digestion
-  { key: 'abdo_pain', cat: 'ventre', label: 'Douleur au ventre',
-    fields: [{ id: 'zone', type: 'belly', label: 'Où ? (comme si tu regardais ton ventre)' }] },
   { key: 'bloating', cat: 'ventre', label: 'Ventre gonflé / ballonnements', noScale: true },
   { key: 'gas', cat: 'ventre', label: 'Gaz', noScale: true },
   { key: 'reflux', cat: 'ventre', label: 'Brûlures d’estomac / reflux' },
 
   // Zone anale
-  { key: 'anal_pain', cat: 'anal', label: 'Douleur anale' },
   { key: 'fissure', cat: 'anal', label: 'Fissure', noScale: true },
   { key: 'hemorrhoids', cat: 'anal', label: 'Hémorroïdes', noScale: true },
   { key: 'abscess', cat: 'anal', label: 'Abcès / gonflement anal', noScale: true },
 
-  // Douleurs / articulations
+  // Douleurs (toutes regroupées ici) / articulations
+  { key: 'abdo_pain', cat: 'douleurs', label: 'Douleur au ventre',
+    fields: [{ id: 'zone', type: 'belly', label: 'Où ? (comme si tu regardais ton ventre)' }] },
+  { key: 'anal_pain', cat: 'douleurs', label: 'Douleur anale' },
+  { key: 'migraine', cat: 'douleurs', label: 'Migraine' },
+  { key: 'chest_pain', cat: 'douleurs', label: 'Douleur dans la poitrine', urgent: true },
+  { key: 'kidney_pain', cat: 'douleurs', label: 'Douleur aux reins', fields: [SIDE] },
   { key: 'joint_pain', cat: 'douleurs', label: 'Douleur articulaire', fields: [ZONES] },
   { key: 'muscle_pain', cat: 'douleurs', label: 'Douleur musculaire', fields: [ZONES] },
   { key: 'swelling', cat: 'douleurs', label: 'Gonflement', noScale: true, fields: [ZONES] },
@@ -81,7 +84,6 @@ export const SYMPTOMS = [
   { key: 'numbness', cat: 'douleurs', label: 'Engourdissement / fourmillements', fields: [ZONES] },
 
   // Tête / neurologique
-  { key: 'migraine', cat: 'neuro', label: 'Migraine' },
   { key: 'dizziness', cat: 'neuro', label: 'Vertiges', noScale: true },
   { key: 'brain_fog', cat: 'neuro', label: 'Difficulté à se concentrer', noScale: true },
 
@@ -98,12 +100,10 @@ export const SYMPTOMS = [
     fields: [{ id: 'minutes', type: 'number', label: 'Temps avant de pouvoir se relever', unit: 'min' }] },
 
   // Cœur / respiration
-  { key: 'chest_pain', cat: 'coeur', label: 'Douleur dans la poitrine', urgent: true },
   { key: 'palpitations', cat: 'coeur', label: 'Palpitations', noScale: true },
   { key: 'dyspnea', cat: 'coeur', label: 'Essoufflement', urgent: true, noScale: true },
 
   // Reins / urines
-  { key: 'kidney_pain', cat: 'urines', label: 'Douleur aux reins', fields: [SIDE] },
   { key: 'blood_urine', cat: 'urines', label: 'Sang dans les urines', urgent: true, noScale: true },
   { key: 'dysuria', cat: 'urines', label: 'Brûlure en urinant' },
 
