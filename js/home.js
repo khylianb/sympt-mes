@@ -3,7 +3,7 @@
 import * as store from './store.js';
 import { analyse, describeDetails, streak } from './analysis.js';
 import { greeting, toggleNothing } from './today.js';
-import { getPet, petState, petMini } from './pet.js';
+import { getPet, petState, petMini, dailyCompliment, encouragement, hardDay } from './pet.js';
 import { esc, toDay, addDays, parseDay, fmtDayShort, intensityColor } from './util.js';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
@@ -32,14 +32,13 @@ export function renderHome(container) {
       </div>
     </div>`;
 
-  // L'axolotl : content si la journée est remplie, triste sinon
+  // L'axolotl : un compliment du jour et un mot doux selon la journée
   const pet = getPet();
   if (pet) {
     const ps = petState(pet);
-    const line = { joy: 'Tout content, merci pour ta journée 🩷', happy: 'T’attend pour ta journée ✏️', sad: 'Un peu triste, tu l’as oublié hier 🥲', cry: `Pleure depuis ${ps.missed} jours 😭` }[ps.mood];
     html += `<button class="card pet-home mood-${ps.mood}" data-act="pet">
-      <span class="ph-art">${petMini(64)}</span>
-      <span class="rem-text"><b>${esc(pet.name)}</b><small>${line}</small></span>
+      <span class="ph-art">${petMini(76)}</span>
+      <span class="rem-text"><small class="ph-from">${esc(pet.name)} ${hardDay() ? 'est là pour toi' : 'te dit'} :</small><b class="ph-quote">${esc(dailyCompliment())}</b><small>${esc(encouragement(ps))}</small></span>
       <span class="chev">›</span>
     </button>`;
   } else {

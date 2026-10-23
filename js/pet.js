@@ -60,14 +60,56 @@ export function petMini(size = 90, mood) {
 
 // ---------- phrases ----------
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
-function moodLine(pet, s) {
-  const n = esc(pet.name);
-  if (s.mood === 'joy') return pick(['Merci d’avoir rempli ta journée ! 🩷', 'Tu prends soin de toi, j’adore ! ✨', 'Youpi ! Je grandis grâce à toi 🫧']);
-  if (s.mood === 'happy') return pick([`Tu me racontes ta journée ? ✏️`, 'Coucou ! Comment tu te sens aujourd’hui ?']);
-  if (s.mood === 'sad') return pick(['Tu m’as oublié hier… 🥲', 'Snif… tu remplis ta journée ?']);
-  return pick([`Ça fait ${s.missed} jours… tu me manques 😭`, `Bouhouhou… ${n} est tout triste 😭`]);
+// Phrases positives : il fait des compliments et encourage, même quand il est triste
+export const COMPLIMENTS = [
+  'Tu es exceptionnelle, ne l’oublie jamais ✨', 'Tu es une femme incroyable 👑', 'Tu es tellement forte, je t’admire 💪',
+  'Tu es la plus courageuse que je connaisse 🦁', 'Tu illumines la vie de tous ceux qui t’entourent ☀️', 'Ta gentillesse change la vie des gens 🩷',
+  'Tu es une infirmière en or 💉✨', 'Tes patients ont une chance folle de t’avoir 🍀', 'Tu es magnifique, à l’intérieur comme à l’extérieur 🌸',
+  'Tu es une source d’inspiration 🌟', 'Tu affrontes tout avec une force incroyable 🔥', 'Tu es précieuse, vraiment précieuse 💎',
+  'Le monde est plus beau parce que tu es là 🌍', 'Tu es brillante, drôle et pleine de cœur 💖', 'Tu mérites tout le bonheur du monde 🌈',
+  'Tu es une vraie warrior, et je suis tellement fier de toi ⚔️', 'Ton courage me bluffe chaque jour 🥹', 'Tu as un cœur immense 🫶',
+  'Tu es rayonnante aujourd’hui ✨', 'Tu es une reine, ne l’oublie pas 👑', 'Personne ne prend soin des autres comme toi 💉',
+  'Tu es plus forte que tout ce que tu traverses 💪', 'Tu es une personne rare et merveilleuse 🦄', 'Tu rends fiers tous ceux qui t’aiment 🏅',
+  'Tu es belle quand tu souris… et même quand tu ne souris pas 😍', 'Ta force tranquille est impressionnante 🌊', 'Tu es une héroïne, ici et à l’hôpital 🦸‍♀️',
+  'Tu as tout pour toi : le cœur, la force et le sourire 💫', 'Tu mérites d’être fière de toi, autant que je le suis 🥰', 'Tu es incroyable, et je ne le dirai jamais assez ✨',
+  'Je suis tellement fier de toi, tu n’imagines pas 🩷', 'Je t’admire plus que tout 🌟',
+];
+// La phrase du jour reste la même toute la journée, souvent précédée de son prénom (Réglages → Accueil)
+function withName(text, n) {
+  const name = (store.meta('first_name') || '').trim();
+  return name && n % 2 === 0 && text.startsWith('Tu ') ? `${name}, t${text.slice(1)}` : text;
 }
-const TAP = ['Je t’aime fort 🩷', 'Tu as bu de l’eau aujourd’hui ? 💧', 'Bisou d’axolotl 😘', 'Meilleure infirmière du monde 💉', 'Glou glou 🫧', 'Hihi, ça chatouille !'];
+export function dailyCompliment() {
+  let h = 0;
+  for (const ch of toDay()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  if (hardDay()) return withName(COMFORT[h % COMFORT.length], h >>> 3);
+  return withName(COMPLIMENTS[h % COMPLIMENTS.length], h >>> 3);
+}
+// Coup de blues ou journée difficile : que des mots de réconfort, toujours positifs
+export const COMFORT = [
+  'Les jours difficiles passent, ta force, elle, reste 🌈', 'Tu traverses ça avec un courage immense, je t’admire 🦁',
+  'Même fatiguée, tu restes incroyable 🩷', 'Repose-toi, tu l’as tellement mérité 🛋️', 'Je suis là, tout près de toi 🫶',
+  'Tu es plus forte que cette journée 💪', 'Chaque petit pas compte, et tu en fais plein ✨', 'Tu as le droit d’aller doucement aujourd’hui 🌸',
+  'Demain sera plus doux, et tu seras toujours aussi formidable ☀️', 'Je t’envoie un énorme câlin 🤗', 'Tu es une battante, et je suis tellement fier de toi 🥹',
+  'Tu n’as rien à prouver : tu es déjà extraordinaire 💎', 'Prends soin de toi comme tu prends soin des autres 💉🩷', 'Tu es aimée, tellement aimée 💖',
+];
+// Journée difficile : forte douleur, symptôme à signaler, ou au moins 3 symptômes aujourd'hui
+export function hardDay() {
+  const logs = store.logsForDay(toDay()).map((l) => ({ l, def: store.symptomDef(l.symptom_key) })).filter((x) => x.def && !x.def.normal);
+  return logs.some((x) => (x.l.intensity || 0) >= 6 || x.def.urgent) || logs.length >= 3;
+}
+const randomPhrase = () => withName(pick(COMPLIMENTS), Math.floor(Math.random() * 4));
+export function encouragement(s) {
+  return {
+    joy: hardDay() ? 'Journée pas facile… mais tu l’as remplie, quelle force 🩷' : 'Merci d’avoir pris soin de toi, tu es formidable 🩷',
+    happy: 'Prends une minute pour toi et ta journée : tu le mérites ✏️',
+    sad: 'Tu m’as manqué hier ! Tu restes incroyable, on reprend ensemble 🩷',
+    cry: 'Tu me manques… et tu es toujours aussi formidable 🩷',
+  }[s.mood];
+}
+function moodLine(pet, s) {
+  return s.mood === 'joy' || s.mood === 'happy' ? dailyCompliment() : encouragement(s);
+}
 
 // ---------- écrans ----------
 function bubblesHtml() {
@@ -110,13 +152,14 @@ function homeHtml(pet, s) {
       <button class="pet-stage" data-p="pet" aria-label="Caresser ${esc(pet.name)}">${petSvg({ ...look(pet), stage: s.stage.id, mood: s.mood, size: s.stage.id === 'baby' ? 260 : 230 })}</button>
     </div>
     ${s.filledToday ? '' : `<button class="bonus-banner" data-p="fill"><span class="bb-ico">${s.mood === 'happy' ? '✏️' : '😢'}</span>
-      <span class="bb-text"><b>${s.mood === 'happy' ? 'Remplis ta journée' : `${esc(pet.name)} pleure…`}</b><small>${s.mood === 'happy' ? `+${DROPS.day} 💧 et ${esc(pet.name)} sera tout content` : 'Remplis ta journée pour sécher ses larmes'}</small></span>
+      <span class="bb-text"><b>${s.mood === 'happy' ? 'Remplis ta journée' : `${esc(pet.name)} t’attend`}</b><small>${s.mood === 'happy' ? `+${DROPS.day} 💧 et ${esc(pet.name)} sera tout content` : 'Remplis ta journée pour lui faire un câlin 🩷'}</small></span>
       <span class="bb-go">Remplir</span></button>`}
     <div class="pet-progress">
       <div class="pp-head"><span>Cette semaine</span><b>${s.weekCount} / 5 jours</b></div>
       <div class="pp-days">${s.weekDays.map((d, k) => `<span class="${d.on ? 'on' : ''} ${d.today ? 'today' : ''} ${d.future ? 'future' : ''}"><i>${d.on ? '✓' : ''}</i>${'LMMJVSD'[k]}</span>`).join('')}</div>
       <p class="pp-next">${nextTxt}</p>
     </div>
+    <button class="btn primary big arcade-go cheer-btn" data-p="cheer">💗 Remonte-moi le moral</button>
     <div class="game-actions">
       <button class="glass-btn wide" data-p="shop">🛍️ Sa boutique</button>
       <button class="glass-btn wide" data-p="drops">💧 Gagner des gouttes</button>
@@ -225,12 +268,30 @@ function petTap() {
   stage.classList.remove('boing');
   stage.getBoundingClientRect();
   stage.classList.add('boing');
-  const heart = document.createElement('span');
+  const heart = document.createElement('span'); // petit cœur à chaque caresse
   heart.className = 'tank-heart';
-  heart.textContent = s.mood === 'sad' || s.mood === 'cry' ? '💧' : '🩷';
+  heart.textContent = '🩷';
   root.querySelector('.tank').appendChild(heart);
   setTimeout(() => heart.remove(), 1200);
-  root.querySelector('.pet-bubble').textContent = s.mood === 'sad' || s.mood === 'cry' ? moodLine(pet, s) : pick(TAP);
+  root.querySelector('.pet-bubble').textContent = randomPhrase();
+}
+
+// « Remonte-moi le moral » : il saute, envoie une pluie de cœurs et un mot de réconfort
+function cheerUp() {
+  const stage = root.querySelector('.pet-stage');
+  stage.classList.remove('boing');
+  stage.getBoundingClientRect();
+  stage.classList.add('boing');
+  root.querySelector('.pet-bubble').textContent = withName(pick(COMFORT), Math.floor(Math.random() * 4));
+  const tank = root.querySelector('.tank');
+  for (let k = 0; k < 16; k++) {
+    const el = document.createElement('span');
+    el.className = 'tank-spark';
+    el.textContent = ['💖', '💗', '✨', '🩷'][k % 4];
+    el.style.cssText = `left:${8 + Math.random() * 84}%;top:${25 + Math.random() * 55}%;animation-delay:${Math.random() * 0.6}s`;
+    tank.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  }
 }
 
 function dropsSheet() {
@@ -298,6 +359,7 @@ export function bindPet(container) {
     switch (b.dataset.p) {
       case 'hatch': hatch(); return;
       case 'pet': petTap(); return;
+      case 'cheer': cheerUp(); return;
       case 'shop': view = 'shop'; tryOn = null; break;
       case 'back': view = 'home'; tryOn = null; break;
       case 'buy': buy(); break;
