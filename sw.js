@@ -16,6 +16,7 @@ const FILES = [
   'js/game.js',
   'js/levels.js',
   'js/pet.js',
+  'js/wallet.js',
   'js/pet-art.js',
   'js/detente.js',
   'js/mascot.js',

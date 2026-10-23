@@ -6,9 +6,9 @@ import * as store from './store.js';
 import { petSvg, eggSvg, STAGES, ITEMS } from './pet-art.js';
 import { esc, toast, toDay, addDays, startOfWeek } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
+import { DROPS, filledDays, wallet } from './wallet.js';
 
 const KEY = 'pet';
-const DROPS = { welcome: 50, day: 10, week: 30 };
 const SLOTS = [['head', 'Tête'], ['neck', 'Cou'], ['eyes', 'Yeux'], ['body', 'Tenue'], ['color', 'Couleur']];
 
 let root;
@@ -22,13 +22,6 @@ const savePet = (p) => store.setMeta(KEY, { ...p, updated: new Date().toISOStrin
 export const petBusy = () => busy;
 
 // ---------- calculs ----------
-function filledDays() {
-  const days = new Set();
-  for (const l of store.all('symptom_logs')) if (!l.deleted) days.add(l.day);
-  for (const n of store.all('day_notes')) if (n.nothing || (n.note && n.note.trim())) days.add(n.day);
-  return days;
-}
-
 export function petState(pet = getPet()) {
   if (!pet) return null;
   const today = toDay();
@@ -37,7 +30,6 @@ export function petState(pet = getPet()) {
   // Une semaine (lundi → dimanche) compte quand au moins 5 jours sont remplis
   const perWeek = new Map();
   for (const d of days) { const k = startOfWeek(d); perWeek.set(k, (perWeek.get(k) || 0) + 1); }
-  const fullWeeks = [...perWeek.values()].filter((n) => n >= 5).length;
   let si = 0;
   STAGES.forEach((s, i) => { if (days.length >= s.days) si = i; }); // Légendaire en 14 jours remplis
   const next = STAGES[si + 1] || null;
@@ -47,11 +39,10 @@ export function petState(pet = getPet()) {
     for (let d = addDays(today, -1); d >= pet.hatched && !set.has(d); d = addDays(d, -1)) missed++;
   }
   const mood = filledToday ? 'joy' : missed === 0 ? 'happy' : missed === 1 ? 'sad' : 'cry';
-  const earned = DROPS.welcome + DROPS.day * days.length + DROPS.week * fullWeeks;
   const weekStart = startOfWeek(today);
   return {
     stage: STAGES[si], next, filledCount: days.length, filledToday, missed, mood,
-    balance: earned - (pet.spent || 0),
+    balance: wallet().balance,
     weekDays: Array.from({ length: 7 }, (_, k) => { const d = addDays(weekStart, k); return { d, on: set.has(d), today: d === today, future: d > today }; }),
     weekCount: perWeek.get(weekStart) || 0,
   };
@@ -247,11 +238,11 @@ function dropsSheet() {
   const s = petState(pet);
   const body = openSheet(`
     <h3>💧 Gagner des gouttes</h3>
-    <p>Tu as <b>${s.balance} 💧</b> à dépenser dans la boutique de ${esc(pet.name)}.</p>
+    <p>Tu as <b>${s.balance} 💧</b> à dépenser dans la boutique de ${esc(pet.name)} et celle du jeu des tubes.</p>
     <div class="drops-list">
       <div><span>✏️ Chaque journée remplie</span><b>+${DROPS.day} 💧</b></div>
       <div><span>📅 Chaque semaine complète (5 jours sur 7)</span><b>+${DROPS.week} 💧</b></div>
-      <div><span>🥚 Cadeau de naissance</span><b>+${DROPS.welcome} 💧</b></div>
+      <div><span>🎁 Cadeau de bienvenue</span><b>+${DROPS.welcome} 💧</b></div>
     </div>
     <p class="muted small">Une journée compte comme remplie avec au moins un symptôme, « Rien à signaler » ou une note. Chaque journée remplie fait aussi grandir ${esc(pet.name)} : Petit après 3 jours, Ado après 6, Adulte après 10, Légendaire après 14.</p>
     <div class="sheet-actions"><button class="btn ghost" data-close>Fermer</button>${s.filledToday ? '' : '<button class="btn primary" id="pet-fill">✏️ Remplir ma journée</button>'}</div>`);
