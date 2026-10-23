@@ -3,7 +3,7 @@
 
 import * as store from './store.js';
 import { LEVELS } from './levels.js';
-import { esc, uuid, toast, toDay } from './util.js';
+import { uuid, toast, toDay } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { mascotUrl, cheer } from './mascot.js';
 
@@ -203,7 +203,7 @@ export function renderGame(container) {
   root = container;
   if (busy) return;
   const p = myProfile();
-  if (!p || !p.name) { container.innerHTML = welcomeHtml(); return; }
+  if (!p) { container.innerHTML = welcomeHtml(); return; }
   ensureGame(p);
   const g = game;
   const cols = g.tubes.length <= 6 ? g.tubes.length : Math.ceil(g.tubes.length / 2);
@@ -242,7 +242,6 @@ export function renderGame(container) {
       </button>`
     : '<p class="bonus-ok">🔓 Bonus débloqués : merci d’avoir rempli ta journée !</p>'}
     </div>
-    ${leaderboardHtml()}
     ${g.won ? winHtml() : ''}`;
 }
 
@@ -264,36 +263,8 @@ function coverHtml() {
 function welcomeHtml() {
   return `<div class="card game-welcome">
     ${coverHtml()}
-    <p class="muted">Verse les liquides d’un tube à l’autre : chaque tube doit finir d’une seule couleur. Des niveaux de plus en plus corsés, et un classement à deux.</p>
-    <label class="field-block">Ton pseudo pour le classement
-      <input id="g-name" type="text" maxlength="16" autocomplete="off" autocapitalize="words" placeholder="Ex. : Cléa">
-    </label>
+    <p class="muted">Verse les liquides d’un tube à l’autre : chaque tube doit finir d’une seule couleur. 100 niveaux de plus en plus corsés, à ton rythme.</p>
     <button class="btn primary big" data-g="start">C’est parti</button>
-  </div>`;
-}
-
-function leaderboardHtml() {
-  const me = myKey();
-  const players = store.all('app_meta')
-    .filter((r) => r.key.startsWith('game:') && r.value && r.value.name)
-    .map((r) => ({ me: r.key === me, name: r.value.name, done: doneCount(r.value), stars: starCount(r.value) }))
-    .sort((a, b) => b.done - a.done || b.stars - a.stars);
-  const medals = ['🥇', '🥈', '🥉'];
-  return `<div class="card leaderboard arcade-card">
-    <h3>🏆 Classement</h3>
-    ${players.map((pl) => {
-      // Le niveau atteint d'abord ; les étoiles départagent seulement à niveau égal
-      const rank = players.filter((o) => o.done > pl.done || (o.done === pl.done && o.stars > pl.stars)).length;
-      return `<div class="lb-row ${pl.me ? 'me' : ''}">
-      <span class="lb-medal">${medals[rank] || rank + 1}</span>
-      <span class="lb-name">${esc(pl.name)}${pl.me ? ' <small>(toi)</small>' : ''}</span>
-      <span class="lb-score">niveau ${Math.min(pl.done + 1, LEVELS.length)} · ${pl.stars} ⭐</span>
-      ${pl.me ? '<button class="lb-edit" data-g="rename" aria-label="Changer de pseudo">✏️</button>' : ''}
-    </div>`;
-    }).join('')}
-    <p class="muted small">${players.length < 2 ? 'L’autre joueur apparaîtra ici dès qu’il aura choisi son pseudo sur son téléphone.'
-      : 'Le plus loin dans les niveaux est premier ; à niveau égal, le plus d’étoiles l’emporte.'}</p>
-    <p class="muted small">⭐⭐⭐ si tu finis un niveau en peu de coups, ⭐⭐ ou ⭐ sinon.</p>
   </div>`;
 }
 
@@ -323,6 +294,7 @@ function openLevels() {
   const body = openSheet(`
     <h3>Niveaux</h3>
     <p class="muted small">${doneCount(p)} réussi${doneCount(p) > 1 ? 's' : ''} sur ${LEVELS.length} · ${starCount(p)} ⭐</p>
+    <p class="muted small">⭐⭐⭐ si tu finis un niveau en peu de coups, ⭐⭐ ou ⭐ sinon.</p>
     <div class="level-grid">
       ${LEVELS.map((_, k) => {
         const n = k + 1;
@@ -336,22 +308,6 @@ function openLevels() {
     const b = e.target.closest('[data-level]');
     if (!b) return;
     startLevel(Number(b.dataset.level));
-    closeSheet();
-    renderGame(root);
-  };
-}
-
-function renameSheet() {
-  const p = myProfile();
-  const body = openSheet(`
-    <h3>Ton pseudo</h3>
-    <label class="field-block">Pseudo<input id="g-rename" type="text" maxlength="16" value="${esc(p.name)}" autocomplete="off"></label>
-    <div class="sheet-actions"><button class="btn ghost" data-close>Annuler</button><button class="btn primary" id="g-rename-ok">Enregistrer</button></div>`);
-  body.querySelector('[data-close]').onclick = closeSheet;
-  body.querySelector('#g-rename-ok').onclick = () => {
-    const name = body.querySelector('#g-rename').value.trim();
-    if (!name) return;
-    saveProfile({ ...myProfile(), name });
     closeSheet();
     renderGame(root);
   };
@@ -503,13 +459,10 @@ export function bindGame(container) {
     if (!b || busy) return;
     const g = game;
     switch (b.dataset.g) {
-      case 'start': {
-        const name = container.querySelector('#g-name').value.trim();
-        if (!name) { container.querySelector('#g-name').focus(); return; }
-        saveProfile({ name, moves: {} });
+      case 'start':
+        saveProfile({ moves: {} });
         game = null;
         break;
-      }
       case 'why':
         lockedSheet();
         return;
@@ -543,9 +496,6 @@ export function bindGame(container) {
         break;
       case 'levels':
         openLevels();
-        return;
-      case 'rename':
-        renameSheet();
         return;
     }
     renderGame(container);
