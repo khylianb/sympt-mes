@@ -8,6 +8,17 @@ const LANES = [-2.3, 0, 2.3];
 const SWIM_Y = 1.0;
 const FAR = -130;
 const rand = (a, b) => a + Math.random() * (b - a);
+// Bonus à attraper : durée en secondes (le bouclier dure jusqu'au prochain choc) ;
+// step : secondes gagnées par niveau d'amélioration (5 niveaux, payés en crevettes)
+export const POWERS = {
+  turbo: { icon: '🚀', name: 'Turbo-bulle', color: '#ffb02e', dur: 6, step: 1, weight: 2 },
+  magnet: { icon: '🧲', name: 'Aimant', color: '#ff4d6d', dur: 10, step: 2, weight: 3 },
+  fins: { icon: '🦶', name: 'Palmes', color: '#3fd28a', dur: 10, step: 2, weight: 2 },
+  x2: { icon: '⭐', name: 'Crevettes ×2', color: '#ffd23f', dur: 15, step: 3, weight: 2 },
+  shield: { icon: '🫧', name: 'Bulle-bouclier', color: '#7fe9ff', dur: 0, step: 0, weight: 2 },
+};
+export const powerDur = (k, levels = {}) => POWERS[k].dur + (levels[k] || 0) * POWERS[k].step;
+const TURBO_Y = 5.2;
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
 // ---------- textures dessinées ----------
@@ -459,6 +470,22 @@ export async function mount(host, look, ui) {
     return g;
   }
 
+  // Bonus : bulle de verre lumineuse avec son icône, qui tourne sur elle-même
+  const iconTex = {};
+  const glassMat = new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0, transparent: true, opacity: .28, clearcoat: 1, iridescence: 1, iridescenceIOR: 1.6 });
+  function makePower(type) {
+    const P = POWERS[type];
+    iconTex[type] = iconTex[type] || canvasTex(128, 128, (c) => { c.font = '92px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(P.icon, 64, 72); });
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(.62, 28, 20), glassMat));
+    const icon = new THREE.Sprite(new THREE.SpriteMaterial({ map: iconTex[type], depthWrite: false })); icon.scale.set(.85, .85, 1); g.add(icon);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.78, .05, 10, 40), new THREE.MeshStandardMaterial({ color: P.color, emissive: P.color, emissiveIntensity: 1.2 }));
+    g.add(ring);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex.dot, color: P.color, transparent: true, opacity: .75, depthWrite: false, blending: THREE.AdditiveBlending })); glow.scale.set(3.2, 3.2, 1); g.add(glow);
+    g.userData.ring = ring;
+    return g;
+  }
+
   function removeItem(it) {
     scene.remove(it);
     if (it.userData.shadow) scene.remove(it.userData.shadow);
@@ -487,6 +514,15 @@ export async function mount(host, look, ui) {
         scene.add(j); world.items.push(j);
       }
     }
+    // De temps en temps, un bonus devant la ligne de crevettes
+    if (st.dist > 60 && st.dist - st.lastPower > 120 && !st.pw.turbo && Math.random() < .35) {
+      st.lastPower = st.dist;
+      const bag = Object.entries(POWERS).flatMap(([k, v]) => Array(v.weight).fill(k));
+      const type = pick(bag);
+      const o = makePower(type); o.position.set(LANES[free], SWIM_Y + .35, z - 4.2);
+      o.userData = { ...o.userData, type: 'power', power: type, lane: free, ph: rand(0, 6) };
+      scene.add(o); world.items.push(o);
+    }
     // Une ligne de crevettes dans le couloir libre (parfois en arc, à attraper en sautant)
     const high = Math.random() < .25;
     for (let k = 0; k < 4; k++) {
@@ -498,39 +534,66 @@ export async function mount(host, look, ui) {
   }
 
   // ---------- état ----------
-  const st = { mode: 'intro', lane: 1, x: 0, y: SWIM_Y, vy: 0, dist: 0, shrimps: 0, hearts: 3, hurt: 0, nextRow: FAR, t: 0, camBlend: 0, shake: 0, roll: 0, dive: false, calm: 0, milestone: 0, buoy: null, recordDone: false };
+  const st = { mode: 'intro', lane: 1, x: 0, y: SWIM_Y, vy: 0, dist: 0, shrimps: 0, hearts: 3, hurt: 0, nextRow: FAR, t: 0, camBlend: 0, shake: 0, roll: 0, dive: false, calm: 0, milestone: 0, buoy: null, recordDone: false, pw: {}, shield: false, inv: 0, lastPower: 0 };
   let bestDist = look.bestDist || 0;
+  let levels = look.levels || {};
+  let startShield = !!look.startShield;
   // Vitesse selon la distance : monte vite au début puis de plus en plus doucement (15 → 32 au plus)
   const speedAt = (m) => 15 + 17 * (1 - Math.exp(-m / 900));
   // Écart entre deux rangées : toujours environ une seconde pour réagir, même à fond
   const rowGap = (v) => v * (1.12 - .22 * (v - 15) / 17);
-  const emit = () => ui.onScore && ui.onScore({ dist: Math.floor(st.dist), shrimps: st.shrimps, hearts: st.hearts });
+  const emit = () => ui.onScore && ui.onScore({
+    dist: Math.floor(st.dist), shrimps: st.shrimps, hearts: st.hearts, shield: st.shield,
+    powers: Object.entries(st.pw).filter(([, v]) => v > 0).map(([k, v]) => ({ k, left: v, dur: powerDur(k, levels), icon: POWERS[k].icon })),
+  });
 
-  function start(best) {
+  function start(best, opts = {}) {
     if (best !== undefined) bestDist = best;
+    if (opts.levels) levels = opts.levels;
+    if (opts.startShield !== undefined) startShield = opts.startShield;
     for (const it of world.items) removeItem(it);
     world.items = [];
     if (st.buoy) { scene.remove(st.buoy); }
-    Object.assign(st, { mode: 'play', lane: 1, x: 0, y: SWIM_Y, vy: 0, dist: 0, shrimps: 0, hearts: 3, hurt: 0, nextRow: FAR, roll: 0, dive: false, calm: 0, milestone: 0, buoy: null, recordDone: false });
+    Object.assign(st, { mode: 'play', lane: 1, x: 0, y: SWIM_Y, vy: 0, dist: 0, shrimps: 0, hearts: 3, hurt: 0, nextRow: FAR, roll: 0, dive: false, calm: 0, milestone: 0, buoy: null, recordDone: false, pw: {}, shield: false, inv: 0, lastPower: 0 });
+    st.shield = startShield;
     world.speed = speedAt(0);
     for (let z = -34; z > FAR; z -= rowGap(world.speed)) addRow(z);
     emit();
   }
   const move = (d) => { if (st.mode === 'play') st.lane = Math.max(0, Math.min(2, st.lane + d)); };
-  const jump = () => { if (st.mode === 'play' && st.y <= SWIM_Y + .05) { st.roll = 0; st.vy = 9.5; puff(st.x, st.y, .6, 5); } };
+  const jump = () => { if (st.mode === 'play' && !st.pw.turbo && st.y <= SWIM_Y + .05) { st.roll = 0; st.vy = st.pw.fins ? 13.5 : 9.5; puff(st.x, st.y, .6, st.pw.fins ? 10 : 5); } };
   // Vers le bas : plongeon s'il est en l'air (puis roulade à l'arrivée), sinon roulade
   const down = () => {
-    if (st.mode !== 'play') return;
+    if (st.mode !== 'play' || st.pw.turbo) return;
     if (st.y > SWIM_Y + .05) { st.vy = -24; st.dive = true; } else { st.roll = .7; puff(st.x, .6, .4, 4); }
   };
   let god = false; // tests automatiques uniquement
+  // Ramasser un bonus
+  function activate(type) {
+    const P = POWERS[type];
+    if (type === 'shield') st.shield = true; else st.pw[type] = powerDur(type, levels);
+    if (type === 'turbo') {
+      st.roll = 0; st.dive = false; st.calm = powerDur('turbo', levels) + 1.2;
+      // On dégage la piste devant pour décoller tranquille
+      for (let i = world.items.length - 1; i >= 0; i--) {
+        const it = world.items[i];
+        if (it.position.z > -70 && it.userData.type !== 'shrimp') { removeItem(it); world.items.splice(i, 1); }
+      }
+    }
+    puff(st.x, st.y + .4, 0, 12);
+    ui.onPower && ui.onPower(type, P);
+    emit();
+  }
+
   function hit() {
-    if (st.hurt > 0 || god) return;
+    if (st.hurt > 0 || god || st.pw.turbo || st.inv > 0) return;
+    // La bulle-bouclier encaisse le choc à sa place
+    if (st.shield) { st.shield = false; st.inv = 1; st.shake = .25; puff(st.x, st.y + .3, 0, 16); ui.onShield && ui.onShield(); emit(); return; }
     st.hearts--; st.hurt = 1.4; st.shake = .5;
     if (navigator.vibrate) navigator.vibrate(60);
     ui.onHit && ui.onHit(st.hearts);
     emit();
-    if (st.hearts <= 0) { st.mode = 'over'; st.roll = 0; ui.onEnd && ui.onEnd({ shrimps: st.shrimps, dist: Math.floor(st.dist) }); }
+    if (st.hearts <= 0) { st.mode = 'over'; st.roll = 0; st.pw = {}; st.shield = false; ui.onEnd && ui.onEnd({ shrimps: st.shrimps, dist: Math.floor(st.dist) }); }
   }
 
   // Gestes : glisser pour changer de couloir ou sauter
@@ -557,6 +620,13 @@ export async function mount(host, look, ui) {
   window.addEventListener('pointerup', onUp);
   window.addEventListener('keydown', onKey);
 
+  // Bulle-bouclier et lueur du turbo autour de l'axolotl
+  const shieldMesh = new THREE.Mesh(new THREE.SphereGeometry(1.3, 32, 20), new THREE.MeshPhysicalMaterial({ color: '#bff6ff', roughness: 0, transparent: true, opacity: .3, iridescence: 1, iridescenceIOR: 1.8, clearcoat: 1, depthWrite: false }));
+  shieldMesh.visible = false; scene.add(shieldMesh);
+  const turboGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex.dot, color: '#ffb02e', transparent: true, opacity: .9, depthWrite: false, blending: THREE.AdditiveBlending }));
+  turboGlow.scale.set(2.6, 2.6, 1); turboGlow.visible = false; scene.add(turboGlow);
+  let baseFov = 62;
+
   // ---------- rendu ----------
   const composer = new THREE.EffectComposer(renderer);
   composer.addPass(new THREE.RenderPass(scene, camera));
@@ -565,7 +635,7 @@ export async function mount(host, look, ui) {
   function resize() {
     const w = host.clientWidth || window.innerWidth; const h = host.clientHeight || window.innerHeight;
     renderer.setSize(w, h, false); composer.setSize(w, h);
-    camera.aspect = w / h; camera.fov = w / h < .7 ? 70 : 58;
+    camera.aspect = w / h; baseFov = w / h < .7 ? 70 : 58; camera.fov = baseFov;
     camera.updateProjectionMatrix();
   }
   window.addEventListener('resize', resize);
@@ -579,7 +649,16 @@ export async function mount(host, look, ui) {
     const t = st.t;
     shared.uTime.value = t;
     const playing = st.mode === 'play';
-    const sp = playing ? world.speed : st.mode === 'intro' ? 4 : 0;
+    const sp = playing ? world.speed * (st.pw.turbo ? 1.6 : 1) : st.mode === 'intro' ? 4 : 0;
+    // Minuteurs des bonus
+    if (playing) {
+      for (const k of Object.keys(st.pw)) {
+        if (st.pw[k] <= 0) continue;
+        st.pw[k] = Math.max(0, st.pw[k] - dt);
+        if (!st.pw[k]) { if (k === 'turbo') { st.inv = 1.6; st.vy = 0; } emit(); }
+      }
+      st.inv = Math.max(0, st.inv - dt);
+    }
     if (playing) {
       world.speed = speedAt(st.dist); st.dist += sp * dt * .5;
       // Palier tous les 500 m : annonce et une rangée sans obstacle pour souffler
@@ -598,7 +677,21 @@ export async function mount(host, look, ui) {
     tex.sand.offset.y += dz / 7;
 
     st.x += (LANES[st.lane] - st.x) * Math.min(1, dt * 12);
-    st.vy -= 26 * dt; st.y = Math.max(SWIM_Y, st.y + st.vy * dt);
+    if (st.pw.turbo) {
+      // Turbo-bulle : il monte sur son jet de bulles et file au-dessus de tout
+      st.y += (TURBO_Y - st.y) * Math.min(1, dt * 4); st.vy = 0;
+      puff(st.x + rand(-.2, .2), st.y - .5, .5, 2);
+      st.turboShrimp = (st.turboShrimp || 0) - dt;
+      if (st.turboShrimp <= 0) {
+        st.turboShrimp = .14;
+        const s = makeShrimp(); const l = Math.floor(Math.random() * 3);
+        s.position.set(LANES[l], TURBO_Y, -45); s.userData = { type: 'shrimp', lane: l, ph: rand(0, 6), sky: true };
+        scene.add(s); world.items.push(s);
+      }
+    } else {
+      st.vy -= 26 * dt;
+    }
+    st.y = Math.max(SWIM_Y, st.y + st.vy * dt);
     if (st.y === SWIM_Y) { if (st.dive) { st.dive = false; st.roll = .7; st.shake = .15; puff(st.x, .5, .3, 6); } st.vy = 0; }
     st.roll = Math.max(0, st.roll - dt);
     // Roulade : il se met en boule, tourne sur lui-même et rase le sable
@@ -608,6 +701,16 @@ export async function mount(host, look, ui) {
     axo.rotation.z = (LANES[st.lane] - st.x) * -.25;
     axo.rotation.x = st.roll > 0 ? -((0.7 - st.roll) / .7) * Math.PI * 2 : THREE.MathUtils.clamp(-st.vy * .03, -.4, .4);
     axo.visible = !(st.hurt > 0 && Math.floor(t * 14) % 2 === 0);
+    if (st.pw.turbo) axo.rotation.x = -.35 + Math.sin(t * 8) * .05;
+    shieldMesh.visible = st.shield || st.inv > 0;
+    shieldMesh.position.set(st.x, axo.position.y + .05, 0);
+    shieldMesh.material.opacity = st.shield ? .3 + Math.sin(t * 5) * .06 : .15 * (Math.floor(t * 10) % 2);
+    shieldMesh.rotation.y = t;
+    turboGlow.visible = !!st.pw.turbo;
+    turboGlow.position.set(st.x, st.y - .6, .6);
+    // Champ de vision élargi pendant le turbo : sensation de vitesse
+    const fovT = baseFov + (st.pw.turbo ? 12 : 0);
+    if (Math.abs(camera.fov - fovT) > .05) { camera.fov += (fovT - camera.fov) * Math.min(1, dt * 3); camera.updateProjectionMatrix(); }
     axo.rotation.y += ((st.mode === 'over' ? Math.PI : 0) - axo.rotation.y) * dt * 3;
     animateAxolotl(t, sp / 30, axo);
     axoShadow.position.set(st.x, .03, .2);
@@ -619,7 +722,16 @@ export async function mount(host, look, ui) {
       const it = world.items[i]; const u = it.userData;
       it.position.z += dz;
       if (u.shadow) u.shadow.position.z = it.position.z;
-      if (u.type === 'shrimp') { it.rotation.y += dt * 3; it.position.y += Math.sin(t * 3 + u.ph) * .004; }
+      if (u.type === 'shrimp') {
+        it.rotation.y += dt * 3;
+        if (!u.sky) it.position.y += Math.sin(t * 3 + u.ph) * .004;
+        // Aimant : les crevettes proches filent vers l'axolotl
+        if (st.pw.magnet && it.position.z > -22 && it.position.z < 1) {
+          const k = Math.min(1, dt * 7);
+          it.position.x += (st.x - it.position.x) * k; it.position.y += (st.y - it.position.y) * k; it.position.z += (0 - it.position.z) * k * .6;
+        }
+      }
+      if (u.type === 'power') { it.rotation.y += dt * 2; it.position.y = SWIM_Y + .35 + Math.sin(t * 2.5 + u.ph) * .15; u.ring.rotation.x = t * 1.7; }
       if (u.type === 'net') u.net.rotation.x = Math.sin(t * 1.5 + it.position.z * .1) * .08;
       if (u.type === 'jelly') {
         it.position.y = 1.5 + Math.sin(t * 2 + u.ph) * .25;
@@ -628,8 +740,11 @@ export async function mount(host, look, ui) {
       }
       if (playing && Math.abs(it.position.z) < 1 && Math.abs(it.position.x - st.x) < 1.1) {
         if (u.type === 'shrimp' && Math.abs(it.position.y - st.y) < 1.1) {
-          st.shrimps++; puff(it.position.x, it.position.y, 0, 4); emit();
+          st.shrimps += st.pw.x2 ? 2 : 1; puff(it.position.x, it.position.y, 0, 4); emit();
           removeItem(it); world.items.splice(i, 1); continue;
+        }
+        if (u.type === 'power' && Math.abs(it.position.y - st.y) < 1.6) {
+          removeItem(it); world.items.splice(i, 1); activate(u.power); continue;
         }
         if ((u.type === 'rock' && st.y - SWIM_Y < u.h) || u.type === 'jelly' || (u.type === 'net' && st.roll <= 0)) hit();
       }
@@ -687,6 +802,7 @@ export async function mount(host, look, ui) {
     // Pour les tests automatiques : avance la simulation sans attendre l'affichage
     sim: (sec, invincible = false) => { god = invincible; for (let i = 0; i < sec * 60; i++) update(1 / 60); god = false; },
     act: (a) => ({ left: () => move(-1), right: () => move(1), up: jump, down })[a](),
+    power: (type) => activate(type),
     state: () => ({ ...st, speed: world.speed, items: world.items.map((i) => i.userData.type) }),
     destroy() {
       alive = false;

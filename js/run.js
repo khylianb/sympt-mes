@@ -11,6 +11,7 @@ let engine = null;
 let host = null;
 let loading = false;
 let engineBest = () => {};
+let shopFrom = 'run-start';
 
 // ---------- données ----------
 function deviceId() {
@@ -28,6 +29,55 @@ export function runBest() {
   return best;
 }
 const fmtM = (m) => `${m.toLocaleString('fr-FR')} m`;
+
+// ---------- améliorations des bonus, payées avec les crevettes attrapées ----------
+// Réserve = crevettes attrapées sur tous les téléphones − crevettes dépensées (app_meta « runUp », partagé)
+const UP_KEY = 'runUp';
+export const UP_COSTS = [40, 90, 180, 350, 600];
+export const START_SHIELD_COST = 500;
+// Mêmes bonus que dans le moteur (run-3d.js), recopiés ici pour ne pas charger la 3D
+const PW = {
+  turbo: { icon: '🚀', name: 'Turbo-bulle', dur: 6, step: 1, txt: 'vole au-dessus de tout, vitesse max' },
+  magnet: { icon: '🧲', name: 'Aimant', dur: 10, step: 2, txt: 'attire les crevettes des 3 couloirs' },
+  fins: { icon: '🦶', name: 'Palmes', dur: 10, step: 2, txt: 'sauts deux fois plus hauts' },
+  x2: { icon: '⭐', name: 'Crevettes ×2', dur: 15, step: 3, txt: 'chaque crevette compte double' },
+};
+const upData = () => store.meta(UP_KEY) || {};
+export function shrimpBank() {
+  let caught = 0;
+  for (const r of store.all('app_meta')) if (r.key.startsWith('run:') && r.value) caught += r.value.caught || 0;
+  return caught - (upData().spent || 0);
+}
+const levelsOf = () => ({ ...(upData().levels || {}) });
+function buyUp(k) {
+  const d = upData(); const lv = levelsOf();
+  const cost = k === 'startShield' ? START_SHIELD_COST : UP_COSTS[lv[k] || 0];
+  if (cost === undefined || shrimpBank() < cost || (k === 'startShield' && d.startShield)) return false;
+  if (k === 'startShield') store.setMeta(UP_KEY, { ...d, startShield: true, spent: (d.spent || 0) + cost });
+  else store.setMeta(UP_KEY, { ...d, levels: { ...lv, [k]: (lv[k] || 0) + 1 }, spent: (d.spent || 0) + cost });
+  return true;
+}
+function shopHtml() {
+  const bank = shrimpBank(); const lv = levelsOf(); const d = upData();
+  const row = (k) => {
+    const P = PW[k]; const n = lv[k] || 0; const cost = UP_COSTS[n];
+    return `<div class="up-row">
+      <span class="up-ico">${P.icon}</span>
+      <span class="up-txt"><b>${P.name}</b><small>${P.txt}</small>
+        <span class="up-lv">${UP_COSTS.map((_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}<em>${P.dur + n * P.step} s${cost !== undefined ? ` → ${P.dur + (n + 1) * P.step} s` : ' · max'}</em></span></span>
+      ${cost === undefined ? '<span class="up-max">MAX</span>' : `<button class="up-buy" data-up="${k}" ${bank < cost ? 'disabled' : ''}>🍤 ${cost}</button>`}
+    </div>`;
+  };
+  return `<p class="run-tag">Atelier des bonus</p>
+    <div class="up-bank">🍤 <b>${bank.toLocaleString('fr-FR')}</b> crevettes en réserve</div>
+    <div class="up-list">
+      ${Object.keys(PW).map(row).join('')}
+      <div class="up-row"><span class="up-ico">🫧</span><span class="up-txt"><b>Départ protégé</b><small>commence chaque course avec une bulle-bouclier</small></span>
+        ${d.startShield ? '<span class="up-max">✓</span>' : `<button class="up-buy" data-up="startShield" ${bank < START_SHIELD_COST ? 'disabled' : ''}>🍤 ${START_SHIELD_COST}</button>`}</div>
+    </div>
+    <p class="run-small">Les crevettes de chaque course remplissent la réserve (en plus des gouttes 💧).</p>
+    <button class="run-go" data-run="shop-close">C’est bon</button>`;
+}
 // Fin de partie : 1 goutte pour 5 crevettes, dans la limite du plafond du jour
 function record({ dist, shrimps }) {
   const day = toDay();
@@ -36,7 +86,7 @@ function record({ dist, shrimps }) {
   const days = { ...(r.days || {}) };
   days[day] = (days[day] || 0) + Math.floor(shrimps / DROPS.runShrimps);
   const oldBest = runBest();
-  store.setMeta(myKey(), { ...r, bestDist: Math.max(r.bestDist || 0, dist), days, games: (r.games || 0) + 1 });
+  store.setMeta(myKey(), { ...r, bestDist: Math.max(r.bestDist || 0, dist), days, games: (r.games || 0) + 1, caught: (r.caught || 0) + shrimps });
   return { drops: dropsOn(day) - before, capped: dropsOn(day) >= DROPS.runDay, newBest: dist > oldBest && oldBest > 0, first: !oldBest, best: Math.max(oldBest, dist) };
 }
 
@@ -76,6 +126,7 @@ function stageHtml() {
       <span class="run-pill run-shrimps">🍤 <b id="run-shrimps">0</b></span>
     </div>
     <div class="run-meter" id="run-meter" hidden>${meterHtml(best)}</div>
+    <div class="run-powers" id="run-powers"></div>
     <div class="run-banner" id="run-banner"></div>
     <div class="run-flash" id="run-flash"></div>
     <div class="run-panel" id="run-loading"><p class="run-tag">Axolo Run</p><p>Chargement des fonds marins… 🫧</p></div>
@@ -85,9 +136,10 @@ function stageHtml() {
       <div class="run-moves"><span><b>← →</b>couloir</span><span><b>↑</b>sauter</span><span><b>↓</b>roulade</span></div>
       <p>Saute par-dessus les rochers, roule sous les filets, évite les méduses. Plus tu vas loin, plus ça va vite !</p>
       <p class="run-small">🍤 ${DROPS.runShrimps} crevettes = 1 💧 (jusqu’à ${DROPS.runDay} 💧 par jour)${best ? ` · record : ${fmtM(best)}` : ''}</p>
-      <button class="run-go" data-run="play">Nager !</button>
+      <div class="run-row"><button class="run-go ghost" data-run="shop">🔧 Bonus</button><button class="run-go" data-run="play">Nager !</button></div>
     </div>
     <div class="run-panel" id="run-over" hidden></div>
+    <div class="run-panel run-shop" id="run-shop" hidden></div>
   </div>`;
 }
 
@@ -98,7 +150,9 @@ function overHtml(res, out) {
     ${out.drops ? `<span class="run-drops">+${out.drops} 💧 pour ton axolotl</span>`
       : out.capped ? `<span class="run-drops muted">Plafond du jour atteint (${DROPS.runDay} 💧) : reviens demain !</span>`
       : `<span class="run-drops muted">Attrape ${DROPS.runShrimps} crevettes pour gagner une goutte 💧</span>`}
-    <div class="run-row"><button class="run-go ghost" data-d="hub">Retour</button><button class="run-go" data-run="play">Rejouer</button></div>`;
+    <p class="run-small">🍤 Réserve : ${shrimpBank().toLocaleString('fr-FR')} crevettes</p>
+    <div class="run-row"><button class="run-go ghost" data-run="shop">🔧 Bonus</button><button class="run-go" data-run="play">Rejouer</button></div>
+    <button class="run-link" data-d="hub">Retour aux jeux</button>`;
 }
 
 export function renderRun(container) {
@@ -118,7 +172,7 @@ async function mountEngine() {
     if (el !== host || !el.isConnected) return;
     const pet = getPet();
     const best = runBest();
-    const look = { colors: COLORS[(pet && pet.color) || 'rose'] || COLORS.rose, equipped: (pet && pet.equipped) || {}, bestDist: best };
+    const look = { colors: COLORS[(pet && pet.color) || 'rose'] || COLORS.rose, equipped: (pet && pet.equipped) || {}, bestDist: best, levels: levelsOf(), startShield: !!upData().startShield };
     const $ = (id) => el.querySelector('#' + id);
     // Annonce au centre de l'écran (paliers, record)
     const banner = (html, cls = '') => {
@@ -145,7 +199,11 @@ async function mountEngine() {
           if (i < s.hearts) { h.classList.add('on'); h.classList.remove('break'); }
         });
         life.classList.toggle('low', s.hearts === 1);
+        life.classList.toggle('shielded', !!s.shield);
+        $('run-powers').innerHTML = (s.powers || []).map((p) => `<span class="run-pw" style="--k:${(p.left / p.dur).toFixed(3)}"><b>${p.icon}</b><i></i></span>`).join('');
       },
+      onPower: (type, P) => banner(`<small>Bonus !</small>${P.icon} ${P.name}`, 'power'),
+      onShield: () => banner('<small>Ouf !</small>🫧 Bulle éclatée', 'power'),
       onHit: () => { const f = $('run-flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 80); },
       onMilestone: (m) => banner(`<small>Bravo !</small>${m >= 1000 ? `${(m / 1000).toLocaleString('fr-FR')} km` : `${m} m`}`),
       onRecord: () => {
@@ -153,7 +211,7 @@ async function mountEngine() {
         $('run-meter').classList.add('beat');
         const t = $('run-best-txt'); if (t) t.textContent = 'record battu !';
       },
-      onEnd: (res) => { const out = record(res); const o = $('run-over'); o.innerHTML = overHtml(res, out); o.hidden = false; $('run-meter').hidden = true; },
+      onEnd: (res) => { const out = record(res); const o = $('run-over'); o.innerHTML = overHtml(res, out); o.hidden = false; $('run-meter').hidden = true; $('run-powers').innerHTML = ''; },
     });
     engineBest = (b) => { curBest = b; lastDist = -1; };
     if (el !== host || !el.isConnected) { engine.destroy(); engine = null; }
@@ -175,21 +233,37 @@ export const runBusy = () => false;
 
 export function bindRun(container) {
   container.addEventListener('click', (e) => {
+    const up = e.target.closest('[data-up]');
+    if (up && host) { if (buyUp(up.dataset.up)) { host.querySelector('#run-shop').innerHTML = shopHtml(); } return; }
     const b = e.target.closest('[data-run]');
     if (!b || !engine || !host) return;
+    if (b.dataset.run === 'shop') {
+      shopFrom = host.querySelector('#run-over').hidden ? 'run-start' : 'run-over';
+      host.querySelector('#' + shopFrom).hidden = true;
+      const sh = host.querySelector('#run-shop'); sh.innerHTML = shopHtml(); sh.hidden = false;
+      return;
+    }
+    if (b.dataset.run === 'shop-close') {
+      host.querySelector('#run-shop').hidden = true;
+      const back = host.querySelector('#' + shopFrom);
+      if (shopFrom === 'run-over') back.querySelector('.run-small').textContent = `🍤 Réserve : ${shrimpBank().toLocaleString('fr-FR')} crevettes`;
+      back.hidden = false;
+      return;
+    }
     if (b.dataset.run === 'play') {
       host.querySelector('#run-start').hidden = true;
       host.querySelector('#run-over').hidden = true;
+      host.querySelector('#run-shop').hidden = true;
       // Chaque partie repart avec le record à jour (bouée et barre de progression)
       const best = runBest();
       const m = host.querySelector('#run-meter');
       m.classList.remove('beat');
       m.innerHTML = meterHtml(best);
-      engine.start(best);
+      engine.start(best, { levels: levelsOf(), startShield: !!upData().startShield });
       engineBest(best);
     }
   });
 }
 
 // Pour les tests automatiques
-window.__run = { sim: (s, g) => engine && engine.sim(s, g), act: (a) => engine && engine.act(a), state: () => engine && engine.state() };
+window.__run = { sim: (s, g) => engine && engine.sim(s, g), act: (a) => engine && engine.act(a), state: () => engine && engine.state(), power: (t) => engine && engine.power(t) };
