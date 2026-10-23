@@ -23,6 +23,8 @@ d'autres jeux à venir). Interface en français, synchronisée entre les télép
 | `js/wallet.js` | cagnotte de gouttes commune |
 | `js/games.js` | onglet Jeux : liste des jeux (**ajouter un jeu ici**) |
 | `js/game.js`, `js/boss.js`, `js/levels.js`, `js/game-shop.js` | le jeu des tubes, ses boss et sa boutique |
+| `js/run.js`, `js/run-3d.js` | Axolo Run, course 3D (three.js chargé seulement au lancement du jeu) |
+| `vendor/three.module.js`, `models/` | three.js r169 (MIT, avec les modules GLTF et bloom) et modèles 3D CC0 (voir `models/CREDITS.md`) |
 | `js/mascot.js` | image de la mascotte de victoire |
 | `js/settings.js`, `js/backup.js` | réglages et copie de secours |
 | `js/store.js`, `js/sync.js` | stockage local (IndexedDB) et synchronisation Supabase (API REST, sans librairie) |

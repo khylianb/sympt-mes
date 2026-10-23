@@ -2,6 +2,14 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '2.1.0',
+    items: [
+      '🏊 Nouveau jeu en 3D : Axolo Run ! Ton axolotl nage dans un récif, change de couloir et saute',
+      '🍤 Attrape les crevettes, évite les rochers et les méduses : 5 crevettes = 1 💧 (jusqu’à 15 💧 par jour)',
+      '🎀 Il porte sa couleur et ses tenues de la boutique, même en 3D',
+    ],
+  },
+  {
     version: '2.0.0',
     items: [
       '🩷 Nouvelle appli : ton axolotl devient la page principale',
