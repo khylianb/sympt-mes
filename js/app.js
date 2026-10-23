@@ -63,9 +63,7 @@ function renderStatus(st) {
 // Re-rendu après des données reçues de l'autre téléphone, sans gêner la saisie
 let pendingRender = false;
 function safeRender() {
-  const a = document.activeElement;
-  const typing = a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox'));
-  if (typing || sheetOpen()) { pendingRender = true; return; }
+  if (isTyping() || sheetOpen()) { pendingRender = true; return; }
   pendingRender = false;
   const y = window.scrollY;
   render();
@@ -113,17 +111,36 @@ function startApp() {
 }
 
 // Mises à jour : sur iPhone, l'appli installée reste souvent ouverte en arrière-plan
-// avec l'ancienne version. À chaque retour dans l'appli on vérifie s'il y a du nouveau ;
-// si oui, un bandeau propose de recharger (les données sont déjà enregistrées).
+// avec l'ancienne version. On vérifie au retour dans l'appli et toutes les 15 min.
+// La nouvelle version s'applique toute seule (les données sont déjà enregistrées) :
+// tout de suite si l'appli vient d'être ouverte ou est en arrière-plan, sinon dès qu'on la quitte.
+// Le bandeau reste proposé pour l'appliquer sans attendre.
+const isTyping = () => {
+  const a = document.activeElement;
+  return !!a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'checkbox'));
+};
+
 function setupUpdates() {
   if (!('serviceWorker' in navigator)) return;
   const hadController = !!navigator.serviceWorker.controller;
+  let shownAt = Date.now();
+  let reloadPending = false;
   navigator.serviceWorker.register('./sw.js').then((reg) => {
     if (!reg) return;
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+    const check = () => reg.update().catch(() => {});
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { if (reloadPending) location.reload(); return; }
+      shownAt = Date.now();
+      check();
+    });
+    setInterval(() => { if (!document.hidden) check(); }, 15 * 60 * 1000);
   }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController) showUpdateBanner();
+    if (!hadController) return;
+    const justOpened = Date.now() - shownAt < 20 * 1000;
+    if (document.hidden || (justOpened && !isTyping() && !sheetOpen())) { location.reload(); return; }
+    reloadPending = true;
+    showUpdateBanner();
   });
   $('#update-btn').addEventListener('click', () => location.reload());
 }
