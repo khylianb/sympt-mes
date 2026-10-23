@@ -25,6 +25,7 @@ function render() {
   if (state.tab === 'summary') renderSummary(views.summary);
   if (state.tab === 'settings') renderSettings(views.settings);
   if (state.tab === 'game') renderDetente(views.game);
+  syncImmersive();
 }
 
 function renderHeader() {
@@ -169,6 +170,14 @@ function showNotesAfterUpdate() {
   if (fresh.length) openSheet(`<h3>✨ Quoi de neuf ?</h3>${notesHtml(fresh)}`);
 }
 
+// Jeu, boutiques et axolotl en plein écran : pas d'en-tête, décor d'un bord à l'autre
+function syncImmersive() {
+  const on = state.tab === 'game' && !!views.game && !!views.game.querySelector('.arcade');
+  if (document.body.classList.contains('immersive') === on) return;
+  document.body.classList.toggle('immersive', on);
+  $('meta[name="theme-color"]')?.setAttribute('content', on ? '#0b0e26' : isEvening() ? '#0e1a1c' : '#eaf4f2');
+}
+
 // Thème selon l'heure : clair en journée, foncé le soir
 function applyTimeTheme() {
   const dark = isEvening();
@@ -196,6 +205,7 @@ async function main() {
   views.settings = $('#view-settings');
   views.game = $('#view-game');
   bindDetente(views.game);
+  new MutationObserver(syncImmersive).observe(views.game, { childList: true });
   bindToday(views.today);
   const openDay = (day) => { state.day = day; state.tab = 'today'; render(); window.scrollTo(0, 0); };
   bindHome(views.home, { onOpenDay: openDay, onRender: () => renderHome(views.home) });

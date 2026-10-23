@@ -2,6 +2,13 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.8.4',
+    items: [
+      '🎮 Jeu des tubes, boutiques et axolotl en plein écran, d’un bord à l’autre',
+      '📏 Tubes encore plus grands',
+    ],
+  },
+  {
     version: '1.8.3',
     items: [
       '⭐ Chaque nouvelle étoile gagnée dans le jeu des tubes rapporte +2 💧',

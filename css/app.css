@@ -906,3 +906,23 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .cheer-btn { margin-top: 12px; }
 .win-drops { margin: 6px auto 4px; display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 14px; border-radius: 999px; font-weight: 900; font-size: 1.15rem; color: #fff; background: linear-gradient(135deg, #22d3ee, #3b7ddd); box-shadow: 0 6px 16px rgba(34, 211, 238, .35); }
 .win-drops small { font-size: .75rem; font-weight: 800; opacity: .9; }
+
+/* ---------- Plein écran pour le jeu, les boutiques et l'axolotl ---------- */
+body.immersive { background: #0b0e26; }
+body.immersive .topbar, body.immersive .demo-banner { display: none !important; }
+body.immersive main { max-width: none; padding: 0 0 calc(var(--tabbar-h) + var(--safe-b) + 16px); }
+body.immersive .arcade {
+  margin: 0; border-radius: 0; box-shadow: none;
+  padding: calc(var(--safe-t) + 14px) 14px 18px;
+  min-height: calc(100vh - var(--tabbar-h) - var(--safe-b) - 16px);
+  min-height: calc(100dvh - var(--tabbar-h) - var(--safe-b) - 16px);
+}
+body.immersive .tabbar { background: rgba(20, 18, 48, .72); box-shadow: 0 10px 30px rgba(0, 0, 0, .45); border: 1px solid rgba(255, 255, 255, .1); }
+body.immersive .tabbar button { color: #b8b6dd; }
+body.immersive .tabbar button.on { color: #fff; background: rgba(255, 255, 255, .14); }
+/* Plus de place : tubes encore plus grands */
+body.immersive .arcade-game .tube { height: clamp(150px, calc(100vh - 390px), 430px); height: clamp(150px, calc(100dvh - 390px), 430px); }
+body.immersive .arcade-game .tubes.two-rows .tube { height: clamp(100px, calc((100dvh - 450px) / 2), 240px); }
+body.immersive .arcade-game .tubes.shape-syringe .tube { height: clamp(140px, calc(100dvh - 460px), 380px); }
+body.immersive .arcade-game .tubes.two-rows.shape-syringe .tube { height: clamp(90px, calc((100dvh - 530px) / 2), 210px); }
+body.immersive .tank { height: clamp(290px, 42dvh, 400px); }
