@@ -8,6 +8,7 @@ import { openSheet, closeSheet } from './ui.js';
 import { mascotUrl, cheer } from './mascot.js';
 import { getPet, petMini } from './pet.js';
 import { DROPS } from './wallet.js';
+import { bossOf, setupBoss, revealHidden, trapLines, BOSSES } from './boss.js';
 import { renderGameShop, gameShopClick, resetGameShop, tubesClass, arcadeClass, effectEmojis, tubeDeco } from './game-shop.js';
 
 const CAP = 4;
@@ -129,6 +130,24 @@ function pourSound(duration) {
   } catch { /* son indisponible : on continue sans */ }
 }
 
+// Coup porté au boss : petit « boum » descendant
+function hitSound() {
+  if (!soundOn() || !actx) return;
+  try {
+    const t = actx.currentTime;
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(220, t);
+    o.frequency.exponentialRampToValueAtTime(70, t + 0.25);
+    g.gain.setValueAtTime(0.08, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    o.connect(g).connect(actx.destination);
+    o.start(t);
+    o.stop(t + 0.32);
+  } catch { /* ignore */ }
+}
+
 function winSound() {
   if (!soundOn() || !actx) return;
   try {
@@ -176,12 +195,18 @@ function lockedSheet(what) {
 // ---------- partie ----------
 function startLevel(n) {
   game = { n, tubes: parse(n), history: [], extraUsed: false, selected: null, won: false };
+  // Annonce du boss seulement tant qu'il n'a jamais été battu
+  if (bossOf(n)) Object.assign(game, setupBoss(n, game.tubes), { boss: true, introSeen: !!((myProfile() || {}).bosses || {})[n] });
   persist();
 }
 function persist() {
-  const { n, tubes, history, extraUsed } = game;
-  store.kvSet('gameBoard', { n, tubes, history, extraUsed });
+  const { n, tubes, history, extraUsed, boss, hidden, frozen, corked, corkLeft, hpMax, introSeen } = game;
+  store.kvSet('gameBoard', { n, tubes, history, extraUsed, boss, hidden, frozen, corked, corkLeft, hpMax, introSeen });
 }
+// Pièges du boss : tube gelé ou bouché (on ne peut ni y verser ni en verser)
+const isFrozen = (i) => !!(game.frozen && game.frozen[i] > 0);
+const isCorked = (i) => !!(game.corked && game.corked.includes(i));
+const doneTubes = (tubes) => tubes.filter(isDone).length;
 function ensureGame(p) {
   if (game) return;
   const saved = store.kvGet('gameBoard');
@@ -202,8 +227,40 @@ function blocks(t) {
   }
   return out;
 }
-export const liquidHtml = (t) => `<span class="liquid">${blocks(t)
-  .map((b) => `<i style="height:${b.n * UNIT}%;--c:${PALETTE[b.c]}"></i>`).join('')}</span>`;
+export const liquidHtml = (t, hid) => `<span class="liquid">${blocks(hid ? t.map((c, k) => (hid.has(k) ? -1 : c)) : t)
+  .map((b) => (b.c < 0 ? `<i class="hidden-layer" style="height:${b.n * UNIT}%"></i>` : `<i style="height:${b.n * UNIT}%;--c:${PALETTE[b.c]}"></i>`)).join('')}</span>`;
+const hiddenOf = (i) => {
+  if (!game.hidden || !game.hidden.length) return null;
+  const set = new Set(game.hidden.filter((k) => k.startsWith(`${i}:`)).map((k) => Number(k.split(':')[1])));
+  return set.size ? set : null;
+};
+const trapHtml = (i) => (isFrozen(i) ? `<span class="trap ice"><b>❄️ ${game.frozen[i]}</b></span>` : '')
+  + (isCorked(i) ? '<span class="trap cork" aria-hidden="true"></span>' : '');
+
+function bossBarHtml(g) {
+  const b = bossOf(g.n);
+  const hp = Math.max(0, g.hpMax - doneTubes(g.tubes));
+  return `<div class="boss-bar">
+    <span class="boss-ava">${b.emoji}</span>
+    <div class="boss-info"><small>👾 Boss</small><b>${b.name}</b>
+      <div class="boss-hp"><i style="width:${(hp / g.hpMax) * 100}%"></i></div></div>
+    <span class="boss-hp-num">❤️ ${hp}/${g.hpMax}</span>
+  </div>`;
+}
+
+function bossIntroHtml(g) {
+  const b = bossOf(g.n);
+  return `<div class="win-overlay boss-intro">
+    <div class="win-card arcade-win">
+      <p class="boss-warn">⚠️ Niveau de boss</p>
+      <div class="boss-big">${b.emoji}</div>
+      <h3>${b.name}</h3>
+      <p class="muted">Termine chaque couleur pour lui faire perdre une vie !</p>
+      <ul class="boss-traps">${trapLines(b).map((l) => `<li>${l}</li>`).join('')}<li>🎁 Bonus : un tube vide en plus, sans perdre d’étoile</li></ul>
+      <button class="btn primary big arcade-go" data-g="boss-go">⚔️ Combattre !</button>
+    </div>
+  </div>`;
+}
 
 export function renderGame(container) {
   root = container;
@@ -235,9 +292,10 @@ export function renderGame(container) {
       </div>
     </div>
     <div class="game-board">
+      ${g.boss ? bossBarHtml(g) : ''}
       <div class="tubes ${tubesClass()} ${g.tubes.length > 6 ? 'two-rows' : ''}" style="--cols:${cols}">
-        ${g.tubes.map((t, i) => `<button class="tube ${g.selected === i ? 'sel' : ''} ${isDone(t) ? 'done' : ''}" data-tube="${i}"
-          aria-label="Tube ${i + 1} : ${t.length ? t.map((c) => COLOR_NAMES[c]).join(', ') : 'vide'}">${liquidHtml(t)}${tubeDeco}</button>`).join('')}
+        ${g.tubes.map((t, i) => `<button class="tube ${g.selected === i ? 'sel' : ''} ${isDone(t) ? 'done' : ''} ${isFrozen(i) ? 'frozen' : ''} ${isCorked(i) ? 'corked' : ''}" data-tube="${i}"
+          aria-label="Tube ${i + 1} : ${t.length ? (hiddenOf(i) ? 'couleurs cachées' : t.map((c) => COLOR_NAMES[c]).join(', ')) : 'vide'}">${liquidHtml(t, hiddenOf(i))}${tubeDeco}${trapHtml(i)}</button>`).join('')}
       </div>
       ${hint ? `<p class="game-hint">${hint}</p>` : ''}
     </div>
@@ -253,7 +311,7 @@ export function renderGame(container) {
       </button>`
     : '<p class="bonus-ok">🔓 Bonus débloqués : merci d’avoir rempli ta journée !</p>'}
     </div>
-    ${g.won ? winHtml() : ''}`;
+    ${g.won ? winHtml() : g.boss && !g.introSeen && !g.history.length ? bossIntroHtml(g) : ''}`;
 }
 
 // Couverture du jeu : on voit tout de suite de quoi il s'agit
@@ -287,9 +345,11 @@ function winHtml() {
     <div class="win-card arcade-win">
       ${mascotUrl() ? `<div class="win-mascot"><span class="mascot-bubble">${cheer()}</span><img src="${mascotUrl()}" alt=""></div>`
         : getPet() ? `<div class="win-mascot"><span class="mascot-bubble">${cheer()}</span>${petMini(150, 'joy')}</div>` : '<div class="win-emoji">🎉</div>'}
-      <h3>Niveau ${g.n} réussi !</h3>
+      ${g.boss ? `<p class="boss-ko">${bossOf(g.n).emoji} <span>K.O.</span></p>` : ''}
+      <h3>${g.boss ? `${bossOf(g.n).name} est vaincu !` : `Niveau ${g.n} réussi !`}</h3>
       <p class="win-stars">${starsHtml(g.stars)}</p>
       <p class="win-moves">en ${plural(g.history.length, 'coup')}</p>
+      ${g.bossReward ? `<p class="win-drops boss-chest">🎁 +${g.bossReward} 💧 <small>coffre du boss</small></p>` : ''}
       ${g.drops ? `<p class="win-drops">+${g.drops} 💧 <small>pour ${g.drops / DROPS.star === 1 ? 'ta nouvelle étoile' : `tes ${g.drops / DROPS.star} nouvelles étoiles`}</small></p>` : ''}
       <p class="muted small">${g.newRecord ? '🏅 Nouveau record sur ce niveau' : `Ton record : ${plural(rec, 'coup')}`}</p>
       ${last ? '<p><b>Bravo, tu as fini les 100 niveaux ! 🏆</b></p>' : ''}
@@ -307,14 +367,16 @@ function openLevels() {
   const body = openSheet(`
     <h3>Niveaux</h3>
     <p class="muted small">${doneCount(p)} réussi${doneCount(p) > 1 ? 's' : ''} sur ${LEVELS.length} · ${starCount(p)} ⭐</p>
-    <p class="muted small">⭐⭐⭐ si tu finis un niveau en peu de coups, ⭐⭐ ou ⭐ sinon.</p>
+    <p class="muted small">⭐⭐⭐ si tu finis un niveau en peu de coups, ⭐⭐ ou ⭐ sinon. 👾 Un boss tous les 10 niveaux : bats-le pour ouvrir son coffre !</p>
     <div class="level-grid">
       ${LEVELS.map((_, k) => {
         const n = k + 1;
         const st = starMap(p)[n] || 0;
         const locked = n > unlocked;
-        return `<button class="level-cell ${locked ? 'locked' : ''} ${n === game.n ? 'cur' : ''}" data-level="${n}" ${locked ? 'disabled' : ''}>
-          <b>${locked ? '🔒' : n}</b><small>${st ? '⭐'.repeat(st) : '&nbsp;'}</small></button>`;
+        const b = bossOf(n);
+        const beaten = b && ((p && p.bosses) || {})[n];
+        return `<button class="level-cell ${locked ? 'locked' : ''} ${n === game.n ? 'cur' : ''} ${b ? 'boss' : ''}" data-level="${n}" ${locked ? 'disabled' : ''}>
+          <b>${b ? (beaten ? b.emoji : '👾') : locked ? '🔒' : n}</b><small>${b ? `${n}${beaten ? ' ✓' : ''}` : st ? '⭐'.repeat(st) : '&nbsp;'}</small></button>`;
       }).join('')}
     </div>`);
   body.querySelector('.level-grid').onclick = (e) => {
@@ -393,6 +455,11 @@ async function tapTube(i) {
   if (g.won || busy) return;
   unlockAudio();
   const t = g.tubes[i];
+  if (isFrozen(i) || isCorked(i)) {
+    shake(i);
+    toast(isFrozen(i) ? `❄️ Ce tube est gelé encore ${plural(g.frozen[i], 'coup')}` : '🍾 Ce tube est bouché : termine une couleur pour faire sauter le bouchon');
+    return;
+  }
   if (g.selected === null) {
     if (t.length && !isDone(t)) g.selected = i;
   } else if (g.selected === i) {
@@ -401,9 +468,12 @@ async function tapTube(i) {
     const from = g.selected;
     const before = g.tubes;
     const k = pourAmount(before[from], t);
+    const doneBefore = doneTubes(before);
     g.history.push(before);
     g.tubes = pour(before, from, i);
     g.selected = null;
+    const hit = g.boss && doneTubes(g.tubes) > doneBefore;
+    if (g.boss) afterBossMove(hit);
     persist();
     busy = true;
     try {
@@ -413,6 +483,7 @@ async function tapTube(i) {
     }
     if (isSolved(g.tubes)) return win();
     renderGame(root);
+    if (hit) bossHit();
     return;
   } else if (t.length && !isDone(t)) {
     g.selected = i; // on change de tube de départ
@@ -421,6 +492,33 @@ async function tapTube(i) {
     return;
   }
   renderGame(root);
+}
+
+// Après chaque coup d'un niveau de boss : les couleurs se dévoilent, la glace fond, le bouchon saute
+function afterBossMove(hit) {
+  const g = game;
+  if (g.hidden && g.hidden.length) g.hidden = revealHidden(g.tubes, g.hidden);
+  for (const t of Object.keys(g.frozen || {})) {
+    g.frozen[t]--;
+    if (g.frozen[t] <= 0) { delete g.frozen[t]; toast('❄️ Le tube a fondu, il est libre !'); }
+  }
+  if (g.corked && g.corked.length) {
+    g.corkLeft--;
+    if (hit || g.corkLeft <= 0) { g.corked = []; toast('🍾 Pop ! Le bouchon a sauté'); }
+  }
+}
+
+// Une couleur terminée : l'axolotl lance une bulle, le boss perd une vie
+function bossHit() {
+  const bar = root.querySelector('.boss-bar');
+  if (!bar) return;
+  bar.classList.add('hit');
+  const dmg = document.createElement('span');
+  dmg.className = 'boss-dmg';
+  dmg.textContent = '💥 -1';
+  bar.appendChild(dmg);
+  setTimeout(() => { bar.classList.remove('hit'); dmg.remove(); }, 900);
+  hitSound();
 }
 
 function win() {
@@ -435,7 +533,10 @@ function win() {
   const stars = { ...starMap(p) };
   g.drops = DROPS.star * Math.max(0, g.stars - (stars[g.n] || 0)); // gouttes pour les nouvelles étoiles seulement
   stars[g.n] = Math.max(stars[g.n] || 0, g.stars);
-  saveProfile({ ...p, moves, stars });
+  const bosses = { ...((p && p.bosses) || {}) };
+  g.bossReward = g.boss && !bosses[g.n] ? DROPS.boss : 0; // coffre du boss : seulement la première victoire
+  if (g.boss) bosses[g.n] = true;
+  saveProfile({ ...p, moves, stars, bosses });
   winSound();
   renderGame(root);
   celebrate();
@@ -494,6 +595,10 @@ export function bindGame(container) {
       case 'why':
         lockedSheet();
         return;
+      case 'boss-go':
+        g.introSeen = true;
+        persist();
+        break;
       case 'undo':
         if (!dayFilled()) { lockedSheet('Annuler'); return; }
         if (g.history.length) { g.tubes = g.history.pop(); g.selected = null; persist(); }

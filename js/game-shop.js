@@ -111,6 +111,7 @@ function dropsSheet() {
       <div><span>✏️ Chaque journée remplie</span><b>+${DROPS.day} 💧</b></div>
       <div><span>📅 Chaque semaine complète (5 jours sur 7)</span><b>+${DROPS.week} 💧</b></div>
       <div><span>⭐ Chaque nouvelle étoile dans le jeu des tubes</span><b>+${DROPS.star} 💧</b></div>
+      <div><span>👾 Chaque boss vaincu (tous les 10 niveaux)</span><b>+${DROPS.boss} 💧</b></div>
       <div><span>🎁 Cadeau de bienvenue</span><b>+${DROPS.welcome} 💧</b></div>
     </div>
     <p class="muted small">Certains articles se débloquent aussi avec une série de jours remplis d’affilée (série actuelle : ${streak()} jour${streak() > 1 ? 's' : ''}).</p>

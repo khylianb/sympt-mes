@@ -2,6 +2,14 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.9.0',
+    items: [
+      '👾 Un boss tous les 10 niveaux du jeu des tubes, avec sa barre de vie',
+      '❓❄️🍾 Chaque boss a son piège : couleurs cachées, tube gelé, tube bouché… tous temporaires',
+      '🎁 Bonus : un tube vide en plus contre chaque boss, et un coffre de +50 💧 quand il est vaincu',
+    ],
+  },
+  {
     version: '1.8.4',
     items: [
       '🎮 Jeu des tubes, boutiques et axolotl en plein écran, d’un bord à l’autre',

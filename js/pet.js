@@ -304,6 +304,7 @@ function dropsSheet() {
       <div><span>✏️ Chaque journée remplie</span><b>+${DROPS.day} 💧</b></div>
       <div><span>📅 Chaque semaine complète (5 jours sur 7)</span><b>+${DROPS.week} 💧</b></div>
       <div><span>⭐ Chaque nouvelle étoile dans le jeu des tubes</span><b>+${DROPS.star} 💧</b></div>
+      <div><span>👾 Chaque boss vaincu (tous les 10 niveaux)</span><b>+${DROPS.boss} 💧</b></div>
       <div><span>🎁 Cadeau de bienvenue</span><b>+${DROPS.welcome} 💧</b></div>
     </div>
     <p class="muted small">Une journée compte comme remplie avec au moins un symptôme, « Rien à signaler » ou une note. Chaque journée remplie fait aussi grandir ${esc(pet.name)} : Petit après 3 jours, Ado après 6, Adulte après 10, Légendaire après 14.</p>

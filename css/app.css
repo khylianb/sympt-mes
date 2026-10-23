@@ -926,3 +926,47 @@ body.immersive .arcade-game .tubes.two-rows .tube { height: clamp(100px, calc((1
 body.immersive .arcade-game .tubes.shape-syringe .tube { height: clamp(140px, calc(100dvh - 460px), 380px); }
 body.immersive .arcade-game .tubes.two-rows.shape-syringe .tube { height: clamp(90px, calc((100dvh - 530px) / 2), 210px); }
 body.immersive .tank { height: clamp(290px, 42dvh, 400px); }
+
+/* ---------- Boss du jeu des tubes ---------- */
+.boss-bar {
+  position: relative; display: flex; align-items: center; gap: 10px; margin: 0 2px 22px; padding: 8px 12px;
+  border-radius: 18px; background: linear-gradient(120deg, rgba(255, 79, 154, .25), rgba(124, 92, 255, .25)); border: 1px solid rgba(255, 255, 255, .18);
+}
+.boss-ava { font-size: 2.4rem; line-height: 1; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .4)); animation: boss-float 2.2s ease-in-out infinite; }
+@keyframes boss-float { 50% { transform: translateY(-4px) rotate(-4deg); } }
+.boss-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.boss-info small { font-size: .65rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: #ffb3cf; }
+.boss-info b { font-size: .98rem; }
+.boss-hp { margin-top: 4px; height: 10px; border-radius: 99px; background: rgba(0, 0, 0, .35); overflow: hidden; }
+.boss-hp i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #ff4f6d, #ff9a3d); transition: width .5s ease; }
+.boss-hp-num { font-weight: 900; font-size: .85rem; white-space: nowrap; }
+.boss-bar.hit .boss-ava { animation: boss-hit .5s ease; }
+@keyframes boss-hit { 20% { transform: translateX(-8px) rotate(-14deg) scale(1.1); filter: brightness(2); } 50% { transform: translateX(8px) rotate(10deg); } }
+.boss-dmg { position: absolute; left: 14px; top: -6px; font-weight: 900; font-size: 1.2rem; color: #ffd23f; text-shadow: 0 2px 6px rgba(0, 0, 0, .5); animation: boss-dmg .9s ease-out forwards; }
+@keyframes boss-dmg { to { transform: translateY(-30px); opacity: 0; } }
+/* Couleurs cachées */
+.liquid i.hidden-layer {
+  background: repeating-linear-gradient(135deg, #3d3a5c 0 8px, #4b4870 8px 16px) !important; box-shadow: none !important;
+  display: grid; place-items: center; color: rgba(255, 255, 255, .8); font-weight: 900; font-style: normal;
+}
+.liquid i.hidden-layer::before { content: "?"; font-size: 1.1rem; }
+.liquid i.hidden-layer::after { display: none; }
+/* Tube gelé et tube bouché */
+.tube .trap { position: absolute; z-index: 4; pointer-events: none; }
+.tube .trap.ice {
+  inset: 0; border-radius: inherit; display: flex; justify-content: center; padding-top: 8px;
+  background: linear-gradient(160deg, rgba(200, 240, 255, .55), rgba(140, 200, 255, .25)); box-shadow: inset 0 0 14px rgba(255, 255, 255, .8);
+}
+.tube .trap.ice b { height: max-content; padding: 2px 7px; border-radius: 99px; background: rgba(255, 255, 255, .9); color: #1d5f8a; font-size: .75rem; }
+.tube .trap.cork { left: 12%; right: 12%; top: -12px; height: 20px; border-radius: 6px 6px 3px 3px; background: linear-gradient(90deg, #8a5a2f, #d9a066 45%, #8a5a2f); box-shadow: 0 3px 6px rgba(0, 0, 0, .4); }
+.tube.frozen, .tube.corked { filter: saturate(.85); }
+/* Annonce du boss et victoire */
+.boss-warn { margin: 0; font-weight: 900; color: #ff9a3d; letter-spacing: .06em; text-transform: uppercase; font-size: .85rem; }
+.boss-big { font-size: 4.5rem; line-height: 1.1; animation: boss-float 2s ease-in-out infinite; }
+.boss-traps { text-align: left; padding: 0; margin: 12px 0 14px; list-style: none; display: grid; gap: 8px; font-weight: 700; font-size: .9rem; }
+.boss-traps li { padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, .08); }
+.boss-ko { margin: 0; font-size: 3.4rem; line-height: 1.1; }
+.boss-ko span { display: inline-block; font-family: var(--font-display); font-size: 1.6rem; color: #ff4f6d; transform: rotate(-10deg); text-shadow: 0 3px 0 rgba(0, 0, 0, .3); }
+.boss-chest { background: linear-gradient(135deg, #ffc56b, #ff8a3d) !important; color: #4a2a00 !important; }
+.level-cell.boss { background: linear-gradient(135deg, #ffe0ec, #e8dcff); }
+.level-cell.boss b { font-size: 1.1rem; }

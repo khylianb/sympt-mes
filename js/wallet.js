@@ -5,7 +5,7 @@
 import * as store from './store.js';
 import { toDay, addDays, startOfWeek } from './util.js';
 
-export const DROPS = { welcome: 50, day: 10, week: 30, star: 2 };
+export const DROPS = { welcome: 50, day: 10, week: 30, star: 2, boss: 50 };
 
 // Jours remplis : au moins un symptôme, « Rien à signaler » ou une note
 export function filledDays() {
@@ -24,6 +24,14 @@ export function gameStars() {
     for (const v of Object.values(r.value.stars)) n += v || 0;
   }
   return n;
+}
+// Boss vaincus (chacun compte une fois, même s'il est battu sur les deux téléphones)
+export function bossesBeaten() {
+  const set = new Set();
+  for (const r of store.all('app_meta')) {
+    if (r.key.startsWith('game:') && r.value && r.value.bosses) for (const n of Object.keys(r.value.bosses)) set.add(n);
+  }
+  return set.size;
 }
 
 // Début de la cagnotte : éclosion de l'axolotl ou première visite d'une boutique
@@ -49,7 +57,7 @@ export function wallet() {
   const shop = store.meta('gameShop');
   const spent = ((pet && pet.spent) || 0) + ((shop && shop.spent) || 0);
   const stars = gameStars();
-  return { balance: DROPS.welcome + DROPS.day * days.length + DROPS.week * fullWeeks + DROPS.star * stars - spent, filledCount: days.length, fullWeeks, stars };
+  return { balance: DROPS.welcome + DROPS.day * days.length + DROPS.week * fullWeeks + DROPS.star * stars + DROPS.boss * bossesBeaten() - spent, filledCount: days.length, fullWeeks, stars };
 }
 
 // Série en cours : jours remplis d'affilée jusqu'à aujourd'hui (ou hier si aujourd'hui n'est pas encore rempli)
