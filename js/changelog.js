@@ -2,6 +2,12 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.8.1',
+    items: [
+      '📏 Jeu des tubes plus grand : la zone de jeu remplit l’écran et les tubes s’agrandissent',
+    ],
+  },
+  {
     version: '1.8.0',
     items: [
       '🛍️ Boutique du jeu des tubes (bouton 🛍️) : grosse seringue 💉, flacon de potion, liquides pailletés, néon, lave, reflets irisés',

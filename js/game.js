@@ -220,7 +220,7 @@ export function renderGame(container) {
   ].filter(Boolean).join('<br>');
 
   const locked = !dayFilled();
-  container.innerHTML = `<div class="arcade ${arcadeClass()}">
+  container.innerHTML = `<div class="arcade arcade-game ${arcadeClass()}">
     <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="game-top">
       <div class="game-top-left">
