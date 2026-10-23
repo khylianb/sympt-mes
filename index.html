@@ -10,11 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="Sympt'mes">
   <meta name="robots" content="noindex, nofollow">
   <title>Sympt'mes</title>
-  <meta name="description" content="Ton suivi santé en moins d’une minute par jour : symptômes, PDF pour le médecin, synchronisé à deux.">
+  <meta name="description" content="Ton axolotl à nourrir chaque jour, des compliments, et des jeux anti-stress.">
   <!-- Aperçu quand on partage le lien (Messages, WhatsApp…) -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Sympt'mes : ton suivi santé en moins d’1 minute par jour">
-  <meta property="og:description" content="Symptômes en 3 taps, PDF prêt pour le médecin, synchronisé sur vos 2 téléphones… et un jeu anti-stress.">
+  <meta property="og:title" content="Sympt'mes : ton axolotl et tes jeux anti-stress">
+  <meta property="og:description" content="Un axolotl qui grandit avec toi et te fait des compliments, le jeu des tubes et ses boss… et d’autres jeux à venir.">
   <meta property="og:url" content="https://khylianb.github.io/sympt-mes/">
   <meta property="og:image" content="https://khylianb.github.io/sympt-mes/img/apercu.jpg?v=2">
   <meta property="og:image:width" content="1200">
@@ -35,7 +35,7 @@
     <div class="login-box">
       <img src="icons/icon-192.png" alt="" width="72" height="72">
       <h1>Sympt'mes</h1>
-      <p class="muted">Suivi quotidien des symptômes</p>
+      <p class="muted">Ton axolotl et tes jeux anti-stress</p>
       <h2 id="login-title" class="login-title"></h2>
       <form id="login-form">
         <input id="login-email" type="email" placeholder="Email" autocomplete="username" required>
@@ -56,19 +56,15 @@
 
     <main>
       <p id="demo-banner" class="demo-banner" hidden>Mode démo · rien n’est envoyé en ligne</p>
-      <section id="view-home" class="view"></section>
-      <section id="view-today" class="view" hidden></section>
-      <section id="view-summary" class="view" hidden></section>
-      <section id="view-game" class="view" hidden></section>
+      <section id="view-pet" class="view"></section>
+      <section id="view-games" class="view" hidden></section>
       <section id="view-settings" class="view" hidden></section>
     </main>
 
 
     <nav class="tabbar">
-      <button data-tab="home" class="on"><span>🏠</span>Accueil</button>
-      <button data-tab="today"><span>✏️</span>Saisie</button>
-      <button data-tab="summary"><span>📈</span>Synthèse</button>
-      <button data-tab="game"><span>🧪</span>Détente</button>
+      <button data-tab="pet" class="on"><span>🩷</span><b id="tab-pet-label">Axolotl</b></button>
+      <button data-tab="games"><span>🎮</span>Jeux</button>
       <button data-tab="settings"><span>⚙️</span>Réglages</button>
     </nav>
   </div>
@@ -86,7 +82,6 @@
   </div>
   <div id="toast" class="toast" role="status"></div>
 
-  <script src="vendor/jspdf.umd.min.js" defer></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

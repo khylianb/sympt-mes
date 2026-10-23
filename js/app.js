@@ -1,48 +1,33 @@
-// Point d'entrée : connexion, onglets, en-tête, bouton d'export.
+// Point d'entrée : connexion, onglets (axolotl, jeux, réglages), mises à jour.
 
 import * as store from './store.js';
 import * as sync from './sync.js';
-import { renderToday, bindToday } from './today.js';
-import { renderHome, bindHome } from './home.js';
-import { renderSummary, bindSummary } from './summary.js';
+import { renderPet, bindPet, resetPetView, getPet } from './pet.js';
+import { renderGames, bindGames, gamesHome } from './games.js';
 import { renderSettings, bindSettings } from './settings.js';
-import { renderDetente, bindDetente, detenteHome, openDetente } from './detente.js';
+import { migrateLegacy } from './care.js';
 import { initSheet, sheetOpen, openSheet } from './ui.js';
 import { CHANGELOG, APP_VERSION, newerThan, notesHtml } from './changelog.js';
-import { applyPhoto } from './photo.js';
-import { $, $$, toDay, addDays, fmtDayLong, esc, isEvening, toast } from './util.js';
+import { $, $$, esc, isEvening, toast } from './util.js';
 
-const state = { tab: 'home', day: toDay() };
+const state = { tab: 'pet' };
 const views = {};
 const demo = !sync.isConfigured();
+
+// L'onglet de l'axolotl porte son prénom
+function petTabLabel() {
+  const pet = getPet();
+  $('#tab-pet-label').textContent = pet ? pet.name : 'Axolotl';
+}
 
 function render() {
   for (const [name, el] of Object.entries(views)) el.hidden = name !== state.tab;
   for (const b of $$('.tabbar button')) b.classList.toggle('on', b.dataset.tab === state.tab);
-  renderHeader();
-  if (state.tab === 'home') renderHome(views.home);
-  if (state.tab === 'today') renderToday(views.today, state.day);
-  if (state.tab === 'summary') renderSummary(views.summary);
-  if (state.tab === 'settings') renderSettings(views.settings);
-  if (state.tab === 'game') renderDetente(views.game);
+  petTabLabel();
+  if (state.tab === 'pet') renderPet(views.pet);
+  if (state.tab === 'games') renderGames(views.games);
+  if (state.tab === 'settings') { $('#header-main').innerHTML = '<div class="day-title"><span>Réglages</span></div>'; renderSettings(views.settings); }
   syncImmersive();
-}
-
-function renderHeader() {
-  const h = $('#header-main');
-  if (state.tab === 'today') {
-    const today = toDay();
-    const label = state.day === today ? "Aujourd'hui" : state.day === addDays(today, -1) ? 'Hier' : '';
-    h.innerHTML = `
-      <button class="icon-btn" id="day-prev" aria-label="Jour précédent"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <div class="day-title"><small>${label}</small><span>${esc(fmtDayLong(state.day))}</span></div>
-      <button class="icon-btn" id="day-next" aria-label="Jour suivant" ${state.day >= today ? 'disabled' : ''}><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 4 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
-  } else if (state.tab === 'home') {
-    h.innerHTML = `<div class="day-title"><small>Sympt'mes</small><span>${esc(fmtDayLong(toDay()))}</span></div>`;
-  } else {
-    const titles = { summary: 'Synthèse', settings: 'Réglages', game: 'Détente' };
-    h.innerHTML = `<div class="day-title"><span>${titles[state.tab]}</span></div>`;
-  }
 }
 
 function renderStatus(st) {
@@ -256,7 +241,7 @@ function showNotesAfterUpdate() {
   const seen = store.kvGet('seenVersion');
   store.kvSet('seenVersion', APP_VERSION);
   if (seen === APP_VERSION) return;
-  const used = seen || store.kvGet('session') || store.kvGet('deviceId') || store.all('symptom_logs').length;
+  const used = seen || store.kvGet('session') || store.kvGet('deviceId');
   if (!used || store.kvGet('notesShown') === APP_VERSION) return;
   const fresh = newerThan(CHANGELOG, seen).slice(0, seen ? 3 : 1);
   if (fresh.length) openSheet(`<h3>✨ Quoi de neuf ?</h3>${notesHtml(fresh)}`);
@@ -264,7 +249,8 @@ function showNotesAfterUpdate() {
 
 // Jeu, boutiques et axolotl en plein écran : pas d'en-tête, décor d'un bord à l'autre
 function syncImmersive() {
-  const on = state.tab === 'game' && !!views.game && !!views.game.querySelector('.arcade');
+  const v = views[state.tab];
+  const on = state.tab !== 'settings' && !!v && !!v.querySelector('.arcade');
   if (document.body.classList.contains('immersive') === on) return;
   document.body.classList.toggle('immersive', on);
   $('meta[name="theme-color"]')?.setAttribute('content', on ? '#0b0e26' : isEvening() ? '#0e1a1c' : '#eaf4f2');
@@ -282,56 +268,41 @@ function applyTimeTheme() {
 
 async function main() {
   applyTimeTheme();
-  // Bascule à 18 h / 5 h même si l'appli reste ouverte (le message d'accueil suit)
-  setInterval(() => { if (applyTimeTheme() && state.tab === 'home') safeRender(); }, 60 * 1000);
+  // Bascule à 18 h / 5 h même si l'appli reste ouverte
+  setInterval(() => { if (applyTimeTheme() && state.tab === 'settings') safeRender(); }, 60 * 1000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && applyTimeTheme()) safeRender(); });
   initSheet();
   // Démo : base locale séparée, vide, jamais synchronisée
   await store.init(demo ? 'symptmes-demo-v3' : undefined);
-  applyPhoto();
+  await migrateLegacy();
   if (demo) $('#demo-banner').hidden = false;
 
-  views.home = $('#view-home');
-  views.today = $('#view-today');
-  views.summary = $('#view-summary');
+  views.pet = $('#view-pet');
+  views.games = $('#view-games');
   views.settings = $('#view-settings');
-  views.game = $('#view-game');
-  bindDetente(views.game);
-  new MutationObserver(syncImmersive).observe(views.game, { childList: true });
-  bindToday(views.today);
-  const openDay = (day) => { state.day = day; state.tab = 'today'; render(); window.scrollTo(0, 0); };
-  bindHome(views.home, { onOpenDay: openDay, onRender: () => renderHome(views.home) });
-  bindSummary(views.summary, {
-    onRender: () => renderSummary(views.summary),
-    onOpenDay: openDay,
-  });
+  bindPet(views.pet);
+  bindGames(views.games);
+  for (const v of [views.pet, views.games]) new MutationObserver(syncImmersive).observe(v, { childList: true });
   bindSettings(views.settings, { onRender: () => renderSettings(views.settings) });
 
+  const openTab = (tab) => { state.tab = tab; render(); window.scrollTo(0, 0); };
   $('.tabbar').addEventListener('click', (e) => {
     const b = e.target.closest('[data-tab]');
     if (!b) return;
-    state.tab = b.dataset.tab;
-    if (state.tab === 'today' && b.classList.contains('on')) state.day = toDay();
-    if (state.tab === 'game' && b.classList.contains('on')) detenteHome();
-    render();
-    window.scrollTo(0, 0);
+    if (b.dataset.tab === 'games' && b.classList.contains('on')) gamesHome();
+    if (b.dataset.tab === 'pet') resetPetView();
+    openTab(b.dataset.tab);
   });
-  // Le jeu envoie vers la saisie du jour (bonus verrouillés tant qu'elle n'est pas remplie)
-  document.addEventListener('open-today', () => openDay(toDay()));
-  document.addEventListener('open-pet', () => { openDetente('pet'); state.tab = 'game'; render(); window.scrollTo(0, 0); });
-  $('#header-main').addEventListener('click', (e) => {
-    if (e.target.closest('#day-prev')) state.day = addDays(state.day, -1);
-    else if (e.target.closest('#day-next') && state.day < toDay()) state.day = addDays(state.day, 1);
-    else return;
-    render();
-  });
+  // Les jeux renvoient vers l'axolotl (bonus débloqués quand il a mangé)
+  document.addEventListener('open-pet', () => { resetPetView(); openTab('pet'); });
   $('#sync-status').addEventListener('click', () => {
     const st = sync.getStatus();
-    if (st.authError || !st.loggedIn) showLogin('Session expirée : reconnectez-vous (vos saisies sont conservées).');
+    if (st.authError || !st.loggedIn) showLogin('Session expirée : reconnecte-toi (rien n’est perdu).');
     else sync.syncNow();
   });
 
   store.onChange((table, fromRemote) => {
+    petTabLabel();
     if (fromRemote) safeRender();
   });
   document.addEventListener('focusout', () => setTimeout(() => { if (pendingRender) safeRender(); }, 300));
@@ -340,19 +311,15 @@ async function main() {
 
   sync.onStatus((st) => {
     renderStatus(st);
-    if (st.authError) showLogin('Session expirée : reconnectez-vous (vos saisies sont conservées).');
+    if (st.authError) showLogin('Session expirée : reconnecte-toi (rien n’est perdu).');
   });
 
-  // Après minuit, l'appli restée ouverte repasse sur le nouveau jour
-  let lastToday = toDay();
+  // Après minuit, l'appli restée ouverte passe au nouveau jour (l'axolotl a de nouveau faim)
+  let lastDay = new Date().toDateString();
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) return;
-    const t = toDay();
-    if (t !== lastToday) {
-      if (state.day === lastToday) state.day = t;
-      lastToday = t;
-      render();
-    }
+    if (document.hidden || new Date().toDateString() === lastDay) return;
+    lastDay = new Date().toDateString();
+    safeRender();
   });
 
   if (!demo && await handleAuthLink()) { /* lien email traité */ }

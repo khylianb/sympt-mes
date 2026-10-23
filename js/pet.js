@@ -1,12 +1,13 @@
-// Onglet « Détente » : l'axolotl qui grandit quand la journée est remplie, et sa boutique.
-// Tout est calculé à partir des journées remplies depuis l'éclosion (impossible de tricher ou de perdre) ;
+// Onglet principal : l'axolotl qui grandit chaque jour où on le nourrit, ses compliments et sa boutique.
+// Tout est calculé à partir des jours de soins depuis l'éclosion (impossible de tricher ou de perdre) ;
 // seuls le prénom, la date d'éclosion, les achats et ce qu'il porte sont enregistrés (app_meta « pet »).
 
 import * as store from './store.js';
 import { petSvg, eggSvg, STAGES, ITEMS } from './pet-art.js';
 import { esc, toast, toDay, addDays, startOfWeek } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
-import { DROPS, filledDays, wallet } from './wallet.js';
+import { DROPS, wallet } from './wallet.js';
+import { caredDays, feed } from './care.js';
 
 const KEY = 'pet';
 const SLOTS = [['head', 'Tête'], ['neck', 'Cou'], ['eyes', 'Yeux'], ['body', 'Tenue'], ['color', 'Couleur']];
@@ -25,23 +26,23 @@ export const petBusy = () => busy;
 export function petState(pet = getPet()) {
   if (!pet) return null;
   const today = toDay();
-  const days = [...filledDays()].filter((d) => d >= pet.hatched && d <= today);
+  const days = [...caredDays()].filter((d) => d >= pet.hatched && d <= today);
   const set = new Set(days);
   // Une semaine (lundi → dimanche) compte quand au moins 5 jours sont remplis
   const perWeek = new Map();
   for (const d of days) { const k = startOfWeek(d); perWeek.set(k, (perWeek.get(k) || 0) + 1); }
   let si = 0;
-  STAGES.forEach((s, i) => { if (days.length >= s.days) si = i; }); // Légendaire en 14 jours remplis
+  STAGES.forEach((s, i) => { if (days.length >= s.days) si = i; }); // Légendaire en 14 jours de soins
   const next = STAGES[si + 1] || null;
-  const filledToday = set.has(today);
+  const fedToday = set.has(today);
   let missed = 0;
-  if (!filledToday) {
+  if (!fedToday) {
     for (let d = addDays(today, -1); d >= pet.hatched && !set.has(d); d = addDays(d, -1)) missed++;
   }
-  const mood = filledToday ? 'joy' : missed === 0 ? 'happy' : missed === 1 ? 'sad' : 'cry';
+  const mood = fedToday ? 'joy' : missed === 0 ? 'happy' : missed === 1 ? 'sad' : 'cry';
   const weekStart = startOfWeek(today);
   return {
-    stage: STAGES[si], next, filledCount: days.length, filledToday, missed, mood,
+    stage: STAGES[si], next, fedCount: days.length, fedToday, missed, mood,
     balance: wallet().balance,
     weekDays: Array.from({ length: 7 }, (_, k) => { const d = addDays(weekStart, k); return { d, on: set.has(d), today: d === today, future: d > today }; }),
     weekCount: perWeek.get(weekStart) || 0,
@@ -74,7 +75,7 @@ export const COMPLIMENTS = [
   'Tu as tout pour toi : le cœur, la force et le sourire 💫', 'Tu mérites d’être fière de toi, autant que je le suis 🥰', 'Tu es incroyable, et je ne le dirai jamais assez ✨',
   'Je suis tellement fier de toi, tu n’imagines pas 🩷', 'Je t’admire plus que tout 🌟',
 ];
-// La phrase du jour reste la même toute la journée, souvent précédée de son prénom (Réglages → Accueil)
+// La phrase du jour reste la même toute la journée, souvent précédée de son prénom (Réglages → Toi)
 function withName(text, n) {
   const name = (store.meta('first_name') || '').trim();
   return name && n % 2 === 0 && text.startsWith('Tu ') ? `${name}, t${text.slice(1)}` : text;
@@ -82,7 +83,6 @@ function withName(text, n) {
 export function dailyCompliment() {
   let h = 0;
   for (const ch of toDay()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  if (hardDay()) return withName(COMFORT[h % COMFORT.length], h >>> 3);
   return withName(COMPLIMENTS[h % COMPLIMENTS.length], h >>> 3);
 }
 // Coup de blues ou journée difficile : que des mots de réconfort, toujours positifs
@@ -93,16 +93,11 @@ export const COMFORT = [
   'Demain sera plus doux, et tu seras toujours aussi formidable ☀️', 'Je t’envoie un énorme câlin 🤗', 'Tu es une battante, et je suis tellement fier de toi 🥹',
   'Tu n’as rien à prouver : tu es déjà extraordinaire 💎', 'Prends soin de toi comme tu prends soin des autres 💉🩷', 'Tu es aimée, tellement aimée 💖',
 ];
-// Journée difficile : forte douleur, symptôme à signaler, ou au moins 3 symptômes aujourd'hui
-export function hardDay() {
-  const logs = store.logsForDay(toDay()).map((l) => ({ l, def: store.symptomDef(l.symptom_key) })).filter((x) => x.def && !x.def.normal);
-  return logs.some((x) => (x.l.intensity || 0) >= 6 || x.def.urgent) || logs.length >= 3;
-}
 const randomPhrase = () => withName(pick(COMPLIMENTS), Math.floor(Math.random() * 4));
 export function encouragement(s) {
   return {
-    joy: hardDay() ? 'Journée pas facile… mais tu l’as remplie, quelle force 🩷' : 'Merci d’avoir pris soin de toi, tu es formidable 🩷',
-    happy: 'Prends une minute pour toi et ta journée : tu le mérites ✏️',
+    joy: 'Merci pour le repas, tu es formidable 🩷',
+    happy: 'J’ai un petit creux… tu me donnes à manger ? 🍤',
     sad: 'Tu m’as manqué hier ! Tu restes incroyable, on reprend ensemble 🩷',
     cry: 'Tu me manques… et tu es toujours aussi formidable 🩷',
   }[s.mood];
@@ -121,11 +116,10 @@ function hatchHtml() {
   return `<div class="arcade pet-page">
     <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="game-top"><div class="game-top-left">
-      <button class="icon-btn" data-d="hub" aria-label="Retour">‹</button>
-      <div class="game-level"><small>Détente</small><b>Un œuf mystère</b></div>
+      <div class="game-level"><small>Ton compagnon</small><b>Un œuf mystère</b></div>
     </div></div>
     <div class="tank">${bubblesHtml()}<div class="pet-stage egg-stage">${eggSvg(150, 1)}</div></div>
-    <p class="pet-intro">Un petit axolotl attend de naître 🩷 Il grandit à chaque journée remplie, jusqu’à devenir légendaire en 2 semaines… et il pleure si tu l’oublies !</p>
+    <p class="pet-intro">Un petit axolotl attend de naître 🩷 Nourris-le chaque jour : il grandit jusqu’à devenir légendaire en 2 semaines… et il pleure si tu l’oublies !</p>
     <label class="pet-name-field">Choisis son prénom
       <input id="pet-name" type="text" maxlength="14" autocomplete="off" autocapitalize="words" placeholder="Ex. : Bulle">
     </label>
@@ -134,14 +128,14 @@ function hatchHtml() {
 }
 
 function homeHtml(pet, s) {
+  const left = s.next ? s.next.days - s.fedCount : 0;
   const nextTxt = s.next
-    ? `Encore ${s.next.days - s.filledCount} journée${s.next.days - s.filledCount > 1 ? 's' : ''} remplie${s.next.days - s.filledCount > 1 ? 's' : ''} pour devenir <b>${s.next.label}</b>`
+    ? `Encore ${left} jour${left > 1 ? 's' : ''} de repas pour devenir <b>${s.next.label}</b>`
     : '<b>Forme légendaire atteinte !</b> 👑';
   return `<div class="arcade pet-page">
     <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="game-top">
       <div class="game-top-left">
-        <button class="icon-btn" data-d="hub" aria-label="Retour">‹</button>
         <div class="game-level"><small>${esc(s.stage.label)}</small><b>${esc(pet.name)}</b></div>
       </div>
       <button class="drops-pill" data-p="drops">💧 ${s.balance}</button>
@@ -151,11 +145,12 @@ function homeHtml(pet, s) {
       <span class="pet-bubble">${moodLine(pet, s)}</span>
       <button class="pet-stage" data-p="pet" aria-label="Caresser ${esc(pet.name)}">${petSvg({ ...look(pet), stage: s.stage.id, mood: s.mood, size: s.stage.id === 'baby' ? 260 : 230 })}</button>
     </div>
-    ${s.filledToday ? '' : `<button class="bonus-banner" data-p="fill"><span class="bb-ico">${s.mood === 'happy' ? '✏️' : '😢'}</span>
-      <span class="bb-text"><b>${s.mood === 'happy' ? 'Remplis ta journée' : `${esc(pet.name)} t’attend`}</b><small>${s.mood === 'happy' ? `+${DROPS.day} 💧 et ${esc(pet.name)} sera tout content` : 'Remplis ta journée pour lui faire un câlin 🩷'}</small></span>
-      <span class="bb-go">Remplir</span></button>`}
+    ${s.fedToday ? `<p class="fed-ok">✓ ${esc(pet.name)} a bien mangé aujourd’hui, merci 🩷</p>`
+      : `<button class="feed-btn" data-p="feed"><span class="fb-ico">🍤</span>
+      <span class="bb-text"><b>Nourrir ${esc(pet.name)}</b><small>${s.mood === 'happy' ? `+${DROPS.day} 💧 et il grandit un peu` : `Il a faim… +${DROPS.day} 💧 et un gros câlin 🩷`}</small></span>
+      <span class="bb-go">Miam</span></button>`}
     <div class="pet-progress">
-      <div class="pp-head"><span>Cette semaine</span><b>${s.weekCount} / 5 jours</b></div>
+      <div class="pp-head"><span>Repas de la semaine</span><b>${s.weekCount} / 5 jours</b></div>
       <div class="pp-days">${s.weekDays.map((d, k) => `<span class="${d.on ? 'on' : ''} ${d.today ? 'today' : ''} ${d.future ? 'future' : ''}"><i>${d.on ? '✓' : ''}</i>${'LMMJVSD'[k]}</span>`).join('')}</div>
       <p class="pp-next">${nextTxt}</p>
     </div>
@@ -219,7 +214,7 @@ export function renderPet(container) {
   container.innerHTML = view === 'shop' ? shopHtml(pet, s) : homeHtml(pet, s);
 }
 
-// Revient sur sa page (et pas la boutique) quand on rouvre Détente
+// Revient sur sa page (et pas la boutique) quand on revient sur son onglet
 export function resetPetView() { view = 'home'; tryOn = null; }
 
 // ---------- actions ----------
@@ -294,6 +289,39 @@ function cheerUp() {
   }
 }
 
+// Repas du jour : la nourriture tombe dans l'aquarium, il la mange, saute de joie… et grandit parfois
+async function feedPet() {
+  const pet = getPet();
+  if (!pet || busy) return;
+  const before = petState(pet);
+  if (!feed()) return;
+  busy = true;
+  try {
+    const tank = root.querySelector('.tank');
+    for (let k = 0; k < 6; k++) {
+      const el = document.createElement('span');
+      el.className = 'tank-food';
+      el.textContent = ['🍤', '🦐', '🪱'][k % 3];
+      el.style.cssText = `left:${32 + Math.random() * 36}%;animation-delay:${k * 0.12}s`;
+      tank.appendChild(el);
+      setTimeout(() => el.remove(), 1600);
+    }
+    root.querySelector('.pet-bubble').textContent = 'Miam miam… 😋';
+    await wait(1100);
+  } finally {
+    busy = false;
+  }
+  renderPet(root);
+  const after = petState(getPet());
+  const st = root.querySelector('.pet-stage');
+  st.classList.add('boing');
+  sparkle();
+  const grew = after.stage.id !== before.stage.id;
+  root.querySelector('.pet-bubble').textContent = grew ? `Regarde, je suis devenu ${after.stage.label} ! ✨` : `Merci ! Tu es la meilleure 🩷`;
+  toast(grew ? `🎉 ${pet.name} est devenu ${after.stage.label} ! +${DROPS.day} 💧` : `+${DROPS.day} 💧 · ${pet.name} a bien mangé`);
+  if (grew) { st.classList.add('born'); setTimeout(sparkle, 500); }
+}
+
 function dropsSheet() {
   const pet = getPet();
   const s = petState(pet);
@@ -301,17 +329,17 @@ function dropsSheet() {
     <h3>💧 Gagner des gouttes</h3>
     <p>Tu as <b>${s.balance} 💧</b> à dépenser dans la boutique de ${esc(pet.name)} et celle du jeu des tubes.</p>
     <div class="drops-list">
-      <div><span>✏️ Chaque journée remplie</span><b>+${DROPS.day} 💧</b></div>
-      <div><span>📅 Chaque semaine complète (5 jours sur 7)</span><b>+${DROPS.week} 💧</b></div>
+      <div><span>🍤 Chaque jour où tu le nourris</span><b>+${DROPS.day} 💧</b></div>
+      <div><span>📅 Chaque semaine bien nourrie (5 jours sur 7)</span><b>+${DROPS.week} 💧</b></div>
       <div><span>⭐ Chaque nouvelle étoile dans le jeu des tubes</span><b>+${DROPS.star} 💧</b></div>
       <div><span>👾 Chaque boss vaincu (tous les 10 niveaux)</span><b>+${DROPS.boss} 💧</b></div>
       <div><span>🎁 Cadeau de bienvenue</span><b>+${DROPS.welcome} 💧</b></div>
     </div>
-    <p class="muted small">Une journée compte comme remplie avec au moins un symptôme, « Rien à signaler » ou une note. Chaque journée remplie fait aussi grandir ${esc(pet.name)} : Petit après 3 jours, Ado après 6, Adulte après 10, Légendaire après 14.</p>
-    <div class="sheet-actions"><button class="btn ghost" data-close>Fermer</button>${s.filledToday ? '' : '<button class="btn primary" id="pet-fill">✏️ Remplir ma journée</button>'}</div>`);
+    <p class="muted small">Chaque jour où tu le nourris fait aussi grandir ${esc(pet.name)} : Petit après 3 jours, Ado après 6, Adulte après 10, Légendaire après 14.</p>
+    <div class="sheet-actions"><button class="btn ghost" data-close>Fermer</button>${s.fedToday ? '' : `<button class="btn primary" id="pet-feed">🍤 Nourrir ${esc(pet.name)}</button>`}</div>`);
   body.querySelector('[data-close]').onclick = closeSheet;
-  const f = body.querySelector('#pet-fill');
-  if (f) f.onclick = () => { closeSheet(); document.dispatchEvent(new CustomEvent('open-today')); };
+  const f = body.querySelector('#pet-feed');
+  if (f) f.onclick = () => { closeSheet(); feedPet(); };
 }
 
 function itemTap(id) {
@@ -338,7 +366,7 @@ function buy() {
   const it = ITEMS.find((i) => i.id === tryOn);
   if (!it) return;
   if (s.balance < it.price) {
-    toast(`Il te manque ${it.price - s.balance} 💧 : remplis tes journées pour en gagner`);
+    toast(`Il te manque ${it.price - s.balance} 💧 : nourris ${pet.name} et joue pour en gagner`);
     return;
   }
   const equipped = { ...(pet.equipped || {}) };
@@ -366,7 +394,7 @@ export function bindPet(container) {
       case 'back': view = 'home'; tryOn = null; break;
       case 'buy': buy(); break;
       case 'drops': dropsSheet(); return;
-      case 'fill': document.dispatchEvent(new CustomEvent('open-today')); return;
+      case 'feed': feedPet(); return;
       default: return;
     }
     renderPet(container);
