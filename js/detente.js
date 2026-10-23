@@ -1,7 +1,7 @@
 // Onglet « Détente » : choix entre l'axolotl et le jeu des tubes.
 
 import * as store from './store.js';
-import { renderGame, bindGame, coverHtml, gameBusy } from './game.js';
+import { renderGame, bindGame, coverHtml, gameBusy, closeGameShop } from './game.js';
 import { renderPet, bindPet, getPet, petState, petMini, petBusy, resetPetView } from './pet.js';
 import { eggSvg } from './pet-art.js';
 import { esc } from './util.js';
@@ -36,7 +36,7 @@ export function renderDetente(container) {
 }
 
 // Toucher l'onglet Détente déjà ouvert ramène au choix
-export const detenteHome = () => store.kvSet('detenteView', 'hub');
+export const detenteHome = () => { closeGameShop(); store.kvSet('detenteView', 'hub'); };
 
 export function bindDetente(container) {
   bindGame(container);

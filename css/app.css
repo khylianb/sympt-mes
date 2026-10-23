@@ -834,3 +834,60 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .game-top-left { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .arcade .game-top-left .icon-btn { flex: none; width: 38px; height: 38px; padding: 0; font-size: 1.5rem; line-height: 1; color: #fff; background: rgba(255, 255, 255, .12); box-shadow: none; }
 .shop-poor { width: 100%; justify-content: center; margin-top: 14px; }
+
+/* ---------- Boutique du jeu : fioles, liquides, fonds ---------- */
+.tube-deco { display: none; }
+/* Grosse seringue : piston en haut, graduations, aiguille en bas */
+.arcade .tubes.shape-syringe { padding-top: 34px; row-gap: 66px; }
+.arcade .shape-syringe .tube { border-radius: 5px 5px 9px 9px; border-top: 0; margin-bottom: 30px; }
+.arcade .shape-syringe .tube .liquid { border-radius: 0 0 7px 7px; }
+.arcade .shape-syringe .tube::before { left: -5px; right: -5px; top: -4px; height: 8px; border-radius: 4px; background: linear-gradient(180deg, #fff, #cfd8dc); }
+.shape-syringe .tube-deco { display: block; position: absolute; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; z-index: 3; }
+.shape-syringe .tube-deco::before { content: ""; position: absolute; left: 50%; top: -28px; width: 9px; height: 26px; transform: translateX(-50%); border-radius: 2px; background: linear-gradient(90deg, #b9c4ca, #fff, #b9c4ca); }
+.shape-syringe .tube-deco::after { content: ""; position: absolute; left: 50%; top: -34px; width: 26px; height: 8px; transform: translateX(-50%); border-radius: 4px; background: linear-gradient(180deg, #fff, #cfd8dc); box-shadow: 0 2px 4px rgba(0, 0, 0, .25); }
+.shape-syringe .tube-deco b { position: absolute; left: 50%; bottom: -10px; width: 12px; height: 10px; transform: translateX(-50%); border-radius: 0 0 5px 5px; background: rgba(255, 255, 255, .75); }
+.shape-syringe .tube-deco b::after { content: ""; position: absolute; left: 50%; top: 9px; width: 3px; height: 22px; transform: translateX(-50%); background: linear-gradient(90deg, #9aa7ad, #f4f8fa, #9aa7ad); border-radius: 0 0 2px 2px; }
+.shape-syringe .tube-deco u { position: absolute; left: 0; right: 0; top: 12%; bottom: 8%; background: repeating-linear-gradient(180deg, rgba(255, 255, 255, .85) 0 2px, transparent 2px 13px); -webkit-mask: linear-gradient(90deg, #000 0 30%, transparent 30%); mask: linear-gradient(90deg, #000 0 30%, transparent 30%); }
+/* Flacon de potion : fond bombé et bouchon en liège */
+.arcade .shape-potion .tube { border-radius: 10px 10px 50% 50% / 10px 10px 30% 30%; border-top: 0; }
+.arcade .shape-potion .tube .liquid { border-radius: 0 0 50% 50% / 0 0 30% 30%; }
+.arcade .shape-potion .tube::before { left: 18%; right: 18%; top: -14px; height: 16px; border-radius: 4px 4px 2px 2px; background: linear-gradient(90deg, #a8703f, #d9a066 45%, #a8703f); }
+.shape-potion .tube-deco { display: block; position: absolute; right: -6px; top: 18%; z-index: 3; pointer-events: none; }
+.shape-potion .tube-deco::before { content: "✦"; color: #fff6b0; font-size: 14px; text-shadow: 0 0 6px #fff; }
+/* Liquides */
+.arcade .liq-glitter .liquid i::after {
+  background: radial-gradient(circle, rgba(255, 255, 255, .9) 0 .8px, transparent 1.3px) 0 0 / 11px 13px, radial-gradient(circle, rgba(255, 255, 255, .7) 0 .6px, transparent 1.1px) 5px 6px / 9px 10px;
+  animation: glitter-twinkle 1.2s ease-in-out infinite alternate;
+}
+@keyframes glitter-twinkle { from { opacity: .45; } to { opacity: 1; } }
+.arcade .liq-neon .liquid i { background: var(--c); filter: saturate(1.7) brightness(1.15); box-shadow: 0 0 16px var(--c), inset 0 0 8px rgba(255, 255, 255, .7); }
+.arcade .liq-lava .liquid i { background: linear-gradient(0deg, color-mix(in srgb, var(--c) 60%, #000), var(--c) 55%, color-mix(in srgb, var(--c) 55%, #fff)); box-shadow: 0 0 18px color-mix(in srgb, var(--c) 70%, #ff9a3d); }
+.arcade .liq-lava .liquid i::after {
+  background: radial-gradient(circle at 35% 70%, rgba(255, 255, 255, .45) 0 5px, transparent 6px), radial-gradient(circle at 65% 30%, rgba(255, 255, 255, .35) 0 4px, transparent 5px);
+  background-size: 100% 70px; animation: bubbles 6s linear infinite;
+}
+.arcade .liq-rainbow .liquid i::after {
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 79, 154, .35), rgba(34, 211, 238, .35), rgba(255, 233, 61, .35), transparent 80%);
+  background-size: 250% 100%; animation: rainbow-slide 3s linear infinite;
+}
+@keyframes rainbow-slide { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+/* Fonds */
+.arcade.bg-aurora, .bg-swatch.bg-aurora { background: radial-gradient(ellipse at 30% 0%, rgba(52, 227, 154, .55), transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(124, 92, 255, .55), transparent 50%), linear-gradient(170deg, #0d2a3a, #071226); }
+.arcade.bg-sunset, .bg-swatch.bg-sunset { background: radial-gradient(circle at 50% 100%, rgba(255, 201, 60, .6), transparent 55%), linear-gradient(175deg, #2b1b5e, #b83c6e 60%, #ff8a3d); }
+.arcade.bg-ocean, .bg-swatch.bg-ocean { background: radial-gradient(ellipse at 50% 0%, rgba(120, 220, 255, .45), transparent 55%), linear-gradient(180deg, #0a5c8a, #06304f 60%, #031a2e); }
+.arcade.bg-galaxy, .bg-swatch.bg-galaxy {
+  background: radial-gradient(circle, rgba(255, 255, 255, .85) 0 1px, transparent 1.5px) 0 0 / 83px 71px, radial-gradient(circle, rgba(255, 255, 255, .5) 0 .8px, transparent 1.3px) 31px 40px / 59px 67px,
+    radial-gradient(ellipse at 30% 40%, rgba(199, 125, 255, .55), transparent 50%), radial-gradient(ellipse at 75% 70%, rgba(255, 79, 154, .45), transparent 50%), #090a1f;
+}
+.bg-swatch.bg-night { background: radial-gradient(circle at 15% 0%, rgba(124, 92, 255, .55), transparent 45%), linear-gradient(170deg, #1b1640, #0b0e26); }
+.bg-swatch { display: block; width: 92px; height: 62px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .25); }
+/* Écran de la boutique */
+.gs-preview { position: relative; display: flex; justify-content: center; padding: 44px 0 40px; margin: 4px 0 12px; border-radius: 22px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); }
+.mini-tubes { display: flex; gap: 14px; align-items: flex-end; }
+.mini-tubes .tube.mini { position: relative; display: block; width: 30px; height: 96px; }
+.gs-art { height: 96px; display: grid; place-items: center; }
+.gs-art .mini-tubes { gap: 10px; transform: scale(.8); }
+.gs-art .mini-tubes.shape-syringe { transform: scale(.6); margin-top: -14px; }
+.fx-preview { font-size: 1.9rem; letter-spacing: 2px; }
+.shop-item .price.lock { background: rgba(255, 255, 255, .1); color: #d8d6ff; font-size: .72rem; }
+.gs-note { text-align: center; font-weight: 800; color: #ffe3b0; margin: 14px 4px 0; }

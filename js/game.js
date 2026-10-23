@@ -7,6 +7,7 @@ import { uuid, toast, toDay } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { mascotUrl, cheer } from './mascot.js';
 import { getPet, petMini } from './pet.js';
+import { renderGameShop, gameShopClick, resetGameShop, tubesClass, arcadeClass, effectEmojis, tubeDeco } from './game-shop.js';
 
 const CAP = 4;
 const UNIT = 21; // hauteur d'une couche, en % de l'intérieur du tube (4 couches = 84 %)
@@ -16,6 +17,8 @@ const COLOR_NAMES = ['rouge', 'orange', 'jaune', 'vert clair', 'vert', 'turquois
 let root;
 let game = null; // partie en cours : { n, tubes, history, extraUsed, selected, won }
 let busy = false; // une animation de versement est en cours
+let shopOpen = false; // la boutique du jeu est affichée
+export const closeGameShop = () => { shopOpen = false; };
 export const gameBusy = () => busy;
 
 // ---------- joueur de ce téléphone ----------
@@ -198,12 +201,13 @@ function blocks(t) {
   }
   return out;
 }
-const liquidHtml = (t) => `<span class="liquid">${blocks(t)
+export const liquidHtml = (t) => `<span class="liquid">${blocks(t)
   .map((b) => `<i style="height:${b.n * UNIT}%;--c:${PALETTE[b.c]}"></i>`).join('')}</span>`;
 
 export function renderGame(container) {
   root = container;
   if (busy) return;
+  if (shopOpen) { renderGameShop(container); return; }
   const p = myProfile();
   if (!p) { container.innerHTML = welcomeHtml(); return; }
   ensureGame(p);
@@ -216,7 +220,7 @@ export function renderGame(container) {
   ].filter(Boolean).join('<br>');
 
   const locked = !dayFilled();
-  container.innerHTML = `<div class="arcade">
+  container.innerHTML = `<div class="arcade ${arcadeClass()}">
     <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="game-top">
       <div class="game-top-left">
@@ -225,13 +229,14 @@ export function renderGame(container) {
       </div>
       <div class="game-top-right">
         <span class="glass-pill">${plural(g.history.length, 'coup')}</span>
+        <button class="glass-btn round" data-g="shop" aria-label="Boutique du jeu">🛍️</button>
         <button class="glass-btn round" data-g="sound" aria-label="${soundOn() ? 'Couper le son' : 'Activer le son'}">${soundOn() ? '🔊' : '🔇'}</button>
       </div>
     </div>
     <div class="game-board">
-      <div class="tubes ${g.tubes.length > 6 ? 'two-rows' : ''}" style="--cols:${cols}">
+      <div class="tubes ${tubesClass()} ${g.tubes.length > 6 ? 'two-rows' : ''}" style="--cols:${cols}">
         ${g.tubes.map((t, i) => `<button class="tube ${g.selected === i ? 'sel' : ''} ${isDone(t) ? 'done' : ''}" data-tube="${i}"
-          aria-label="Tube ${i + 1} : ${t.length ? t.map((c) => COLOR_NAMES[c]).join(', ') : 'vide'}">${liquidHtml(t)}</button>`).join('')}
+          aria-label="Tube ${i + 1} : ${t.length ? t.map((c) => COLOR_NAMES[c]).join(', ') : 'vide'}">${liquidHtml(t)}${tubeDeco}</button>`).join('')}
       </div>
       ${hint ? `<p class="game-hint">${hint}</p>` : ''}
     </div>
@@ -433,19 +438,20 @@ function win() {
   celebrate();
 }
 
-// Pluie de paillettes et de 💩 sur tout l'écran quand un niveau est réussi
+// Pluie de paillettes et d'emojis (💩 par défaut, au choix dans la boutique) quand un niveau est réussi
 function celebrate() {
   if (reduceMotion()) return;
   const layer = document.createElement('div');
   layer.className = 'confetti-layer';
   const rand = (a, b) => a + Math.random() * (b - a);
   let html = '';
+  const emojis = effectEmojis();
   for (let k = 0; k < 70; k++) {
     const poop = k % 3 === 0;
     const style = `left:${rand(0, 100)}%;--d:${rand(2.2, 3.6)}s;--delay:${rand(0, 0.9)}s;`
       + `--dx:${rand(-60, 60)}px;--r:${rand(-540, 540)}deg;`
       + (poop ? `font-size:${rand(24, 40)}px` : `background:${PALETTE[k % PALETTE.length]};width:${rand(6, 10)}px;height:${rand(9, 15)}px`);
-    html += poop ? `<span class="poop" style="${style}">💩</span>` : `<span class="glitter" style="${style}"></span>`;
+    html += poop ? `<span class="poop" style="${style}">${emojis[k % emojis.length]}</span>` : `<span class="glitter" style="${style}"></span>`;
   }
   layer.innerHTML = html;
   document.body.appendChild(layer);
@@ -459,12 +465,25 @@ function shake(i) {
 
 export function bindGame(container) {
   container.addEventListener('click', (e) => {
+    if (shopOpen && !e.target.closest('[data-g]')) {
+      if (gameShopClick(e)) renderGame(container);
+      return;
+    }
     const tube = e.target.closest('[data-tube]');
     if (tube) { tapTube(Number(tube.dataset.tube)); return; }
     const b = e.target.closest('[data-g]');
     if (!b || busy) return;
     const g = game;
     switch (b.dataset.g) {
+      case 'shop':
+        shopOpen = true;
+        resetGameShop();
+        window.scrollTo(0, 0);
+        break;
+      case 'shop-close':
+        shopOpen = false;
+        window.scrollTo(0, 0);
+        break;
       case 'start':
         saveProfile({ moves: {} });
         game = null;
