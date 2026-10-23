@@ -3,7 +3,7 @@
 
 import * as store from './store.js';
 import { LEVELS } from './levels.js';
-import { esc, uuid, toast } from './util.js';
+import { esc, uuid, toast, toDay } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { mascotUrl, cheer } from './mascot.js';
 
@@ -142,6 +142,31 @@ function winSound() {
   } catch { /* ignore */ }
 }
 
+// ---------- bonus du jour ----------
+// Annuler et ➕ Tube ne sont utilisables qu'une fois la journée remplie dans Saisie
+// (symptômes, « Rien à signaler » ou une note) : un petit coup de pouce pour ne pas oublier.
+function dayFilled() {
+  const d = toDay();
+  const n = store.noteForDay(d);
+  return store.logsForDay(d).length > 0 || !!n.nothing || !!(n.note && n.note.trim());
+}
+
+function lockedSheet(what) {
+  const body = openSheet(`
+    <h3>🔒 ${what ? `« ${what} » est verrouillé` : 'Bonus verrouillés'}</h3>
+    <p>Les bonus <b>↩️ Annuler</b> et <b>➕ Tube</b> se débloquent chaque jour, dès que ta journée est remplie dans l’onglet <b>Saisie</b> : tes symptômes, ou « Rien à signaler » si tout va bien.</p>
+    <p class="muted">Ça prend moins d’une minute, et ça aide beaucoup pour le suivi avec le médecin 💚 Le reste du jeu, dont 🔄 Recommencer, reste toujours accessible.</p>
+    <div class="sheet-actions">
+      <button class="btn ghost" data-close>Plus tard</button>
+      <button class="btn primary" id="g-fill">✏️ Remplir ma journée</button>
+    </div>`);
+  body.querySelector('[data-close]').onclick = closeSheet;
+  body.querySelector('#g-fill').onclick = () => {
+    closeSheet();
+    document.dispatchEvent(new CustomEvent('open-today'));
+  };
+}
+
 // ---------- partie ----------
 function startLevel(n) {
   game = { n, tubes: parse(n), history: [], extraUsed: false, selected: null, won: false };
@@ -188,6 +213,7 @@ export function renderGame(container) {
     rec ? `Ton record sur ce niveau : ${plural(rec, 'coup')}` : '',
   ].filter(Boolean).join('<br>');
 
+  const locked = !dayFilled();
   container.innerHTML = `<div class="arcade">
     <div class="arcade-bokeh" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="game-top">
@@ -205,10 +231,16 @@ export function renderGame(container) {
       ${hint ? `<p class="game-hint">${hint}</p>` : ''}
     </div>
     <div class="game-actions">
-      <button class="glass-btn" data-g="undo" ${g.history.length ? '' : 'disabled'}><span>↩️</span>Annuler</button>
+      <button class="glass-btn ${locked ? 'locked' : ''}" data-g="undo" ${!locked && !g.history.length ? 'disabled' : ''}><span>↩️</span>Annuler</button>
       <button class="glass-btn" data-g="restart"><span>🔄</span>Recommencer</button>
-      <button class="glass-btn" data-g="extra" ${g.extraUsed ? 'disabled' : ''}><span>➕</span>Tube</button>
+      <button class="glass-btn ${locked ? 'locked' : ''}" data-g="extra" ${!locked && g.extraUsed ? 'disabled' : ''}><span>➕</span>Tube</button>
     </div>
+    ${locked ? `<button class="bonus-banner" data-g="why">
+        <span class="bb-ico">🔒</span>
+        <span class="bb-text"><b>Bonus verrouillés</b><small>Remplis ta journée dans Saisie pour débloquer ↩️ Annuler et ➕ Tube</small></span>
+        <span class="bb-go">Pourquoi ?</span>
+      </button>`
+    : '<p class="bonus-ok">🔓 Bonus débloqués : merci d’avoir rempli ta journée !</p>'}
     </div>
     ${leaderboardHtml()}
     ${g.won ? winHtml() : ''}`;
@@ -478,13 +510,18 @@ export function bindGame(container) {
         game = null;
         break;
       }
+      case 'why':
+        lockedSheet();
+        return;
       case 'undo':
+        if (!dayFilled()) { lockedSheet('Annuler'); return; }
         if (g.history.length) { g.tubes = g.history.pop(); g.selected = null; persist(); }
         break;
       case 'restart':
         startLevel(g.n);
         break;
       case 'extra':
+        if (!dayFilled()) { lockedSheet('➕ Tube'); return; }
         if (!g.extraUsed) {
           g.tubes = [...g.tubes.map((t) => t.slice()), []];
           g.history = g.history.map((h) => [...h, []]); // « Annuler » garde le tube ajouté

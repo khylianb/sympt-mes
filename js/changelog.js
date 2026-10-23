@@ -2,6 +2,13 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.6.0',
+    items: [
+      '🔒 Jeu des tubes : ↩️ Annuler et ➕ Tube se débloquent chaque jour une fois ta journée remplie dans Saisie',
+      '💡 Touche un bonus verrouillé pour savoir pourquoi, et remplir ta journée en un toucher',
+    ],
+  },
+  {
     version: '1.5.2',
     items: [
       '🤕 Toutes les douleurs (ventre, anale, migraine, poitrine, reins, articulations…) sont regroupées dans « Douleurs »',

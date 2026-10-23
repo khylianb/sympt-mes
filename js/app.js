@@ -213,6 +213,8 @@ async function main() {
     render();
     window.scrollTo(0, 0);
   });
+  // Le jeu envoie vers la saisie du jour (bonus verrouillés tant qu'elle n'est pas remplie)
+  document.addEventListener('open-today', () => openDay(toDay()));
   $('#header-main').addEventListener('click', (e) => {
     if (e.target.closest('#day-prev')) state.day = addDays(state.day, -1);
     else if (e.target.closest('#day-next') && state.day < toDay()) state.day = addDays(state.day, 1);
