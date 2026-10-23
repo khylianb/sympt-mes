@@ -2,6 +2,12 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.6.1',
+    items: [
+      '🧪 Jeu des tubes en solo : plus de classement ni de pseudo à choisir',
+    ],
+  },
+  {
     version: '1.6.0',
     items: [
       '🔒 Jeu des tubes : ↩️ Annuler et ➕ Tube se débloquent chaque jour une fois ta journée remplie dans Saisie',

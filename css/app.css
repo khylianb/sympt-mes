@@ -519,13 +519,6 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .game-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
 .game-actions { flex-wrap: nowrap; }
 .game-actions .btn { padding: 10px 12px; font-size: .88rem; white-space: nowrap; }
-.leaderboard .lb-row { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-radius: 12px; }
-.leaderboard .lb-row.me { background: var(--primary-soft); }
-.lb-medal { font-size: 1.3rem; width: 1.6em; text-align: center; }
-.lb-name { flex: 1; font-weight: 800; min-width: 0; }
-.lb-name small { color: var(--muted); font-weight: 600; }
-.lb-score { font-size: .85rem; color: var(--muted); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.lb-edit { font-size: 1rem; padding: 4px; }
 .win-overlay {
   position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 20px;
   background: rgba(10, 30, 35, .6); animation: fade-in .2s ease;
@@ -657,12 +650,7 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 @keyframes done-twinkle { to { transform: translateX(-50%) scale(1.25); opacity: .6; } }
 .arcade .pour-stream { box-shadow: 0 0 10px currentColor; filter: brightness(1.15); }
 
-/* Classement et victoire dans le même style */
-.arcade-card { background: linear-gradient(165deg, #221b4d, #141633); color: #fff; box-shadow: 0 12px 30px rgba(10, 8, 40, .3); }
-.arcade-card .muted { color: #b8b6dd; }
-.arcade-card .lb-row.me { background: rgba(255, 255, 255, .1); }
-.arcade-card .lb-score { color: #d8d6ff; }
-.arcade-card .lb-name small { color: #b8b6dd; }
+/* Victoire dans le même style */
 .arcade-win {
   color: #fff; background:
     radial-gradient(circle at 50% 0%, rgba(255, 201, 60, .35), transparent 55%),
