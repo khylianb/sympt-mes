@@ -2,6 +2,12 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.8.3',
+    items: [
+      '⭐ Chaque nouvelle étoile gagnée dans le jeu des tubes rapporte +2 💧',
+    ],
+  },
+  {
     version: '1.8.2',
     items: [
       '🩷 L’axolotl te dit chaque jour à quel point tu es formidable, sur l’accueil',
