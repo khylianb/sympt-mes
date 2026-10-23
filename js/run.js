@@ -10,6 +10,7 @@ import { uuid, toDay, esc } from './util.js';
 let engine = null;
 let host = null;
 let loading = false;
+let engineBest = () => {};
 
 // ---------- données ----------
 function deviceId() {
@@ -20,22 +21,23 @@ function deviceId() {
 const myKey = () => `run:${deviceId()}`;
 const myRun = () => store.meta(myKey()) || {};
 
-// Meilleur score, tous téléphones confondus
+// Record de distance (en mètres), tous téléphones confondus
 export function runBest() {
   let best = 0;
-  for (const r of store.all('app_meta')) if (r.key.startsWith('run:') && r.value) best = Math.max(best, r.value.best || 0);
+  for (const r of store.all('app_meta')) if (r.key.startsWith('run:') && r.value) best = Math.max(best, r.value.bestDist || 0);
   return best;
 }
+const fmtM = (m) => `${m.toLocaleString('fr-FR')} m`;
 // Fin de partie : 1 goutte pour 5 crevettes, dans la limite du plafond du jour
-function record({ score, shrimps }) {
+function record({ dist, shrimps }) {
   const day = toDay();
   const before = dropsOn(day);
   const r = myRun();
   const days = { ...(r.days || {}) };
   days[day] = (days[day] || 0) + Math.floor(shrimps / DROPS.runShrimps);
   const oldBest = runBest();
-  store.setMeta(myKey(), { ...r, best: Math.max(r.best || 0, score), days, games: (r.games || 0) + 1 });
-  return { drops: dropsOn(day) - before, capped: dropsOn(day) >= DROPS.runDay, newBest: score > oldBest, best: Math.max(oldBest, score) };
+  store.setMeta(myKey(), { ...r, bestDist: Math.max(r.bestDist || 0, dist), days, games: (r.games || 0) + 1 });
+  return { drops: dropsOn(day) - before, capped: dropsOn(day) >= DROPS.runDay, newBest: dist > oldBest && oldBest > 0, first: !oldBest, best: Math.max(oldBest, dist) };
 }
 
 // ---------- couverture dans la liste des jeux ----------
@@ -45,7 +47,7 @@ export function runCover() {
     <span class="cover-sticker">Nouveau · 3D ✨</span>
     <div class="rc-scene"><i class="rc-ray"></i><i class="rc-ray r2"></i><span class="rc-axo">${axoBadge()}</span><span class="rc-shrimp">🍤</span><span class="rc-jelly">🪼</span><span class="rc-fish">🐠</span></div>
     <div class="cover-title">Axolo Run</div>
-    <div class="cover-sub">Nage, esquive, attrape les crevettes${best ? ` · record ${best}` : ''}</div>
+    <div class="cover-sub">Nage, esquive, attrape les crevettes${best ? ` · record ${fmtM(best)}` : ''}</div>
   </div>`;
 }
 function axoBadge() {
@@ -59,23 +61,30 @@ function axoBadge() {
 }
 
 // ---------- écran de jeu ----------
-const hearts = (n) => '🩷'.repeat(Math.max(0, n)) + '🤍'.repeat(3 - Math.max(0, n));
+const HEART = '<svg viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21C5 15.5 1 12 1 7.2 1 3.8 3.6 1.5 6.6 1.5c2.2 0 4 1.2 5.4 3 1.4-1.8 3.2-3 5.4-3 3 0 5.6 2.3 5.6 5.7C23 12 19 15.5 12 21z"/></svg>';
+const lifeHtml = (n) => Array.from({ length: 3 }, (_, i) => `<i class="hp ${i < n ? 'on' : ''}">${HEART}</i>`).join('');
+
+const meterHtml = (best) => `<b id="run-dist">0</b><span>m</span>
+  ${best ? `<div class="run-to-best"><i id="run-best-bar"></i></div><small id="run-best-txt">record ${fmtM(best)}</small>` : ''}`;
 
 function stageHtml() {
   const best = runBest();
   return `<div class="run-stage">
     <div class="run-hud">
       <button class="icon-btn run-back" data-d="hub" aria-label="Retour aux jeux">‹</button>
-      <span class="run-pill run-hearts" id="run-hearts">${hearts(3)}</span>
-      <span class="run-pill run-score"><b id="run-score">0</b><small>🍤 <span id="run-shrimps">0</span></small></span>
+      <span class="run-life" id="run-life" aria-label="Vies">${lifeHtml(3)}</span>
+      <span class="run-pill run-shrimps">🍤 <b id="run-shrimps">0</b></span>
     </div>
+    <div class="run-meter" id="run-meter" hidden>${meterHtml(best)}</div>
+    <div class="run-banner" id="run-banner"></div>
     <div class="run-flash" id="run-flash"></div>
     <div class="run-panel" id="run-loading"><p class="run-tag">Axolo Run</p><p>Chargement des fonds marins… 🫧</p></div>
     <div class="run-panel" id="run-start" hidden>
       <p class="run-tag">Axolo Run</p>
       <h2>Prêt${getPet() ? ` ${esc(getPet().name)}` : ''} ?</h2>
-      <p>Glisse à gauche ou à droite pour changer de couloir, vers le haut pour sauter. Attrape les crevettes, évite les rochers et les méduses.</p>
-      <p class="run-small">🍤 ${DROPS.runShrimps} crevettes = 1 💧 (jusqu’à ${DROPS.runDay} 💧 par jour)${best ? ` · record : ${best}` : ''}</p>
+      <div class="run-moves"><span><b>← →</b>couloir</span><span><b>↑</b>sauter</span><span><b>↓</b>roulade</span></div>
+      <p>Saute par-dessus les rochers, roule sous les filets, évite les méduses. Plus tu vas loin, plus ça va vite !</p>
+      <p class="run-small">🍤 ${DROPS.runShrimps} crevettes = 1 💧 (jusqu’à ${DROPS.runDay} 💧 par jour)${best ? ` · record : ${fmtM(best)}` : ''}</p>
       <button class="run-go" data-run="play">Nager !</button>
     </div>
     <div class="run-panel" id="run-over" hidden></div>
@@ -83,9 +92,9 @@ function stageHtml() {
 }
 
 function overHtml(res, out) {
-  return `<p class="run-tag">${out.newBest ? '🏆 Nouveau record !' : 'Aïe, la méduse !'}</p>
-    <div class="run-big">${res.score}</div>
-    <p>${res.shrimps} crevette${res.shrimps > 1 ? 's' : ''} · ${res.dist} m · record ${out.best}</p>
+  return `<p class="run-tag">${out.newBest ? '🏆 Nouveau record !' : out.first ? 'Première course !' : 'Aïe, c’est fini !'}</p>
+    <div class="run-big">${res.dist.toLocaleString('fr-FR')}<small> m</small></div>
+    <p>${res.shrimps} crevette${res.shrimps > 1 ? 's' : ''} attrapée${res.shrimps > 1 ? 's' : ''} · record ${fmtM(out.best)}</p>
     ${out.drops ? `<span class="run-drops">+${out.drops} 💧 pour ton axolotl</span>`
       : out.capped ? `<span class="run-drops muted">Plafond du jour atteint (${DROPS.runDay} 💧) : reviens demain !</span>`
       : `<span class="run-drops muted">Attrape ${DROPS.runShrimps} crevettes pour gagner une goutte 💧</span>`}
@@ -108,14 +117,45 @@ async function mountEngine() {
     const { mount } = await import('./run-3d.js');
     if (el !== host || !el.isConnected) return;
     const pet = getPet();
-    const look = { colors: COLORS[(pet && pet.color) || 'rose'] || COLORS.rose, equipped: (pet && pet.equipped) || {} };
+    const best = runBest();
+    const look = { colors: COLORS[(pet && pet.color) || 'rose'] || COLORS.rose, equipped: (pet && pet.equipped) || {}, bestDist: best };
     const $ = (id) => el.querySelector('#' + id);
+    // Annonce au centre de l'écran (paliers, record)
+    const banner = (html, cls = '') => {
+      const b = $('run-banner');
+      b.className = `run-banner ${cls}`; b.innerHTML = html;
+      void b.offsetWidth; b.classList.add('show');
+    };
+    let lastDist = -1;
+    let curBest = best;
     engine = await mount(el, look, {
       onReady: () => { $('run-loading').hidden = true; $('run-start').hidden = false; },
-      onScore: (s) => { $('run-score').textContent = s.score; $('run-shrimps').textContent = s.shrimps; $('run-hearts').textContent = hearts(s.hearts); },
+      onScore: (s) => {
+        $('run-meter').hidden = false;
+        if (s.dist !== lastDist) {
+          lastDist = s.dist;
+          $('run-dist').textContent = s.dist.toLocaleString('fr-FR');
+          const bar = $('run-best-bar');
+          if (bar) bar.style.width = `${Math.min(100, s.dist / curBest * 100)}%`;
+        }
+        $('run-shrimps').textContent = s.shrimps;
+        const life = $('run-life');
+        life.querySelectorAll('.hp').forEach((h, i) => {
+          if (i >= s.hearts && h.classList.contains('on')) { h.classList.remove('on'); h.classList.add('break'); }
+          if (i < s.hearts) { h.classList.add('on'); h.classList.remove('break'); }
+        });
+        life.classList.toggle('low', s.hearts === 1);
+      },
       onHit: () => { const f = $('run-flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 80); },
-      onEnd: (res) => { const out = record(res); const o = $('run-over'); o.innerHTML = overHtml(res, out); o.hidden = false; },
+      onMilestone: (m) => banner(`<small>Bravo !</small>${m >= 1000 ? `${(m / 1000).toLocaleString('fr-FR')} km` : `${m} m`}`),
+      onRecord: () => {
+        banner('<small>Nouveau record</small>🏆 Record battu !', 'gold');
+        $('run-meter').classList.add('beat');
+        const t = $('run-best-txt'); if (t) t.textContent = 'record battu !';
+      },
+      onEnd: (res) => { const out = record(res); const o = $('run-over'); o.innerHTML = overHtml(res, out); o.hidden = false; $('run-meter').hidden = true; },
     });
+    engineBest = (b) => { curBest = b; lastDist = -1; };
     if (el !== host || !el.isConnected) { engine.destroy(); engine = null; }
   } catch (e) {
     console.error(e);
@@ -140,10 +180,16 @@ export function bindRun(container) {
     if (b.dataset.run === 'play') {
       host.querySelector('#run-start').hidden = true;
       host.querySelector('#run-over').hidden = true;
-      engine.start();
+      // Chaque partie repart avec le record à jour (bouée et barre de progression)
+      const best = runBest();
+      const m = host.querySelector('#run-meter');
+      m.classList.remove('beat');
+      m.innerHTML = meterHtml(best);
+      engine.start(best);
+      engineBest(best);
     }
   });
 }
 
 // Pour les tests automatiques
-window.__run = { sim: (s) => engine && engine.sim(s) };
+window.__run = { sim: (s, g) => engine && engine.sim(s, g), act: (a) => engine && engine.act(a), state: () => engine && engine.state() };

@@ -2,6 +2,16 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '2.2.0',
+    items: [
+      '🌀 Axolo Run : glisse vers le bas pour faire une roulade (ou plonger quand tu sautes)',
+      '🎣 Nouveaux filets de pêche à passer en roulade',
+      '📏 Gros compteur de distance, annonce tous les 500 m et bouée « Record » quand tu t’en approches',
+      '🚀 Plus tu vas loin, plus ça va vite, avec toujours le temps de réagir',
+      '❤️ Nouvelle barre de vie : les cœurs se brisent, le dernier clignote',
+    ],
+  },
+  {
     version: '2.1.0',
     items: [
       '🏊 Nouveau jeu en 3D : Axolo Run ! Ton axolotl nage dans un récif, change de couloir et saute',
