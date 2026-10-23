@@ -62,11 +62,13 @@ export function petMini(size = 90, mood) {
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 // Phrases positives : il fait des compliments et encourage, même quand il est triste
 export const COMPLIMENTS = [
-  'Tu es une infirmière incroyable 💉', 'Tu prends soin des autres, prends soin de toi aussi 🩷', 'Tu es courageuse, chaque jour 💪',
-  'Ton sourire illumine la journée ☀️', 'Je suis fier de toi ✨', 'Tu as le droit de te reposer aujourd’hui 🛋️',
-  'Tu es forte, même les jours difficiles 🌈', 'Respire… tu gères 🌸', 'Tu mérites toute la douceur du monde 🧸',
-  'Un pas à la fois, c’est déjà énorme 🐾', 'Pense à boire un grand verre d’eau 💧', 'Tu es la meilleure 🩷',
-  'Tu fais de ton mieux, et c’est parfait 🌷', 'Tu rends le monde plus doux 🫧', 'Je t’envoie plein de bonnes ondes 💫',
+  'Je suis fier de toi ✨', 'Je suis tellement fier de toi 🩷', 'Je crois en toi 💪', 'Je suis là pour toi 🫶',
+  'Tu comptes beaucoup pour moi 🩷', 'Je t’admire, tu sais ? 🌟', 'Je suis fier de tout ce que tu fais 💫',
+  'Tu me rends heureux 🥰', 'J’ai de la chance de t’avoir 🍀', 'Je suis fier de la personne que tu es 🌸',
+  'Je pense fort à toi 💭', 'Je suis avec toi, même les jours difficiles 🌈', 'Je te fais un gros câlin 🤗',
+  'Tu peux être fière de toi 🏅', 'Je suis toujours dans ton camp 💪', 'Je t’envoie tout mon amour d’axolotl 🩷',
+  'Je suis fier de ton courage 🦁', 'Chaque jour, je suis un peu plus fier de toi 🌱', 'Je suis heureux que tu sois là ☀️',
+  'Je suis fier de toi, vraiment 🥹', 'Je veille sur toi aujourd’hui 🫧', 'Je suis fier de la super infirmière que tu es 💉',
 ];
 // Le compliment du jour reste le même toute la journée
 export function dailyCompliment() {
