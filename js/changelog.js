@@ -2,6 +2,15 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '2.0.0',
+    items: [
+      '🩷 Nouvelle appli : ton axolotl devient la page principale',
+      '🍤 Nourris-le chaque jour : +10 💧, il grandit… et il pleure si tu l’oublies',
+      '🎮 Nouvel onglet Jeux : le jeu des tubes et ses boss, et d’autres jeux arriveront bientôt',
+      '🌿 Le suivi des symptômes est retiré ; tes journées déjà remplies comptent comme des repas, rien n’est perdu',
+    ],
+  },
+  {
     version: '1.10.0',
     items: [
       '🆕 Création de compte directement depuis l’écran de connexion',

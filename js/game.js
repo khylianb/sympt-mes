@@ -1,13 +1,14 @@
-// Onglet « Détente » : jeu des tubes de liquides colorés (100 niveaux), une progression par
-// téléphone et un classement commun synchronisé (via app_meta, clés « game:<téléphone> »).
+// Jeu des tubes de liquides colorés (100 niveaux, un boss tous les 10), une progression par
+// téléphone synchronisée (via app_meta, clés « game:<téléphone> »).
 
 import * as store from './store.js';
 import { LEVELS } from './levels.js';
-import { uuid, toast, toDay } from './util.js';
+import { uuid, toast, esc } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { mascotUrl, cheer } from './mascot.js';
 import { getPet, petMini } from './pet.js';
 import { DROPS } from './wallet.js';
+import { caredToday } from './care.js';
 import { bossOf, setupBoss, revealHidden, trapLines, BOSSES } from './boss.js';
 import { renderGameShop, gameShopClick, resetGameShop, tubesClass, arcadeClass, effectEmojis, tubeDeco } from './game-shop.js';
 
@@ -168,27 +169,24 @@ function winSound() {
 }
 
 // ---------- bonus du jour ----------
-// Annuler et ➕ Tube ne sont utilisables qu'une fois la journée remplie dans Saisie
-// (symptômes, « Rien à signaler » ou une note) : un petit coup de pouce pour ne pas oublier.
-function dayFilled() {
-  const d = toDay();
-  const n = store.noteForDay(d);
-  return store.logsForDay(d).length > 0 || !!n.nothing || !!(n.note && n.note.trim());
-}
+// Annuler et ➕ Tube se débloquent chaque jour dès que l'axolotl a mangé : un petit rendez-vous quotidien avec lui.
+const dayFilled = caredToday;
 
 function lockedSheet(what) {
+  const pet = getPet();
+  const name = pet ? pet.name : 'ton axolotl';
   const body = openSheet(`
     <h3>🔒 ${what ? `« ${what} » est verrouillé` : 'Bonus verrouillés'}</h3>
-    <p>Les bonus <b>↩️ Annuler</b> et <b>➕ Tube</b> se débloquent chaque jour, dès que ta journée est remplie dans l’onglet <b>Saisie</b> : tes symptômes, ou « Rien à signaler » si tout va bien.</p>
-    <p class="muted">Ça prend moins d’une minute, et ça aide beaucoup pour le suivi avec le médecin 💚 Le reste du jeu, dont 🔄 Recommencer, reste toujours accessible.</p>
+    <p>Les bonus <b>↩️ Annuler</b> et <b>➕ Tube</b> se débloquent chaque jour, dès que tu as nourri <b>${esc(name)}</b> 🍤</p>
+    <p class="muted">${pet ? 'Ça prend deux secondes, et il sera tout content 🩷' : 'Fais d’abord éclore ton œuf, sur la première page 🥚'} Le reste du jeu, dont 🔄 Recommencer, reste toujours accessible.</p>
     <div class="sheet-actions">
       <button class="btn ghost" data-close>Plus tard</button>
-      <button class="btn primary" id="g-fill">✏️ Remplir ma journée</button>
+      <button class="btn primary" id="g-fill">${pet ? `🍤 Nourrir ${esc(name)}` : '🥚 Voir l’œuf'}</button>
     </div>`);
   body.querySelector('[data-close]').onclick = closeSheet;
   body.querySelector('#g-fill').onclick = () => {
     closeSheet();
-    document.dispatchEvent(new CustomEvent('open-today'));
+    document.dispatchEvent(new CustomEvent('open-pet'));
   };
 }
 
@@ -306,10 +304,10 @@ export function renderGame(container) {
     </div>
     ${locked ? `<button class="bonus-banner" data-g="why">
         <span class="bb-ico">🔒</span>
-        <span class="bb-text"><b>Bonus verrouillés</b><small>Remplis ta journée dans Saisie pour débloquer ↩️ Annuler et ➕ Tube</small></span>
+        <span class="bb-text"><b>Bonus verrouillés</b><small>Nourris ${esc(getPet() ? getPet().name : 'ton axolotl')} pour débloquer ↩️ Annuler et ➕ Tube</small></span>
         <span class="bb-go">Pourquoi ?</span>
       </button>`
-    : '<p class="bonus-ok">🔓 Bonus débloqués : merci d’avoir rempli ta journée !</p>'}
+    : `<p class="bonus-ok">🔓 Bonus débloqués : ${esc(getPet() ? getPet().name : 'ton axolotl')} a bien mangé !</p>`}
     </div>
     ${g.won ? winHtml() : g.boss && !g.introSeen && !g.history.length ? bossIntroHtml(g) : ''}`;
 }

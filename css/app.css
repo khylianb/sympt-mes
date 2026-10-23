@@ -358,6 +358,7 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .tabbar button span { font-size: 1.25rem; filter: grayscale(1); opacity: .55; }
 .tabbar button.on { color: var(--primary); background: var(--primary-soft); }
 .tabbar button.on span { filter: none; opacity: 1; }
+.tabbar button b { font-weight: inherit; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- feuille ---------- */
 .sheet { position: fixed; inset: 0; z-index: 50; }
@@ -815,6 +816,30 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .pp-next { margin: 10px 0 0; text-align: center; font-size: .85rem; font-weight: 700; color: #e6e2ff; }
 .pet-page .game-actions { margin-top: 12px; }
 .pet-page .bonus-banner { margin-top: 0; }
+/* Repas du jour */
+.feed-btn {
+  display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 12px; padding: 12px 14px; text-align: left; color: #fff;
+  border-radius: 20px; background: linear-gradient(120deg, #ff8a5c, #ff4f9a); box-shadow: 0 10px 26px rgba(255, 79, 154, .4);
+  animation: feed-pulse 2.2s ease-in-out infinite;
+}
+.feed-btn .fb-ico { font-size: 2rem; }
+.feed-btn .bb-text { flex: 1; display: flex; flex-direction: column; line-height: 1.25; }
+.feed-btn .bb-text b { font-size: 1.05rem; }
+.feed-btn .bb-text small { color: #ffe9f2; font-weight: 700; }
+.feed-btn .bb-go { font-weight: 900; font-size: .85rem; background: #fff; color: #e23d84; padding: 7px 12px; border-radius: 999px; }
+.feed-btn:active { transform: scale(.97); }
+@keyframes feed-pulse { 50% { box-shadow: 0 10px 34px rgba(255, 79, 154, .7); transform: scale(1.015); } }
+.fed-ok { margin: 0 0 12px; padding: 10px 12px; border-radius: 16px; text-align: center; font-weight: 800; font-size: .88rem; color: #9ef0c4; background: rgba(52, 227, 154, .12); border: 1px solid rgba(52, 227, 154, .3); }
+.tank-food { position: absolute; top: -20px; z-index: 4; font-size: 1.6rem; animation: tank-food 1.3s ease-in both; }
+@keyframes tank-food { from { transform: translateY(0) rotate(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(190px) rotate(200deg); opacity: 0; } }
+/* Onglet Jeux : un jeu par carte */
+.games-hub .hub-head { margin: 4px 4px 14px; color: #fff; }
+.games-hub .hub-head small { display: block; font-weight: 800; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #b9b3ff; }
+.games-hub .hub-head b { font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; }
+.soon-card { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 22px; color: #e6e2ff; border: 1.5px dashed rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .05); }
+.soon-card span { font-size: 1.8rem; }
+.soon-card b { display: block; color: #fff; }
+.soon-card small { font-weight: 700; opacity: .8; }
 /* Boutique */
 .shop-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; scrollbar-width: none; }
 .shop-tabs button { flex: none; padding: 8px 14px; border-radius: 999px; font-weight: 900; font-size: .85rem; color: #fff; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); }

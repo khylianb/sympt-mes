@@ -50,8 +50,8 @@ jobs:
           [ -n "$TOKEN" ] && [ "$TOKEN" != "null" ] || { echo "Échec de connexion"; exit 1; }
           echo "::add-mask::$TOKEN"
 
-          # Export de chaque table (par pages de 1000 lignes)
-          for T in symptom_logs meals day_notes custom_symptoms app_meta; do
+          # Export de la table (par pages de 1000 lignes)
+          for T in app_meta; do
             echo '[]' > "$WORK/$T.json"
             OFFSET=0
             while :; do
@@ -68,11 +68,8 @@ jobs:
           # Même format que la sauvegarde manuelle de l'appli (restaurable depuis Réglages)
           NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           jq -n --arg now "$NOW" \
-            --slurpfile s "$WORK/symptom_logs.json" --slurpfile m "$WORK/meals.json" \
-            --slurpfile d "$WORK/day_notes.json" --slurpfile c "$WORK/custom_symptoms.json" \
             --slurpfile a "$WORK/app_meta.json" \
-            '{app:"sympt-mes", version:1, exported_at:$now,
-              data:{symptom_logs:$s[0], meals:$m[0], day_notes:$d[0], custom_symptoms:$c[0], app_meta:$a[0]}}' \
+            '{app:"sympt-mes", version:1, exported_at:$now, data:{app_meta:$a[0]}}' \
             > "$WORK/backup.json"
 
           mkdir -p backups

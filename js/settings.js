@@ -2,18 +2,14 @@
 
 import * as store from './store.js';
 import * as sync from './sync.js';
-import { CATEGORIES, catLabel } from './catalogue.js';
 import { esc, $, toast, relativeDays } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { CHANGELOG, APP_VERSION, notesHtml } from './changelog.js';
-import { hasPhoto, photoUrl, setPhotoFromFile, clearPhoto } from './photo.js';
 import { mascotUrl, setMascotFromFile, clearMascot } from './mascot.js';
-import { openBackupExport, backupLabel } from './export.js';
+import { openBackupExport, backupLabel } from './backup.js';
 
 
 export function renderSettings(container) {
-  const profile = store.meta('profile') || {};
-  const custom = store.all('custom_symptoms').sort((a, b) => a.label.localeCompare(b.label));
   const st = sync.getStatus();
   const lastSync = store.kvGet('lastSync');
   const auto = store.meta('last_auto_backup');
@@ -21,16 +17,8 @@ export function renderSettings(container) {
 
   container.innerHTML = `
     <div class="card">
-      <h3>Accueil</h3>
-      <label class="field-block">Prénom (affiché « Bonjour … » / « Bonsoir … »)<input id="pf-first" type="text" value="${esc(store.meta('first_name') || '')}" autocomplete="off" autocapitalize="words"></label>
-      <p class="muted small">La photo en haut de l’accueil. Tu peux mettre une photo de ta galerie : elle reste sur ce téléphone.</p>
-      <div class="media-row">
-        <div class="photo-thumb" style="background-image:url('${photoUrl()}')"></div>
-        <div class="btn-row">
-          <label class="btn ghost small file-btn">Changer<input type="file" id="st-photo" accept="image/*" hidden></label>
-          ${hasPhoto() ? '<button class="btn ghost small" id="st-photo-clear">Photo d’origine</button>' : ''}
-        </div>
-      </div>
+      <h3>Toi</h3>
+      <label class="field-block">Ton prénom (l’axolotl l’utilise dans ses compliments)<input id="pf-first" type="text" value="${esc(store.meta('first_name') || '')}" autocomplete="off" autocapitalize="words"></label>
     </div>
     <div class="card">
       <h3>Mascotte de victoire</h3>
@@ -42,22 +30,6 @@ export function renderSettings(container) {
           ${mascotUrl() ? '<button class="btn ghost small" id="st-mascot-clear">Retirer</button>' : ''}
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <h3>En-tête du PDF</h3>
-      <p class="muted small">Facultatif. Laissez vide pour un PDF anonyme.</p>
-      <label class="field-block">Prénom et nom<input id="pf-name" type="text" value="${esc(profile.name || '')}" autocomplete="off"></label>
-      <label class="field-block">Date de naissance<input id="pf-birth" type="text" placeholder="jj/mm/aaaa" value="${esc(profile.birth || '')}" autocomplete="off"></label>
-    </div>
-
-    <div class="card">
-      <h3>Mes symptômes ajoutés</h3>
-      ${custom.length ? custom.map((c) => `
-        <button class="list-row ${c.archived ? 'archived' : ''}" data-edit="${esc(c.key)}">
-          <span>${esc(c.label)}${c.urgent ? ' <span class="dot"></span>' : ''}</span>
-          <small>${esc(catLabel(c.category))}${c.archived ? ' · masqué' : ''}</small>
-        </button>`).join('') : '<p class="muted">Aucun pour l’instant. Utilisez « + Ajouter un symptôme » sur l’écran du jour.</p>'}
     </div>
 
     ${demo ? `<div class="card">
@@ -94,30 +66,13 @@ export function renderSettings(container) {
         <button class="btn ghost" id="st-notes">📝 Nouveautés</button>
         <button class="btn ghost" id="st-reload">🔄 Recharger l’appli</button>
       </div>
-      <p class="muted small">Sympt'mes v${APP_VERSION} · les données restent dans votre espace Supabase.</p>
+      <p class="muted small">Sympt'mes v${APP_VERSION} · les données restent dans ton espace Supabase.</p>
     </div>`;
 }
 
 export function bindSettings(container, { onRender }) {
-  const saveProfile = () => store.setMeta('profile', {
-    name: $('#pf-name', container).value.trim(),
-    birth: $('#pf-birth', container).value.trim(),
-  });
   container.addEventListener('change', async (e) => {
     if (e.target.id === 'pf-first') { store.setMeta('first_name', e.target.value.trim()); toast('Enregistré ✓'); }
-    if (e.target.id === 'pf-name' || e.target.id === 'pf-birth') { saveProfile(); toast('Enregistré ✓'); }
-    if (e.target.id === 'st-photo') {
-      const f = e.target.files[0];
-      if (!f) return;
-      try {
-        await setPhotoFromFile(f);
-        toast('Photo enregistrée ✓');
-        onRender();
-      } catch (err) {
-        toast('Impossible de lire cette photo');
-      }
-      e.target.value = '';
-    }
     if (e.target.id === 'st-mascot') {
       const f = e.target.files[0];
       if (!f) return;
@@ -160,9 +115,6 @@ export function bindSettings(container, { onRender }) {
     } else if (e.target.closest('#st-mascot-clear')) {
       clearMascot();
       onRender();
-    } else if (e.target.closest('#st-photo-clear')) {
-      await clearPhoto();
-      onRender();
     } else if (e.target.closest('#st-demo-reset')) {
       await store.clearAll();
       location.reload();
@@ -181,37 +133,8 @@ export function bindSettings(container, { onRender }) {
       if (!confirm(msg)) return;
       await sync.logout();
       location.reload();
-    } else {
-      const b = e.target.closest('[data-edit]');
-      if (b) editCustom(b.dataset.edit, onRender);
     }
   });
-}
-
-function editCustom(key, onRender) {
-  const c = store.get('custom_symptoms', key);
-  const body = openSheet(`
-    <h3>Modifier le symptôme</h3>
-    <label class="field-block">Nom<input id="es-label" type="text" value="${esc(c.label)}"></label>
-    <label class="field-block">Catégorie
-      <select id="es-cat">${CATEGORIES.map((x) => `<option value="${x.id}" ${x.id === c.category ? 'selected' : ''}>${esc(x.label)}</option>`).join('')}</select>
-    </label>
-    <label class="check-line"><input id="es-urgent" type="checkbox" ${c.urgent ? 'checked' : ''}> À signaler vite (affiché en rouge)</label>
-    <label class="check-line"><input id="es-arch" type="checkbox" ${c.archived ? 'checked' : ''}> Masquer de la saisie (l’historique est conservé)</label>
-    <div class="sheet-actions">
-      <button class="btn ghost" data-close>Annuler</button>
-      <button class="btn primary" id="es-save">Enregistrer</button>
-    </div>`, { onClose: onRender });
-  $('[data-close]', body).onclick = closeSheet;
-  $('#es-save', body).onclick = () => {
-    const label = $('#es-label', body).value.trim();
-    if (!label) return;
-    store.save('custom_symptoms', {
-      ...c, label, category: $('#es-cat', body).value,
-      urgent: $('#es-urgent', body).checked, archived: $('#es-arch', body).checked,
-    });
-    closeSheet();
-  };
 }
 
 function passwordSheet() {

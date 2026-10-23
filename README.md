@@ -1,14 +1,15 @@
 # Sympt'mes
 
-Application web (PWA, installable sur iPhone) de suivi quotidien des symptômes,
-pensée pour une suspicion de maladie de Crohn. Interface en français, saisie en moins d'une minute.
+Application web (PWA, installable sur iPhone) centrée sur un axolotl à nourrir chaque jour,
+qui grandit, fait des compliments et a sa boutique, et sur une salle de jeux (le jeu des tubes et ses boss,
+d'autres jeux à venir). Interface en français, synchronisée entre les téléphones via Supabase.
 
-- **Aujourd'hui** : symptômes cochés par catégorie avec intensité 0–10 et note libre.
-- **Synthèse** : semaine / mois, courbe d'intensité, calendrier, symptômes fréquents, jours difficiles, alertes en rouge.
-- **Enregistrer / Exporter** : PDF pour le médecin (7 jours, 30 jours, tout) ou sauvegarde complète (JSON), via la fenêtre de partage iOS.
-- Fonctionne hors ligne ; synchronisation automatique entre les deux téléphones via Supabase.
+- **Axolotl** (onglet principal) : un repas par jour (+10 💧, il grandit jusqu'à « Légendaire » en 14 jours de repas),
+  humeur selon les jours oubliés, compliments, boutique de tenues.
+- **Jeux** : liste des jeux ; chaque jeu rapporte des gouttes (étoiles, boss).
+- **Réglages** : prénom, mascotte de victoire, synchronisation, copie de secours, compte.
 
-> Ce dépôt ne contient **que du code**. Aucune donnée de santé n'y est stockée.
+> Ce dépôt ne contient **que du code**. Aucune donnée personnelle n'y est stockée.
 
 ## Organisation du code
 
@@ -16,16 +17,25 @@ pensée pour une suspicion de maladie de Crohn. Interface en français, saisie e
 |---|---|
 | `index.html`, `css/app.css` | page unique et styles |
 | `js/config.js` | URL Supabase + clé **publique** |
-| `js/catalogue.js` | liste des symptômes et catégories |
-| `js/store.js` | stockage local (IndexedDB), modifications en attente |
-| `js/sync.js` | connexion et synchronisation Supabase (API REST, sans librairie) |
-| `js/today.js`, `js/summary.js`, `js/settings.js` | les trois écrans |
-| `js/analysis.js` | calculs des synthèses |
-| `js/export.js` | PDF (jsPDF) et sauvegarde, partage iOS |
+| `js/app.js` | connexion, onglets, mises à jour |
+| `js/pet.js`, `js/pet-art.js` | l'axolotl (page, dessin, boutique) |
+| `js/care.js` | repas quotidiens (clés `care:AAAA-MM-JJ`) |
+| `js/wallet.js` | cagnotte de gouttes commune |
+| `js/games.js` | onglet Jeux : liste des jeux (**ajouter un jeu ici**) |
+| `js/game.js`, `js/boss.js`, `js/levels.js`, `js/game-shop.js` | le jeu des tubes, ses boss et sa boutique |
+| `js/mascot.js` | image de la mascotte de victoire |
+| `js/settings.js`, `js/backup.js` | réglages et copie de secours |
+| `js/store.js`, `js/sync.js` | stockage local (IndexedDB) et synchronisation Supabase (API REST, sans librairie) |
 | `sw.js`, `manifest.webmanifest`, `icons/` | installation et hors ligne |
-| `supabase/schema.sql` | tables + sécurité, à exécuter dans Supabase |
+| `supabase/schema.sql` | table + sécurité, à exécuter dans Supabase |
+| `supabase/suppression-sante.sql` | suppression unique des anciennes tables du suivi santé |
 | `backup/weekly-backup.yml` | modèle de sauvegarde hebdomadaire (dépôt privé) |
-| `vendor/jspdf.umd.min.js` | jsPDF 4.2.1 (licence MIT, `vendor/jspdf.LICENSE`) |
+
+### Ajouter un jeu
+1. Créer un module (ex. `js/memory.js`) qui exporte `render(container)`, `bind(container)`, `cover()` (la carte
+   affichée dans la liste) et, si besoin, `busy()` / `leave()`. Le bouton retour vers la liste utilise `data-d="hub"`.
+2. L'ajouter dans `GAMES` (`js/games.js`) et dans `FILES` (`sw.js`).
+3. Pour qu'il rapporte des gouttes, l'ajouter au calcul de `wallet()` (`js/wallet.js`).
 
 ## Mise en route
 
@@ -39,6 +49,7 @@ pensée pour une suspicion de maladie de Crohn. Interface en français, saisie e
    (ex. `https://<utilisateur>.github.io/sympt-mes/`), à ajouter aussi dans *Redirect URLs* :
    c'est là que renvoient les liens « confirmer mon compte » et « mot de passe oublié ».
 4. **SQL Editor → New query** : coller le contenu de `supabase/schema.sql`, puis **Run**.
+   Projet existant qui avait le suivi santé : lancer aussi une fois `supabase/suppression-sante.sql`.
 5. **Project Settings → API Keys** : noter la *Project URL* et la clé **publique** (*publishable* `sb_publishable_…` ou *anon*).
    Ne jamais utiliser la clé *secret* / *service_role*.
 
