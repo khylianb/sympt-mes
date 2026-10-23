@@ -447,6 +447,12 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .login-box img { border-radius: 20px; box-shadow: var(--shadow); }
 .login-box h1 { margin: 14px 0 0; font-family: var(--font-display); font-weight: 600; }
 #login-form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+#login-form [hidden] { display: none; }
+.login-title { margin: 18px 0 0; font-size: 1.05rem; font-weight: 800; }
+.login-title:empty { display: none; }
+.login-links { display: flex; flex-direction: column; gap: 4px; margin-top: 14px; }
+.login-links button { padding: 8px; font-weight: 700; color: var(--primary); font-size: .92rem; }
+#login-msg.ok { color: var(--primary); font-weight: 700; }
 
 .demo-banner {
   margin: 0 0 12px; padding: 8px 14px; border-radius: 999px; font-size: .8rem; font-weight: 700;

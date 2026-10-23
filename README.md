@@ -32,7 +32,12 @@ pensée pour une suspicion de maladie de Crohn. Interface en français, saisie e
 ### 1. Supabase
 1. Créer un projet sur <https://supabase.com> (plan Free, région **West EU (Paris)** ou **Central EU (Frankfurt)**).
 2. **Authentication → Users → Add user → Create new user** : email + mot de passe partagés, cocher *Auto Confirm User*.
-3. **Authentication → Sign In / Providers → Email** : désactiver *Allow new users to sign up*.
+3. **Authentication → Sign In / Providers → Email** : *Allow new users to sign up* active ou non le bouton
+   « Créer un compte » de l'appli (chaque compte n'a accès qu'à ses propres données).
+   *Confirm email* oblige à cliquer sur un lien reçu par email avant la première connexion.
+   **Authentication → URL Configuration** : *Site URL* = l'adresse GitHub Pages de l'appli
+   (ex. `https://<utilisateur>.github.io/sympt-mes/`), à ajouter aussi dans *Redirect URLs* :
+   c'est là que renvoient les liens « confirmer mon compte » et « mot de passe oublié ».
 4. **SQL Editor → New query** : coller le contenu de `supabase/schema.sql`, puis **Run**.
 5. **Project Settings → API Keys** : noter la *Project URL* et la clé **publique** (*publishable* `sb_publishable_…` ou *anon*).
    Ne jamais utiliser la clé *secret* / *service_role*.
@@ -66,5 +71,6 @@ téléphones récupèrent la nouvelle version (fermer puis rouvrir l'appli).
 ## Sécurité
 - Seule la clé publique Supabase est dans le code ; l'accès aux données exige la connexion
   (Row Level Security : chaque ligne n'est lisible que par son propriétaire).
-- Les inscriptions sont fermées : seul le compte créé à la main existe.
+- Inscriptions : si elles sont ouvertes dans Supabase, n'importe qui connaissant l'adresse peut créer un compte,
+  mais ne voit que ses propres données (Row Level Security). Les fermer réserve l'appli aux comptes créés à la main.
 - Les sauvegardes automatiques sont chiffrées et stockées dans un dépôt privé.

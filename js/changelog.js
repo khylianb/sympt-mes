@@ -2,6 +2,14 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.10.0',
+    items: [
+      '🆕 Création de compte directement depuis l’écran de connexion',
+      '🔑 Mot de passe oublié : un lien arrive par email pour en choisir un nouveau',
+      '⚙️ Réglages : bouton pour changer son mot de passe',
+    ],
+  },
+  {
     version: '1.9.1',
     items: ['🎁 Le coffre d’un boss vaincu donne maintenant +10 💧'],
   },

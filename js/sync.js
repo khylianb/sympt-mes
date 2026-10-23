@@ -26,29 +26,83 @@ export const isConfigured = () => !SUPABASE_URL.includes('VOTRE-PROJET') && !SUP
 // ---------- authentification ----------
 const session = () => store.kvGet('session');
 
-async function authRequest(grant, body) {
-  const res = await fetchT(`${SUPABASE_URL}/auth/v1/token?grant_type=${grant}`, {
-    method: 'POST',
-    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+async function authFetch(path, { method = 'POST', body, token } = {}) {
+  const res = await fetchT(`${SUPABASE_URL}/auth/v1/${path}`, {
+    method,
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: body && JSON.stringify(body),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
     const err = new Error(json.error_description || json.msg || json.message || `Erreur ${res.status}`);
     err.status = res.status;
+    err.code = json.error_code || json.code;
     throw err;
   }
+  return json;
+}
+
+// Enregistre la session ; si c'est un autre compte que celui des données locales, on repart de zéro
+async function saveSession(json) {
+  const userId = json.user && json.user.id;
+  const owner = store.kvGet('owner');
+  if (userId && owner && owner !== userId) await store.clearAll();
   await store.kvSet('session', {
     access_token: json.access_token,
     refresh_token: json.refresh_token,
-    expires_at: json.expires_at || Math.floor(Date.now() / 1000) + (json.expires_in || 3600),
-    user_id: json.user && json.user.id,
+    expires_at: json.expires_at || Math.floor(Date.now() / 1000) + (Number(json.expires_in) || 3600),
+    user_id: userId,
   });
+  if (userId) await store.kvSet('owner', userId);
 }
+
+async function authRequest(grant, body) {
+  await saveSession(await authFetch(`token?grant_type=${grant}`, { body }));
+}
+
+// Adresse de l'appli, où renvoient les liens reçus par email
+const appUrl = () => location.origin + location.pathname;
 
 export async function login(email, password) {
   await authRequest('password', { email, password });
   setStatus({ state: 'idle', error: null, authError: false });
+}
+
+// Création de compte ; renvoie true s'il faut d'abord confirmer l'email
+export async function signup(email, password) {
+  const json = await authFetch(`signup?redirect_to=${encodeURIComponent(appUrl())}`, { body: { email, password } });
+  if (!json.access_token) return true;
+  await saveSession(json);
+  setStatus({ state: 'idle', error: null, authError: false });
+  return false;
+}
+
+// Envoie l'email « mot de passe oublié »
+export async function recover(email) {
+  await authFetch(`recover?redirect_to=${encodeURIComponent(appUrl())}`, { body: { email } });
+}
+
+// Retour depuis un lien reçu par email (#access_token=…&type=recovery|signup) ; renvoie le type ou null
+export async function sessionFromLink(hash) {
+  const p = new URLSearchParams(hash.replace(/^#/, ''));
+  if (p.get('error') || p.get('error_code')) {
+    const err = new Error(p.get('error_code') === 'otp_expired' ? 'Ce lien a expiré : redemande un email.' : (p.get('error_description') || 'Lien invalide.'));
+    err.link = true;
+    throw err;
+  }
+  const token = p.get('access_token');
+  if (!token) return null;
+  const user = await authFetch('user', { method: 'GET', token });
+  await saveSession({
+    access_token: token, refresh_token: p.get('refresh_token'),
+    expires_at: Number(p.get('expires_at')) || undefined, expires_in: p.get('expires_in'), user,
+  });
+  setStatus({ state: 'idle', error: null, authError: false });
+  return p.get('type') || 'signup';
+}
+
+export async function updatePassword(password) {
+  await authFetch('user', { method: 'PUT', body: { password }, token: await accessToken() });
 }
 
 export async function logout() {
