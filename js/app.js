@@ -6,7 +6,7 @@ import { renderToday, bindToday } from './today.js';
 import { renderHome, bindHome } from './home.js';
 import { renderSummary, bindSummary } from './summary.js';
 import { renderSettings, bindSettings } from './settings.js';
-import { renderGame, bindGame } from './game.js';
+import { renderDetente, bindDetente, detenteHome, openDetente } from './detente.js';
 import { initSheet, sheetOpen, openSheet } from './ui.js';
 import { CHANGELOG, APP_VERSION, newerThan, notesHtml } from './changelog.js';
 import { applyPhoto } from './photo.js';
@@ -24,7 +24,7 @@ function render() {
   if (state.tab === 'today') renderToday(views.today, state.day);
   if (state.tab === 'summary') renderSummary(views.summary);
   if (state.tab === 'settings') renderSettings(views.settings);
-  if (state.tab === 'game') renderGame(views.game);
+  if (state.tab === 'game') renderDetente(views.game);
 }
 
 function renderHeader() {
@@ -195,7 +195,7 @@ async function main() {
   views.summary = $('#view-summary');
   views.settings = $('#view-settings');
   views.game = $('#view-game');
-  bindGame(views.game);
+  bindDetente(views.game);
   bindToday(views.today);
   const openDay = (day) => { state.day = day; state.tab = 'today'; render(); window.scrollTo(0, 0); };
   bindHome(views.home, { onOpenDay: openDay, onRender: () => renderHome(views.home) });
@@ -210,11 +210,13 @@ async function main() {
     if (!b) return;
     state.tab = b.dataset.tab;
     if (state.tab === 'today' && b.classList.contains('on')) state.day = toDay();
+    if (state.tab === 'game' && b.classList.contains('on')) detenteHome();
     render();
     window.scrollTo(0, 0);
   });
   // Le jeu envoie vers la saisie du jour (bonus verrouillés tant qu'elle n'est pas remplie)
   document.addEventListener('open-today', () => openDay(toDay()));
+  document.addEventListener('open-pet', () => { openDetente('pet'); state.tab = 'game'; render(); window.scrollTo(0, 0); });
   $('#header-main').addEventListener('click', (e) => {
     if (e.target.closest('#day-prev')) state.day = addDays(state.day, -1);
     else if (e.target.closest('#day-next') && state.day < toDay()) state.day = addDays(state.day, 1);

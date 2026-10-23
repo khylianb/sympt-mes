@@ -3,6 +3,7 @@
 import * as store from './store.js';
 import { analyse, describeDetails, streak } from './analysis.js';
 import { greeting, toggleNothing } from './today.js';
+import { getPet, petState, petMini } from './pet.js';
 import { esc, toDay, addDays, parseDay, fmtDayShort, intensityColor } from './util.js';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
@@ -30,6 +31,21 @@ export function renderHome(container) {
           : t.hasData ? '' : '<button class="nothing" data-act="nothing">🌿 Rien à signaler</button>'}
       </div>
     </div>`;
+
+  // L'axolotl : content si la journée est remplie, triste sinon
+  const pet = getPet();
+  if (pet) {
+    const ps = petState(pet);
+    const line = { joy: 'Tout content, merci pour ta journée 🩷', happy: 'T’attend pour ta journée ✏️', sad: 'Un peu triste, tu l’as oublié hier 🥲', cry: `Pleure depuis ${ps.missed} jours 😭` }[ps.mood];
+    html += `<button class="card pet-home mood-${ps.mood}" data-act="pet">
+      <span class="ph-art">${petMini(64)}</span>
+      <span class="rem-text"><b>${esc(pet.name)}</b><small>${line}</small></span>
+      <span class="chev">›</span>
+    </button>`;
+  } else {
+    html += `<button class="card pet-home" data-act="pet"><span class="ph-art egg">🥚</span>
+      <span class="rem-text"><b>Un œuf t’attend dans Détente</b><small>Fais-le éclore : il grandira avec toi</small></span><span class="chev">›</span></button>`;
+  }
 
   if (!y.hasData) {
     html += `<button class="card reminder" data-act="fill" data-day="${y.day}">
@@ -78,5 +94,6 @@ export function bindHome(container, { onOpenDay, onRender }) {
     if (!el) return;
     if (el.dataset.act === 'fill') onOpenDay(el.dataset.day);
     else if (el.dataset.act === 'nothing') { toggleNothing(toDay()); onRender(); }
+    else if (el.dataset.act === 'pet') document.dispatchEvent(new CustomEvent('open-pet'));
   });
 }
