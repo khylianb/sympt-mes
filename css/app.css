@@ -904,3 +904,5 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .pet-home .ph-from { font-weight: 800; color: var(--primary); }
 .pet-home .ph-quote { font-size: 1rem; line-height: 1.25; margin: 1px 0 2px; }
 .cheer-btn { margin-top: 12px; }
+.win-drops { margin: 6px auto 4px; display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 14px; border-radius: 999px; font-weight: 900; font-size: 1.15rem; color: #fff; background: linear-gradient(135deg, #22d3ee, #3b7ddd); box-shadow: 0 6px 16px rgba(34, 211, 238, .35); }
+.win-drops small { font-size: .75rem; font-weight: 800; opacity: .9; }

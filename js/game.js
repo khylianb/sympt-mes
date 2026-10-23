@@ -7,6 +7,7 @@ import { uuid, toast, toDay } from './util.js';
 import { openSheet, closeSheet } from './ui.js';
 import { mascotUrl, cheer } from './mascot.js';
 import { getPet, petMini } from './pet.js';
+import { DROPS } from './wallet.js';
 import { renderGameShop, gameShopClick, resetGameShop, tubesClass, arcadeClass, effectEmojis, tubeDeco } from './game-shop.js';
 
 const CAP = 4;
@@ -289,6 +290,7 @@ function winHtml() {
       <h3>Niveau ${g.n} réussi !</h3>
       <p class="win-stars">${starsHtml(g.stars)}</p>
       <p class="win-moves">en ${plural(g.history.length, 'coup')}</p>
+      ${g.drops ? `<p class="win-drops">+${g.drops} 💧 <small>pour ${g.drops / DROPS.star === 1 ? 'ta nouvelle étoile' : `tes ${g.drops / DROPS.star} nouvelles étoiles`}</small></p>` : ''}
       <p class="muted small">${g.newRecord ? '🏅 Nouveau record sur ce niveau' : `Ton record : ${plural(rec, 'coup')}`}</p>
       ${last ? '<p><b>Bravo, tu as fini les 100 niveaux ! 🏆</b></p>' : ''}
       <div class="btn-row center-row">
@@ -431,6 +433,7 @@ function win() {
   if (g.newRecord) moves[g.n] = g.history.length;
   g.stars = starsFor(g.history.length, parOf(g.n), g.extraUsed);
   const stars = { ...starMap(p) };
+  g.drops = DROPS.star * Math.max(0, g.stars - (stars[g.n] || 0)); // gouttes pour les nouvelles étoiles seulement
   stars[g.n] = Math.max(stars[g.n] || 0, g.stars);
   saveProfile({ ...p, moves, stars });
   winSound();
