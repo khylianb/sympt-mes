@@ -5,7 +5,7 @@
 import * as store from './store.js';
 import { toDay, addDays, startOfWeek } from './util.js';
 
-export const DROPS = { welcome: 50, day: 10, week: 30, star: 2, boss: 50 };
+export const DROPS = { welcome: 50, day: 10, week: 30, star: 2, boss: 10 };
 
 // Jours remplis : au moins un symptôme, « Rien à signaler » ou une note
 export function filledDays() {
