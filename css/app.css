@@ -891,3 +891,12 @@ textarea { box-shadow: var(--shadow); border-color: transparent; }
 .fx-preview { font-size: 1.9rem; letter-spacing: 2px; }
 .shop-item .price.lock { background: rgba(255, 255, 255, .1); color: #d8d6ff; font-size: .72rem; }
 .gs-note { text-align: center; font-weight: 800; color: #ffe3b0; margin: 14px 4px 0; }
+
+/* Zone de jeu sur toute la hauteur de l'écran, tubes plus grands */
+.arcade-game { display: flex; flex-direction: column; min-height: calc(100vh - var(--tabbar-h) - var(--safe-b) - var(--safe-t) - 120px); min-height: calc(100dvh - var(--tabbar-h) - var(--safe-b) - var(--safe-t) - 120px); }
+.arcade-game .game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.arcade-game .tubes { gap: 26px 10px; }
+.arcade-game .tube { width: min(62px, 100%); height: clamp(150px, calc(100vh - 470px), 380px); height: clamp(150px, calc(100dvh - 470px), 380px); }
+.arcade-game .tubes.two-rows .tube { height: clamp(100px, calc((100vh - 520px) / 2), 210px); height: clamp(100px, calc((100dvh - 520px) / 2), 210px); }
+.arcade-game .tubes.shape-syringe .tube { height: clamp(140px, calc(100dvh - 540px), 340px); }
+.arcade-game .tubes.two-rows.shape-syringe .tube { height: clamp(90px, calc((100dvh - 600px) / 2), 190px); }
