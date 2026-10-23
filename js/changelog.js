@@ -2,6 +2,13 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.5.1',
+    items: [
+      '🔄 Les mises à jour s’installent toutes seules, plus besoin de toucher « Mettre à jour »',
+      '🖼️ Réglages plus compacts : photo et mascotte en miniature',
+    ],
+  },
+  {
     version: '1.5.0',
     items: [
       '🌌 Le jeu des tubes fait peau neuve : ambiance de nuit, tubes en verre',
