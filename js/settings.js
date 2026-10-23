@@ -84,7 +84,10 @@ export function renderSettings(container) {
 
     ${demo ? '' : `<div class="card">
       <h3>Compte</h3>
-      <button class="btn danger" id="st-logout">Se déconnecter de ce téléphone</button>
+      <div class="btn-row">
+        <button class="btn ghost" id="st-password">🔑 Changer le mot de passe</button>
+        <button class="btn danger" id="st-logout">Se déconnecter de ce téléphone</button>
+      </div>
     </div>`}
     <div class="center">
       <div class="btn-row center-row">
@@ -168,6 +171,8 @@ export function bindSettings(container, { onRender }) {
       onRender();
       const st = sync.getStatus();
       toast(st.error ? 'Échec : ' + st.error : 'Synchronisé ✓');
+    } else if (e.target.closest('#st-password')) {
+      passwordSheet();
     } else if (e.target.closest('#st-logout')) {
       const pending = store.pendingCount();
       const msg = pending
@@ -206,5 +211,41 @@ function editCustom(key, onRender) {
       urgent: $('#es-urgent', body).checked, archived: $('#es-arch', body).checked,
     });
     closeSheet();
+  };
+}
+
+function passwordSheet() {
+  const body = openSheet(`
+    <h3>🔑 Changer le mot de passe</h3>
+    <form id="pw-form" class="field-block">
+      <input id="pw-new" type="password" placeholder="Nouveau mot de passe (6 caractères min.)" autocomplete="new-password" minlength="6" required>
+      <input id="pw-new2" type="password" placeholder="Confirme le mot de passe" autocomplete="new-password" minlength="6" required>
+      <p class="muted small" id="pw-msg"></p>
+      <div class="sheet-actions">
+        <button type="button" class="btn ghost" data-close>Annuler</button>
+        <button class="btn primary" id="pw-save">Enregistrer</button>
+      </div>
+    </form>`);
+  body.querySelector('[data-close]').onclick = closeSheet;
+  body.querySelector('#pw-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const pw = body.querySelector('#pw-new').value;
+    const msg = body.querySelector('#pw-msg');
+    if (pw !== body.querySelector('#pw-new2').value) { msg.textContent = 'Les deux mots de passe ne sont pas identiques.'; return; }
+    const btn = body.querySelector('#pw-save');
+    btn.disabled = true;
+    msg.textContent = 'Enregistrement…';
+    try {
+      await sync.updatePassword(pw);
+      closeSheet();
+      toast('Nouveau mot de passe enregistré ✓');
+    } catch (err) {
+      msg.textContent = !navigator.onLine ? 'Pas de connexion internet.'
+        : /same_password|different/i.test(err.message + err.code) ? 'Choisis un mot de passe différent de l’ancien.'
+        : /weak|should be/i.test(err.message + err.code) ? 'Mot de passe trop court ou trop simple (6 caractères minimum).'
+        : err.message;
+    } finally {
+      btn.disabled = false;
+    }
   };
 }

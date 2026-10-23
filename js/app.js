@@ -10,7 +10,7 @@ import { renderDetente, bindDetente, detenteHome, openDetente } from './detente.
 import { initSheet, sheetOpen, openSheet } from './ui.js';
 import { CHANGELOG, APP_VERSION, newerThan, notesHtml } from './changelog.js';
 import { applyPhoto } from './photo.js';
-import { $, $$, toDay, addDays, fmtDayLong, esc, isEvening } from './util.js';
+import { $, $$, toDay, addDays, fmtDayLong, esc, isEvening, toast } from './util.js';
 
 const state = { tab: 'home', day: toDay() };
 const views = {};
@@ -71,35 +71,127 @@ function safeRender() {
   window.scrollTo(0, y);
 }
 
-function showLogin(message) {
+// Écran de connexion : se connecter, créer un compte, mot de passe oublié, nouveau mot de passe
+const LOGIN_MODES = {
+  login: { title: '', btn: 'Se connecter', email: true, pw: 'Mot de passe', links: [['signup', 'Créer un compte'], ['forgot', 'Mot de passe oublié ?']] },
+  signup: { title: 'Créer un compte', btn: 'Créer mon compte', email: true, pw: 'Mot de passe (6 caractères min.)', pw2: true, links: [['login', 'J’ai déjà un compte']] },
+  forgot: { title: 'Mot de passe oublié', btn: 'Recevoir un lien par email', email: true, links: [['login', '‹ Retour à la connexion']] },
+  reset: { title: 'Choisis un nouveau mot de passe', btn: 'Enregistrer', pw: 'Nouveau mot de passe (6 caractères min.)', pw2: true, links: [] },
+};
+let loginMode = 'login';
+
+function loginMsg(text, ok = false) {
+  const m = $('#login-msg');
+  m.textContent = text;
+  m.classList.toggle('ok', ok);
+}
+
+function setLoginMode(mode, message = '') {
+  loginMode = mode;
+  const m = LOGIN_MODES[mode];
+  $('#login-title').textContent = m.title;
+  const email = $('#login-email'); const pw = $('#login-password'); const pw2 = $('#login-password2');
+  email.hidden = !m.email; email.required = !!m.email;
+  pw.hidden = !m.pw; pw.required = !!m.pw; pw.placeholder = m.pw || '';
+  pw.minLength = m.pw2 ? 6 : 0;
+  pw.autocomplete = m.pw2 ? 'new-password' : 'current-password';
+  pw2.hidden = !m.pw2; pw2.required = !!m.pw2; pw2.value = '';
+  $('#login-btn').textContent = m.btn;
+  $('#login-links').innerHTML = m.links.map(([id, label]) => `<button type="button" data-login-mode="${id}">${label}</button>`).join('');
+  loginMsg(message);
+}
+
+function loginDone() {
+  $('#login-password').value = '';
+  $('#login-password2').value = '';
+  $('#login').hidden = true;
+  store.kvSet('seenVersion', APP_VERSION); // nouvelle installation : pas de « Quoi de neuf »
+  startApp();
+}
+
+async function submitLogin() {
+  const email = $('#login-email').value.trim();
+  const pw = $('#login-password').value;
+  if (LOGIN_MODES[loginMode].pw2 && pw !== $('#login-password2').value) { loginMsg('Les deux mots de passe ne sont pas identiques.'); return; }
+  if (loginMode === 'login') {
+    loginMsg('Connexion…');
+    await sync.login(email, pw);
+    loginDone();
+  } else if (loginMode === 'signup') {
+    loginMsg('Création du compte…');
+    const mustConfirm = await sync.signup(email, pw);
+    if (!mustConfirm) { loginDone(); return; }
+    setLoginMode('login', `📧 Compte créé ! Ouvre l’email envoyé à ${email} et clique sur le lien pour l’activer.`);
+    $('#login-msg').classList.add('ok');
+  } else if (loginMode === 'forgot') {
+    loginMsg('Envoi…');
+    await sync.recover(email);
+    setLoginMode('login', `📧 Si un compte existe pour ${email}, un email avec un lien vient d’être envoyé. Ouvre-le sur ce téléphone pour choisir un nouveau mot de passe.`);
+    $('#login-msg').classList.add('ok');
+  } else if (loginMode === 'reset') {
+    loginMsg('Enregistrement…');
+    await sync.updatePassword(pw);
+    toast('Nouveau mot de passe enregistré ✓');
+    loginDone();
+  }
+}
+
+function loginError(err) {
+  if (!navigator.onLine) return 'Pas de connexion internet.';
+  const msg = err.message || '';
+  if (/invalid login|invalid_credentials/i.test(msg + err.code)) return 'Email ou mot de passe incorrect.';
+  if (/not confirmed/i.test(msg)) return 'Ton email n’est pas encore confirmé : clique sur le lien reçu par email.';
+  if (/signups? not allowed|signup_disabled/i.test(msg + err.code)) return 'La création de compte est fermée pour le moment.';
+  if (/already registered|user_already_exists/i.test(msg + err.code)) return 'Un compte existe déjà avec cet email : connecte-toi ou utilise « Mot de passe oublié ».';
+  if (/rate limit|over_email_send_rate_limit/i.test(msg + err.code)) return 'Trop d’emails envoyés : réessaie dans une heure.';
+  if (/password should be|weak_password/i.test(msg + err.code)) return 'Mot de passe trop court ou trop simple (6 caractères minimum).';
+  if (/same_password|should be different/i.test(msg + err.code)) return 'Choisis un mot de passe différent de l’ancien.';
+  if (/valid email|email_address_invalid/i.test(msg + err.code)) return 'Adresse email invalide.';
+  return msg;
+}
+
+function showLogin(message, mode = 'login') {
   $('#app').hidden = true;
   const box = $('#login');
   box.hidden = false;
   if (!sync.isConfigured()) {
     $('#login-form').hidden = true;
-    $('#login-msg').textContent = 'L’application n’est pas encore reliée à Supabase : renseignez js/config.js.';
+    loginMsg('L’application n’est pas encore reliée à Supabase : renseignez js/config.js.');
     return;
   }
-  if (message) $('#login-msg').textContent = message;
+  setLoginMode(mode, message);
+  $('#login-links').onclick = (e) => {
+    const b = e.target.closest('[data-login-mode]');
+    if (b) setLoginMode(b.dataset.loginMode);
+  };
   $('#login-form').onsubmit = async (e) => {
     e.preventDefault();
     const btn = $('#login-btn');
     btn.disabled = true;
-    $('#login-msg').textContent = 'Connexion…';
     try {
-      await sync.login($('#login-email').value.trim(), $('#login-password').value);
-      $('#login-password').value = '';
-      box.hidden = true;
-      store.kvSet('seenVersion', APP_VERSION); // nouvelle installation : pas de « Quoi de neuf »
-      startApp();
+      await submitLogin();
     } catch (err) {
-      $('#login-msg').textContent = navigator.onLine
-        ? (/invalid/i.test(err.message) ? 'Email ou mot de passe incorrect.' : err.message)
-        : 'Pas de connexion internet.';
+      loginMsg(loginError(err));
     } finally {
       btn.disabled = false;
     }
   };
+}
+
+// Lien reçu par email (confirmation de compte ou mot de passe oublié) : renvoie true s'il a été traité
+async function handleAuthLink() {
+  const hash = location.hash;
+  if (!/access_token=|error_code=|error=/.test(hash)) return false;
+  history.replaceState(null, '', location.pathname + location.search);
+  try {
+    const type = await sync.sessionFromLink(hash);
+    if (type === 'recovery') { showLogin('', 'reset'); return true; }
+    if (type) { startApp(); toast('Compte activé, bienvenue 💜'); return true; }
+  } catch (err) {
+    showLogin(navigator.onLine ? err.message : 'Pas de connexion internet.', err.link ? 'forgot' : 'login');
+    return true;
+  }
+  return false;
 }
 
 let started = false;
@@ -263,7 +355,8 @@ async function main() {
     }
   });
 
-  if (demo || store.kvGet('session')) { startApp(); showNotesAfterUpdate(); }
+  if (!demo && await handleAuthLink()) { /* lien email traité */ }
+  else if (demo || store.kvGet('session')) { startApp(); showNotesAfterUpdate(); }
   else showLogin();
 
   setupUpdates();

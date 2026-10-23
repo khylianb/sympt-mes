@@ -36,11 +36,14 @@
       <img src="icons/icon-192.png" alt="" width="72" height="72">
       <h1>Sympt'mes</h1>
       <p class="muted">Suivi quotidien des symptômes</p>
+      <h2 id="login-title" class="login-title"></h2>
       <form id="login-form">
         <input id="login-email" type="email" placeholder="Email" autocomplete="username" required>
-        <input id="login-password" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
+        <input id="login-password" type="password" placeholder="Mot de passe" autocomplete="current-password" minlength="6" required>
+        <input id="login-password2" type="password" placeholder="Confirme le mot de passe" autocomplete="new-password" minlength="6" hidden>
         <button id="login-btn" class="btn primary big" type="submit">Se connecter</button>
       </form>
+      <div id="login-links" class="login-links"></div>
       <p id="login-msg" class="muted small"></p>
     </div>
   </section>
