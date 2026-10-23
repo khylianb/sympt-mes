@@ -2,6 +2,14 @@
 // La première entrée donne le numéro de version de l'appli : en ajouter une à chaque mise à jour.
 export const CHANGELOG = [
   {
+    version: '1.8.0',
+    items: [
+      '🛍️ Boutique du jeu des tubes (bouton 🛍️) : grosse seringue 💉, flacon de potion, liquides pailletés, néon, lave, reflets irisés',
+      '🌌 Nouveaux fonds (aurore boréale, coucher de soleil, océan, galaxie) et effets de victoire (cœurs, étoiles, bulles, feux d’artifice)',
+      '💧 Une seule cagnotte de gouttes pour la boutique du jeu et celle de l’axolotl',
+    ],
+  },
+  {
     version: '1.7.0',
     items: [
       '🥚 Un œuf t’attend dans Détente : choisis le prénom de ton axolotl et il éclot',
