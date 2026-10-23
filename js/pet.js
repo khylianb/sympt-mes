@@ -62,13 +62,17 @@ export function petMini(size = 90, mood) {
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 // Phrases positives : il fait des compliments et encourage, même quand il est triste
 export const COMPLIMENTS = [
-  'Je suis fier de toi ✨', 'Je suis tellement fier de toi 🩷', 'Je crois en toi 💪', 'Je suis là pour toi 🫶',
-  'Tu comptes beaucoup pour moi 🩷', 'Je t’admire, tu sais ? 🌟', 'Je suis fier de tout ce que tu fais 💫',
-  'Tu me rends heureux 🥰', 'J’ai de la chance de t’avoir 🍀', 'Je suis fier de la personne que tu es 🌸',
-  'Je pense fort à toi 💭', 'Je suis avec toi, même les jours difficiles 🌈', 'Je te fais un gros câlin 🤗',
-  'Tu peux être fière de toi 🏅', 'Je suis toujours dans ton camp 💪', 'Je t’envoie tout mon amour d’axolotl 🩷',
-  'Je suis fier de ton courage 🦁', 'Chaque jour, je suis un peu plus fier de toi 🌱', 'Je suis heureux que tu sois là ☀️',
-  'Je suis fier de toi, vraiment 🥹', 'Je veille sur toi aujourd’hui 🫧', 'Je suis fier de la super infirmière que tu es 💉',
+  'Tu es exceptionnelle, ne l’oublie jamais ✨', 'Tu es une femme incroyable 👑', 'Tu es tellement forte, je t’admire 💪',
+  'Tu es la plus courageuse que je connaisse 🦁', 'Tu illumines la vie de tous ceux qui t’entourent ☀️', 'Ta gentillesse change la vie des gens 🩷',
+  'Tu es une infirmière en or 💉✨', 'Tes patients ont une chance folle de t’avoir 🍀', 'Tu es magnifique, à l’intérieur comme à l’extérieur 🌸',
+  'Tu es une source d’inspiration 🌟', 'Tu affrontes tout avec une force incroyable 🔥', 'Tu es précieuse, vraiment précieuse 💎',
+  'Le monde est plus beau parce que tu es là 🌍', 'Tu es brillante, drôle et pleine de cœur 💖', 'Tu mérites tout le bonheur du monde 🌈',
+  'Tu es une vraie warrior, et je suis tellement fier de toi ⚔️', 'Ton courage me bluffe chaque jour 🥹', 'Tu as un cœur immense 🫶',
+  'Tu es rayonnante aujourd’hui ✨', 'Tu es une reine, ne l’oublie pas 👑', 'Personne ne prend soin des autres comme toi 💉',
+  'Tu es plus forte que tout ce que tu traverses 💪', 'Tu es une personne rare et merveilleuse 🦄', 'Tu rends fiers tous ceux qui t’aiment 🏅',
+  'Tu es belle quand tu souris… et même quand tu ne souris pas 😍', 'Ta force tranquille est impressionnante 🌊', 'Tu es une héroïne, ici et à l’hôpital 🦸‍♀️',
+  'Tu as tout pour toi : le cœur, la force et le sourire 💫', 'Tu mérites d’être fière de toi, autant que je le suis 🥰', 'Tu es incroyable, et je ne le dirai jamais assez ✨',
+  'Je suis tellement fier de toi, tu n’imagines pas 🩷', 'Je t’admire plus que tout 🌟',
 ];
 // Citations (auteurs vérifiés), mêlées aux compliments
 export const CITATIONS = [
@@ -84,19 +88,39 @@ export const CITATIONS = [
   ['Petit à petit, l’oiseau fait son nid.', 'Proverbe'],
   ['Après la pluie, le beau temps.', 'Proverbe'],
 ].map(([t, a]) => `« ${t} » — ${a}`);
-const PHRASES = [...COMPLIMENTS, ...CITATIONS];
-// Le compliment du jour reste le même toute la journée
+// La phrase du jour reste la même toute la journée : surtout des compliments, parfois une citation,
+// souvent précédée de son prénom (Réglages → Accueil)
+function withName(text, n) {
+  const name = (store.meta('first_name') || '').trim();
+  return name && n % 2 === 0 && text.startsWith('Tu ') ? `${name}, t${text.slice(1)}` : text;
+}
 export function dailyCompliment() {
   let h = 0;
   for (const ch of toDay()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return PHRASES[h % PHRASES.length];
+  if (hardDay()) return withName(COMFORT[h % COMFORT.length], h >>> 3);
+  if (h % 5 === 0) return CITATIONS[h % CITATIONS.length];
+  return withName(COMPLIMENTS[h % COMPLIMENTS.length], h >>> 3);
 }
+// Coup de blues ou journée difficile : que des mots de réconfort, toujours positifs
+export const COMFORT = [
+  'Les jours difficiles passent, ta force, elle, reste 🌈', 'Tu traverses ça avec un courage immense, je t’admire 🦁',
+  'Même fatiguée, tu restes incroyable 🩷', 'Repose-toi, tu l’as tellement mérité 🛋️', 'Je suis là, tout près de toi 🫶',
+  'Tu es plus forte que cette journée 💪', 'Chaque petit pas compte, et tu en fais plein ✨', 'Tu as le droit d’aller doucement aujourd’hui 🌸',
+  'Demain sera plus doux, et tu seras toujours aussi formidable ☀️', 'Je t’envoie un énorme câlin 🤗', 'Tu es une battante, et je suis tellement fier de toi 🥹',
+  'Tu n’as rien à prouver : tu es déjà extraordinaire 💎', 'Prends soin de toi comme tu prends soin des autres 💉🩷', 'Tu es aimée, tellement aimée 💖',
+];
+// Journée difficile : forte douleur, symptôme à signaler, ou au moins 3 symptômes aujourd'hui
+export function hardDay() {
+  const logs = store.logsForDay(toDay()).map((l) => ({ l, def: store.symptomDef(l.symptom_key) })).filter((x) => x.def && !x.def.normal);
+  return logs.some((x) => (x.l.intensity || 0) >= 6 || x.def.urgent) || logs.length >= 3;
+}
+const randomPhrase = () => (Math.random() < 0.85 ? withName(pick(COMPLIMENTS), Math.floor(Math.random() * 4)) : pick(CITATIONS));
 export function encouragement(s) {
   return {
-    joy: 'Merci d’avoir pris soin de toi aujourd’hui 🩷',
-    happy: 'Quand tu veux, raconte-moi ta journée ✏️',
-    sad: 'Tu m’as manqué hier ! On reprend ensemble ? 🩷',
-    cry: 'Tu me manques… on reprend ensemble quand tu veux 🩷',
+    joy: hardDay() ? 'Journée pas facile… mais tu l’as remplie, quelle force 🩷' : 'Merci d’avoir pris soin de toi, tu es formidable 🩷',
+    happy: 'Prends une minute pour toi et ta journée : tu le mérites ✏️',
+    sad: 'Tu m’as manqué hier ! Tu restes incroyable, on reprend ensemble 🩷',
+    cry: 'Tu me manques… et tu es toujours aussi formidable 🩷',
   }[s.mood];
 }
 function moodLine(pet, s) {
@@ -151,6 +175,7 @@ function homeHtml(pet, s) {
       <div class="pp-days">${s.weekDays.map((d, k) => `<span class="${d.on ? 'on' : ''} ${d.today ? 'today' : ''} ${d.future ? 'future' : ''}"><i>${d.on ? '✓' : ''}</i>${'LMMJVSD'[k]}</span>`).join('')}</div>
       <p class="pp-next">${nextTxt}</p>
     </div>
+    <button class="btn primary big arcade-go cheer-btn" data-p="cheer">💗 Remonte-moi le moral</button>
     <div class="game-actions">
       <button class="glass-btn wide" data-p="shop">🛍️ Sa boutique</button>
       <button class="glass-btn wide" data-p="drops">💧 Gagner des gouttes</button>
@@ -264,7 +289,25 @@ function petTap() {
   heart.textContent = '🩷';
   root.querySelector('.tank').appendChild(heart);
   setTimeout(() => heart.remove(), 1200);
-  root.querySelector('.pet-bubble').textContent = pick(PHRASES);
+  root.querySelector('.pet-bubble').textContent = randomPhrase();
+}
+
+// « Remonte-moi le moral » : il saute, envoie une pluie de cœurs et un mot de réconfort
+function cheerUp() {
+  const stage = root.querySelector('.pet-stage');
+  stage.classList.remove('boing');
+  stage.getBoundingClientRect();
+  stage.classList.add('boing');
+  root.querySelector('.pet-bubble').textContent = withName(pick(COMFORT), Math.floor(Math.random() * 4));
+  const tank = root.querySelector('.tank');
+  for (let k = 0; k < 16; k++) {
+    const el = document.createElement('span');
+    el.className = 'tank-spark';
+    el.textContent = ['💖', '💗', '✨', '🩷'][k % 4];
+    el.style.cssText = `left:${8 + Math.random() * 84}%;top:${25 + Math.random() * 55}%;animation-delay:${Math.random() * 0.6}s`;
+    tank.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  }
 }
 
 function dropsSheet() {
@@ -332,6 +375,7 @@ export function bindPet(container) {
     switch (b.dataset.p) {
       case 'hatch': hatch(); return;
       case 'pet': petTap(); return;
+      case 'cheer': cheerUp(); return;
       case 'shop': view = 'shop'; tryOn = null; break;
       case 'back': view = 'home'; tryOn = null; break;
       case 'buy': buy(); break;

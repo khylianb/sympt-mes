@@ -3,7 +3,7 @@
 import * as store from './store.js';
 import { analyse, describeDetails, streak } from './analysis.js';
 import { greeting, toggleNothing } from './today.js';
-import { getPet, petState, petMini, dailyCompliment, encouragement } from './pet.js';
+import { getPet, petState, petMini, dailyCompliment, encouragement, hardDay } from './pet.js';
 import { esc, toDay, addDays, parseDay, fmtDayShort, intensityColor } from './util.js';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
@@ -38,7 +38,7 @@ export function renderHome(container) {
     const ps = petState(pet);
     html += `<button class="card pet-home mood-${ps.mood}" data-act="pet">
       <span class="ph-art">${petMini(76)}</span>
-      <span class="rem-text"><small class="ph-from">${esc(pet.name)} ${dailyCompliment().startsWith('«') ? 'partage une citation' : 'te dit'} :</small><b class="ph-quote ${dailyCompliment().startsWith('«') ? 'cite' : ''}">${esc(dailyCompliment())}</b><small>${esc(encouragement(ps))}</small></span>
+      <span class="rem-text"><small class="ph-from">${esc(pet.name)} ${hardDay() ? 'est là pour toi' : dailyCompliment().startsWith('«') ? 'partage une citation' : 'te dit'} :</small><b class="ph-quote ${dailyCompliment().startsWith('«') ? 'cite' : ''}">${esc(dailyCompliment())}</b><small>${esc(encouragement(ps))}</small></span>
       <span class="chev">›</span>
     </button>`;
   } else {

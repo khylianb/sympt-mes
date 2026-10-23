@@ -4,9 +4,10 @@ export const CHANGELOG = [
   {
     version: '1.8.2',
     items: [
-      '🩷 L’axolotl te fait un compliment chaque jour sur l’accueil',
+      '🩷 L’axolotl te dit chaque jour à quel point tu es formidable, sur l’accueil',
       '💬 Des phrases positives et encourageantes, même quand tu as oublié ta journée',
       '📜 Il partage aussi des citations (Saint-Exupéry, Marie Curie, Florence Nightingale…)',
+      '🫶 Les jours difficiles, il te réconforte ; et le bouton « 💗 Remonte-moi le moral » est là quand tu en as besoin',
     ],
   },
   {
